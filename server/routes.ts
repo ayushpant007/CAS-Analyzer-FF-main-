@@ -58,15 +58,15 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       // Analyze with OpenAI
       const response = await openai.chat.completions.create({
-        model: "gpt-4o", // Changed from gpt-5.1 to gpt-4o
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract the portfolio summary, holdings, asset allocation, and provide key insights. Return ONLY valid JSON with keys: summary (string), holdings (array of {name, value (number), type (string)}), allocation (object {equity (number), debt (number), other (number)}), insights (array of strings). Ensure numerical values are numbers, not strings."
+            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract the portfolio summary, holdings, and asset allocation. Return ONLY valid JSON with this exact structure: {\"summary\": {\"net_asset_value\": number, \"total_cost\": number}, \"holdings\": [{\"scheme_name\": string, \"current_value\": number}], \"asset_allocation\": [{\"asset_class\": string, \"percentage\": number}]}. Ensure all numerical values are numbers, not strings."
           },
           {
             role: "user",
-            content: text.slice(0, 100000) // Truncate to avoid token limits if massive
+            content: text.slice(0, 50000)
           }
         ],
         response_format: { type: "json_object" }

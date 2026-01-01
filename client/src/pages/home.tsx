@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, FileText, PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
+import { Report } from "@shared/schema";
+
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
 export default function Home() {
@@ -16,7 +18,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
 
-  const { data: reports, isLoading: isLoadingReports } = useQuery({
+  const { data: reports, isLoading: isLoadingReports } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
   });
 
@@ -122,7 +124,7 @@ export default function Home() {
             <div className="flex justify-center p-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : reports?.length === 0 ? (
+          ) : !reports || reports.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
                 <FileText className="h-12 w-12 text-muted-foreground opacity-20" />
@@ -130,13 +132,13 @@ export default function Home() {
               </CardContent>
             </Card>
           ) : (
-            reports?.map((report: any) => (
+            reports.map((report) => (
               <Card key={report.id} className="overflow-hidden">
                 <CardHeader className="bg-muted/50">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{report.filename}</CardTitle>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(report.createdAt).toLocaleDateString()}
+                      {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : ""}
                     </span>
                   </div>
                 </CardHeader>
@@ -149,13 +151,13 @@ export default function Home() {
                           <div className="bg-primary/5 p-3 rounded-lg">
                             <p className="text-xs text-muted-foreground">Net Asset Value</p>
                             <p className="text-xl font-bold">
-                              ₹{report.analysis.summary.net_asset_value.toLocaleString()}
+                              ₹{(report.analysis as any).summary.net_asset_value.toLocaleString()}
                             </p>
                           </div>
                           <div className="bg-primary/5 p-3 rounded-lg">
                             <p className="text-xs text-muted-foreground">Total Cost</p>
                             <p className="text-xl font-bold">
-                              ₹{report.analysis.summary.total_cost.toLocaleString()}
+                              ₹{(report.analysis as any).summary.total_cost.toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -164,7 +166,7 @@ export default function Home() {
                       <div>
                         <h3 className="font-semibold mb-2">Top Holdings</h3>
                         <div className="space-y-2">
-                          {report.analysis.holdings.slice(0, 3).map((h: any, i: number) => (
+                          {(report.analysis as any).holdings.slice(0, 3).map((h: any, i: number) => (
                             <div key={i} className="flex justify-between text-sm p-2 border-b">
                               <span className="truncate mr-2">{h.scheme_name}</span>
                               <span className="font-medium">₹{h.current_value.toLocaleString()}</span>
@@ -182,7 +184,7 @@ export default function Home() {
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={report.analysis.asset_allocation}
+                            data={(report.analysis as any).asset_allocation}
                             dataKey="percentage"
                             nameKey="asset_class"
                             cx="50%"
@@ -191,7 +193,7 @@ export default function Home() {
                             outerRadius={80}
                             paddingAngle={5}
                           >
-                            {report.analysis.asset_allocation.map((entry: any, index: number) => (
+                            {(report.analysis as any).asset_allocation.map((entry: any, index: number) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
