@@ -42,7 +42,14 @@ export default function Home() {
 
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file) {
+      toast({
+        variant: "destructive",
+        title: "No file selected",
+        description: "Please select a CAS PDF file to analyze.",
+      });
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);

@@ -58,7 +58,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       // Analyze with OpenAI
       const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-4o", // Changed from gpt-5.1 to gpt-4o
         messages: [
           {
             role: "system",
