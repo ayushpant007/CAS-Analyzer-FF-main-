@@ -61,16 +61,57 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {/* Summary Card */}
+      {/* Summary Section - Account Wise */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
+          <h3 className="text-lg font-bold">Portfolio Account Summary</h3>
+          <div className="text-right">
+            <p className="text-xs opacity-80 uppercase tracking-wider font-semibold">Consolidated Value</p>
+            <p className="text-xl font-bold">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-6 py-4">Account Type</th>
+                <th className="px-6 py-4">Account Details</th>
+                <th className="px-6 py-4 text-right">No. of Schemes</th>
+                <th className="px-6 py-4 text-right">Value (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(analysis.account_summaries || []).map((acc: any, i: number) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 font-semibold text-slate-700">{acc.type}</td>
+                  <td className="px-6 py-4 text-slate-500">{acc.details}</td>
+                  <td className="px-6 py-4 text-right font-mono">{acc.count}</td>
+                  <td className="px-6 py-4 text-right font-bold text-slate-900">
+                    {acc.value?.toLocaleString() ?? '0.00'}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-slate-800 text-white font-bold">
+                <td colSpan={3} className="px-6 py-4 text-right uppercase tracking-wider text-xs">Total Portfolio Value</td>
+                <td className="px-6 py-4 text-right text-lg">
+                  ₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Summary Card - AI Insights */}
       <motion.div variants={item} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
           <PieChartIcon className="w-5 h-5 text-primary" />
-          Portfolio Summary
+          Market Analysis & Insights
         </h3>
         <p className="text-slate-600 leading-relaxed">
           {typeof analysis.summary === 'string' 
             ? analysis.summary 
-            : `Net Asset Value: ₹${analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}, Total Cost: ₹${analysis.summary?.total_cost?.toLocaleString() ?? '0'}`}
+            : `Your consolidated portfolio across ${(analysis.account_summaries || []).length} account types has a total net asset value of ₹${analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}.`}
         </p>
       </motion.div>
 

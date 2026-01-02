@@ -62,7 +62,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         messages: [
           {
             role: "system",
-            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract the portfolio summary, holdings, and asset allocation. Return ONLY valid JSON with this exact structure: {\"summary\": {\"net_asset_value\": number, \"total_cost\": number}, \"holdings\": [{\"scheme_name\": string, \"current_value\": number}], \"asset_allocation\": [{\"asset_class\": string, \"percentage\": number}]}. Ensure all numerical values are numbers, not strings."
+            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract the portfolio summary, account-wise summaries (CDSL/NSDL Demat, Mutual Fund Folios), holdings, and asset allocation. Return ONLY valid JSON with this exact structure: {\"summary\": {\"net_asset_value\": number, \"total_cost\": number}, \"account_summaries\": [{\"type\": string, \"details\": string, \"count\": number, \"value\": number}], \"holdings\": [{\"scheme_name\": string, \"current_value\": number}], \"asset_allocation\": [{\"asset_class\": string, \"percentage\": number}], \"insights\": [string]}. Ensure all numerical values are numbers, not strings. Account summaries should reflect the high-level summary table in a typical CAS (CDSL Demat, NSDL Demat, MF Folios)."
           },
           {
             role: "user",
