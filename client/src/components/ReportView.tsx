@@ -90,6 +90,112 @@ export function ReportView({ report }: ReportViewProps) {
           </table>
         </div>
       </motion.div>
+
+      {/* Historical Portfolio Valuation Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-800 p-4 text-white">
+          <h3 className="text-lg font-bold">Consolidated Portfolio Valuation for Year</h3>
+        </div>
+        <div className="p-6">
+          <div className="h-64 w-full mb-8">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analysis.historical_valuations || []}>
+                <XAxis dataKey="month_year" tick={{fontSize: 12}} />
+                <YAxis hide />
+                <RechartsTooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Bar dataKey="valuation" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4">Month-Year</th>
+                  <th className="px-6 py-4 text-right">Portfolio Valuation (In ₹)</th>
+                  <th className="px-6 py-4 text-right">Changes in ₹</th>
+                  <th className="px-6 py-4 text-right">Changes in %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(analysis.historical_valuations || []).map((v: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{v.month_year}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-900">{v.valuation?.toLocaleString() ?? '0.00'}</td>
+                    <td className={`px-6 py-4 text-right font-mono ${v.change_value >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {v.change_value >= 0 ? '+' : ''}{v.change_value?.toLocaleString() ?? '0.00'}
+                    </td>
+                    <td className={`px-6 py-4 text-right font-bold ${v.change_percentage >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {v.change_percentage >= 0 ? '+' : ''}{v.change_percentage?.toFixed(2) ?? '0.00'}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Asset Class Allocation Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-800 p-4 text-white">
+          <h3 className="text-lg font-bold">Consolidated Portfolio for Accounts for the Month</h3>
+        </div>
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={analysis.asset_allocation || []}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  nameKey="asset_class"
+                >
+                  {(analysis.asset_allocation || []).map((_: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Legend verticalAlign="right" align="right" layout="vertical" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4">Asset Class</th>
+                  <th className="px-6 py-4 text-right">Value</th>
+                  <th className="px-6 py-4 text-right">Percentage</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(analysis.asset_allocation || []).map((a: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{a.asset_class}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-900">{a.value?.toLocaleString() ?? '0.00'}</td>
+                    <td className="px-6 py-4 text-right font-mono text-slate-500">{a.percentage?.toFixed(2) ?? '0.00'}%</td>
+                  </tr>
+                ))}
+                <tr className="bg-slate-800 text-white font-bold">
+                  <td className="px-6 py-4 uppercase tracking-wider text-xs">Total</td>
+                  <td className="px-6 py-4 text-right text-lg">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</td>
+                  <td className="px-6 py-4 text-right">100.00%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
