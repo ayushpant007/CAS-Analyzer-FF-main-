@@ -52,7 +52,7 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Summary Section - Account Wise */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
           <h3 className="text-lg font-bold">Portfolio Account Summary</h3>
           <div className="text-right">
             <p className="text-xs opacity-80 uppercase tracking-wider font-semibold">Consolidated Value</p>
@@ -80,9 +80,9 @@ export function ReportView({ report }: ReportViewProps) {
                   </td>
                 </tr>
               ))}
-              <tr className="bg-slate-800 text-white font-bold">
-                <td colSpan={3} className="px-6 py-4 text-right uppercase tracking-wider text-xs">Total Portfolio Value</td>
-                <td className="px-6 py-4 text-right text-lg">
+              <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
+                <td colSpan={3} className="px-6 py-4 text-right uppercase tracking-wider text-xs text-slate-500">Total Portfolio Value</td>
+                <td className="px-6 py-4 text-right text-lg text-slate-900">
                   ₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}
                 </td>
               </tr>
@@ -93,7 +93,7 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Historical Portfolio Valuation Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-800 p-4 text-white">
+        <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-4 text-white">
           <h3 className="text-lg font-bold">Consolidated Portfolio Valuation for Year</h3>
         </div>
         <div className="p-6">
@@ -140,7 +140,7 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Asset Class Allocation Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-800 p-4 text-white">
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-700 p-4 text-white">
           <h3 className="text-lg font-bold">Consolidated Portfolio for Accounts for the Month</h3>
         </div>
         <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -186,10 +186,10 @@ export function ReportView({ report }: ReportViewProps) {
                     <td className="px-6 py-4 text-right font-mono text-slate-500">{a.percentage?.toFixed(2) ?? '0.00'}%</td>
                   </tr>
                 ))}
-                <tr className="bg-slate-800 text-white font-bold">
-                  <td className="px-6 py-4 uppercase tracking-wider text-xs">Total</td>
-                  <td className="px-6 py-4 text-right text-lg">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</td>
-                  <td className="px-6 py-4 text-right">100.00%</td>
+                <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
+                  <td className="px-6 py-4 uppercase tracking-wider text-xs text-slate-500">Total</td>
+                  <td className="px-6 py-4 text-right text-lg text-slate-900">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</td>
+                  <td className="px-6 py-4 text-right text-slate-500">100.00%</td>
                 </tr>
               </tbody>
             </table>
