@@ -60,8 +60,11 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Analyze with Gemini
+      const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+      const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
+      
       const model = genAI.getGenerativeModel({ 
-        model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+        model: sanitizedModel,
         generationConfig: { responseMimeType: "application/json" }
       });
 

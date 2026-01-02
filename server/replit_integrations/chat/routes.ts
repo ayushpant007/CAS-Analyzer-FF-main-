@@ -78,7 +78,9 @@ export function registerChatRoutes(app: Express): void {
       res.setHeader("Connection", "keep-alive");
 
       // Stream response from Gemini
-      const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.0-flash" });
+      const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+      const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
+      const model = genAI.getGenerativeModel({ model: sanitizedModel });
       const chat = model.startChat({
         history: chatMessages.slice(0, -1).map(m => ({
           role: m.role === "assistant" ? "model" : "user",
