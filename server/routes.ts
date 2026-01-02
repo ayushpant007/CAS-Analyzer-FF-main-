@@ -62,11 +62,11 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         messages: [
           {
             role: "system",
-            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract:\n1. Portfolio summary: {\"net_asset_value\": number, \"total_cost\": number}\n2. Account-wise summary table: [{\"type\": string, \"details\": string, \"count\": number, \"value\": number}]\n3. Historical Portfolio Valuation: [{\"month_year\": string, \"valuation\": number, \"change_value\": number, \"change_percentage\": number}]\n4. Asset Class Allocation for the month: [{\"asset_class\": string, \"value\": number, \"percentage\": number}]\n5. Mutual Fund Portfolio Snapshot: [{\"scheme_name\": string, \"folio_no\": string, \"closing_balance\": number, \"nav\": number, \"invested_amount\": number, \"valuation\": number, \"unrealised_profit_loss\": number}]\n\nReturn ONLY valid JSON with this exact structure: {\"summary\": {\"net_asset_value\": number, \"total_cost\": number}, \"account_summaries\": [...], \"historical_valuations\": [...], \"asset_allocation\": [...], \"mf_snapshot\": [...]}. Ensure all numerical values are numbers. Invested amount and valuation totals for mutual funds should be calculated accurately."
+            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract:\n1. Portfolio summary: {\"net_asset_value\": number, \"total_cost\": number}\n2. Account-wise summary table: [{\"type\": string, \"details\": string, \"count\": number, \"value\": number}]\n3. Historical Portfolio Valuation: [{\"month_year\": string, \"valuation\": number, \"change_value\": number, \"change_percentage\": number}]\n4. Asset Class Allocation for the month: [{\"asset_class\": string, \"value\": number, \"percentage\": number}]\n5. Mutual Fund Portfolio Snapshot: [{\"scheme_name\": string, \"folio_no\": string, \"closing_balance\": number, \"nav\": number, \"invested_amount\": number, \"valuation\": number, \"unrealised_profit_loss\": number}]\n\nReturn ONLY valid JSON with this exact structure: {\"summary\": {\"net_asset_value\": number, \"total_cost\": number}, \"account_summaries\": [...], \"historical_valuations\": [...], \"asset_allocation\": [...], \"mf_snapshot\": [...]}. Ensure ALL funds and folios (e.g., if the summary says 52 folios, there should be 52 entries in mf_snapshot) are extracted comprehensively without omission. Ensure all numerical values are numbers."
           },
           {
             role: "user",
-            content: text.slice(0, 50000)
+            content: text
           }
         ],
         response_format: { type: "json_object" }

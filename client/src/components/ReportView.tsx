@@ -218,7 +218,7 @@ export function ReportView({ report }: ReportViewProps) {
             <tbody className="divide-y divide-slate-100">
               {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
                 <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[200px] truncate" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[300px]" title={mf.scheme_name}>{mf.scheme_name}</td>
                   <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
                   <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
                   <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
