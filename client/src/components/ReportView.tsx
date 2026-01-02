@@ -196,6 +196,55 @@ export function ReportView({ report }: ReportViewProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* Mutual Fund Portfolio Snapshot Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-4 py-3">Scheme Name</th>
+                <th className="px-4 py-3">Folio No.</th>
+                <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
+                <th className="px-4 py-3 text-right">NAV (₹)</th>
+                <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
+                <th className="px-4 py-3 text-right">Valuation (₹)</th>
+                <th className="px-4 py-3 text-right">Unrealised P/L (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[200px] truncate" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
+                  <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {mf.unrealised_profit_loss?.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-slate-800 text-white font-bold">
+                <td colSpan={4} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
+                <td className="px-4 py-3 text-right">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right text-sm">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right">
+                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
