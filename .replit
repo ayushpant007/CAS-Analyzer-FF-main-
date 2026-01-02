@@ -41,3 +41,9 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_gemini_ai_integrations:2.0.0"]
+
+[userenv]
+
+[userenv.shared]
+GEMINI_API_KEY = "AIzaSyBH9GEpsywGVWMBMH9PcXjMfDYCBT7Y1b4"
+GEMINI_MODEL = "Gemini 2.5 Flash Lite"

@@ -8,7 +8,7 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { promisify } from "util";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 
@@ -16,14 +16,14 @@ const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Initialize Gemini client
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
   registerChatRoutes(app);
   registerImageRoutes(app);
 
-  app.post(api.analyze.path, upload.single("file"), async (req, res) => {
+  app.post(api.analyze.path, upload.single("file"), async (req: any, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }

@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from "express";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { chatStorage } from "./storage";
 
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
 
 export function registerChatRoutes(app: Express): void {
   // Get all conversations
