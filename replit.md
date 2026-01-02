@@ -48,12 +48,11 @@ Main tables:
 - `conversations` / `messages` - Chat history for AI conversations
 
 ### AI Integration
-- **Provider**: OpenAI (via Replit AI Integrations)
+- **Provider**: Google Gemini (via Replit AI Integrations or User API Key)
 - **Features**: 
   - PDF content analysis for portfolio insights
   - Chat functionality for follow-up questions
-  - Image generation capabilities
-- **Configuration**: Uses environment variables `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL`
+- **Configuration**: Uses environment variables `GEMINI_API_KEY` and `GEMINI_MODEL` (e.g., `gemini-2.5-flash`). Falls back to `AI_INTEGRATIONS_GEMINI_API_KEY` if configured.
 
 ### Build Process
 - **Development**: `npm run dev` runs tsx with Vite middleware
@@ -68,8 +67,8 @@ Main tables:
 - **connect-pg-simple**: Session storage (available but sessions not currently implemented)
 
 ### AI Services
-- **OpenAI API**: Portfolio analysis and chat (via Replit AI Integrations)
-- Environment variables: `AI_INTEGRATIONS_OPENAI_API_KEY`, `AI_INTEGRATIONS_OPENAI_BASE_URL`
+- **Gemini API**: Portfolio analysis and chat
+- Environment variables: `GEMINI_API_KEY`, `GEMINI_MODEL`
 
 ### System Dependencies
 - **poppler-utils**: Required for `pdftotext` command to parse PDF files

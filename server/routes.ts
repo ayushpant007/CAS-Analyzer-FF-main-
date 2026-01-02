@@ -8,12 +8,15 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { promisify } from "util";
-import { openai } from "./replit_integrations/image/client";
+import { GoogleGenAI } from "@google/genai";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Initialize Gemini client
+const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
@@ -56,23 +59,26 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Could not extract text from PDF. It might be empty or scanned." });
       }
 
-      // Analyze with OpenAI
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract:\n1. Portfolio summary: {\"net_asset_value\": number, \"total_cost\": number}\n2. Account-wise summary table: [{\"type\": string, \"details\": string, \"count\": number, \"value\": number}]\n3. Historical Portfolio Valuation: [{\"month_year\": string, \"valuation\": number, \"change_value\": number, \"change_percentage\": number}]\n4. Asset Class Allocation for the month: [{\"asset_class\": string, \"value\": number, \"percentage\": number}]\n5. Mutual Fund Portfolio Snapshot: [{\"scheme_name\": string, \"folio_no\": string, \"closing_balance\": number, \"nav\": number, \"invested_amount\": number, \"valuation\": number, \"unrealised_profit_loss\": number}]\n\nReturn ONLY valid JSON with this exact structure: {\"summary\": {\"net_asset_value\": number, \"total_cost\": number}, \"account_summaries\": [...], \"historical_valuations\": [...], \"asset_allocation\": [...], \"mf_snapshot\": [...]}. Ensure ALL funds and folios (e.g., if the summary says 52 folios, there should be 52 entries in mf_snapshot) are extracted comprehensively without omission. Ensure all numerical values are numbers."
-          },
-          {
-            role: "user",
-            content: text
-          }
-        ],
-        response_format: { type: "json_object" }
+      // Analyze with Gemini
+      const model = genAI.getGenerativeModel({ 
+        model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+        generationConfig: { responseMimeType: "application/json" }
       });
 
-      const analysisRaw = response.choices[0].message.content || "{}";
+      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract:
+1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
+2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
+3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
+4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
+5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number}]
+
+Return ONLY valid JSON with this exact structure: {"summary": {"net_asset_value": number, "total_cost": number}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...]}. Ensure ALL funds and folios (e.g., if the summary says 52 folios, there should be 52 entries in mf_snapshot) are extracted comprehensively without omission. Ensure all numerical values are numbers.
+
+Text content:
+${text}`;
+
+      const result = await model.generateContent(prompt);
+      const analysisRaw = result.response.text() || "{}";
       const analysis = JSON.parse(analysisRaw);
 
       const report = await storage.createReport({
