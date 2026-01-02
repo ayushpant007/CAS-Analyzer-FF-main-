@@ -48,17 +48,22 @@ export function useAnalyzeReport() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ file, password }: { file: File; password?: string }) => {
+    mutationFn: async ({ file, password, investorType, ageGroup }: { file: File; password?: string; investorType?: string; ageGroup?: string }) => {
       const formData = new FormData();
       formData.append("file", file);
       if (password) {
         formData.append("password", password);
       }
+      if (investorType) {
+        formData.append("investorType", investorType);
+      }
+      if (ageGroup) {
+        formData.append("ageGroup", ageGroup);
+      }
 
       const res = await fetch(api.analyze.path, {
         method: api.analyze.method,
         body: formData,
-        // Don't set Content-Type header manually for FormData, browser does it with boundary
       });
 
       if (!res.ok) {

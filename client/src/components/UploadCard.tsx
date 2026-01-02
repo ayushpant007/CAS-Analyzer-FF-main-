@@ -11,6 +11,8 @@ interface UploadCardProps {
 export function UploadCard({ onSuccess }: UploadCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState("");
+  const [investorType, setInvestorType] = useState("Aggressive");
+  const [ageGroup, setAgeGroup] = useState("20-35");
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -39,7 +41,7 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
     if (!file) return;
     
     analyze(
-      { file, password },
+      { file, password, investorType, ageGroup },
       {
         onSuccess: (data) => {
           toast({
@@ -140,6 +142,35 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
                   >
                     Change
                   </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Investor Type</label>
+                    <select
+                      value={investorType}
+                      onChange={(e) => setInvestorType(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+                    >
+                      <option value="High Aggressive">High Aggressive</option>
+                      <option value="Aggressive">Aggressive</option>
+                      <option value="Moderate">Moderate</option>
+                      <option value="Conservative">Conservative</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Age Group</label>
+                    <select
+                      value={ageGroup}
+                      onChange={(e) => setAgeGroup(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+                    >
+                      <option value="20-35">20-35</option>
+                      <option value="35-50">35-50</option>
+                      <option value="50-60">50-60</option>
+                      <option value="60+">60+</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

@@ -31,6 +31,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
     }
+    const investorType = req.body.investorType || "Aggressive";
+    const ageGroup = req.body.ageGroup || "20-35";
 
     const tempPath = path.join(os.tmpdir(), `upload-${Date.now()}.pdf`);
 
@@ -59,6 +61,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Could not extract text from PDF. It might be empty or scanned." });
       }
 
+      // Read CSV ratios
+      let csvContent = "";
+      try {
+        csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8");
+      } catch (e) {
+        console.error("Error reading ratios CSV:", e);
+      }
+
       // Analyze with Gemini
       const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
       const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
@@ -68,17 +78,37 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         generationConfig: { responseMimeType: "application/json" }
       });
 
-      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. Extract:
+      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. 
+Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
+
+Reference Ratios CSV:
+${csvContent}
+
+Extract:
 1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
 2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
 3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
 4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
 5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string}]
+6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
+   - Current Category Allocation (Equity, Debt, Hybrid, Others)
+   - Comparison with Category Ratio (Current % vs Target % from CSV)
+   - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
+   - Comparison with Type Ratio (Current % vs Target % from CSV)
 
-Return ONLY valid JSON with this exact structure: {"summary": {"net_asset_value": number, "total_cost": number}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...]}. 
+Return ONLY valid JSON with this exact structure: {
+  "summary": {"net_asset_value": number, "total_cost": number}, 
+  "account_summaries": [...], 
+  "historical_valuations": [...], 
+  "asset_allocation": [...], 
+  "mf_snapshot": [...],
+  "category_comparison": [{"category": string, "current_pct": number, "target_pct": number}],
+  "type_comparison": [{"type": string, "current_pct": number, "target_pct": number}]
+}. 
+
 For mf_snapshot, ensure you accurately identify:
 - fund_category: e.g. Equity, Debt, Hybrid, etc.
-- fund_type: e.g. Flexi Cap, Bluechip, Liquid Fund, etc.
+- fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, etc.
 
 Ensure ALL funds and folios are extracted comprehensively without omission. Ensure all numerical values are numbers.
 
@@ -91,6 +121,8 @@ ${text}`;
 
       const report = await storage.createReport({
         filename: req.file.originalname,
+        investorType,
+        ageGroup,
         analysis
       });
 
