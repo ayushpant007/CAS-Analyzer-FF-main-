@@ -11,19 +11,8 @@ interface ReportViewProps {
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export function ReportView({ report }: ReportViewProps) {
-  const { analysis } = report;
+  const analysis = report.analysis as any;
   
-  // Transform allocation object for Pie Chart
-  const allocationData = Object.entries(analysis.allocation || {}).map(([name, value]) => ({
-    name,
-    value
-  }));
-
-  // Top holdings for bar chart (first 5)
-  const topHoldings = [...(analysis.holdings || [])]
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5);
-
   const container = {
     hidden: { opacity: 0 },
     show: {
