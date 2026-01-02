@@ -207,6 +207,7 @@ export function ReportView({ report }: ReportViewProps) {
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
               <tr>
                 <th className="px-4 py-3">Scheme Name</th>
+                <th className="px-4 py-3">Category / Type</th>
                 <th className="px-4 py-3">Folio No.</th>
                 <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
                 <th className="px-4 py-3 text-right">NAV (₹)</th>
@@ -218,7 +219,13 @@ export function ReportView({ report }: ReportViewProps) {
             <tbody className="divide-y divide-slate-100">
               {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
                 <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[300px]" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-900">{mf.fund_category || 'N/A'}</span>
+                      <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
                   <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
                   <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
@@ -230,7 +237,7 @@ export function ReportView({ report }: ReportViewProps) {
                 </tr>
               ))}
               <tr className="bg-slate-800 text-white font-bold">
-                <td colSpan={4} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
+                <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
                 <td className="px-4 py-3 text-right">
                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
                 </td>

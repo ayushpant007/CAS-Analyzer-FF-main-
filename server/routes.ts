@@ -73,9 +73,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
 3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
 4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
-5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number}]
+5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string}]
 
-Return ONLY valid JSON with this exact structure: {"summary": {"net_asset_value": number, "total_cost": number}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...]}. Ensure ALL funds and folios (e.g., if the summary says 52 folios, there should be 52 entries in mf_snapshot) are extracted comprehensively without omission. Ensure all numerical values are numbers.
+Return ONLY valid JSON with this exact structure: {"summary": {"net_asset_value": number, "total_cost": number}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...]}. 
+For mf_snapshot, ensure you accurately identify:
+- fund_category: e.g. Equity, Debt, Hybrid, etc.
+- fund_type: e.g. Flexi Cap, Bluechip, Liquid Fund, etc.
+
+Ensure ALL funds and folios are extracted comprehensively without omission. Ensure all numerical values are numbers.
 
 Text content:
 ${text}`;
