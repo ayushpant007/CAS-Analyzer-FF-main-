@@ -67,7 +67,11 @@ export function ReportView({ report }: ReportViewProps) {
           <PieChartIcon className="w-5 h-5 text-primary" />
           Portfolio Summary
         </h3>
-        <p className="text-slate-600 leading-relaxed">{analysis.summary}</p>
+        <p className="text-slate-600 leading-relaxed">
+          {typeof analysis.summary === 'string' 
+            ? analysis.summary 
+            : `Net Asset Value: ₹${analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}, Total Cost: ₹${analysis.summary?.total_cost?.toLocaleString() ?? '0'}`}
+        </p>
       </motion.div>
 
       {/* Charts Grid */}
