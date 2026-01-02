@@ -1,214 +1,142 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, FileText, PieChart as PieChartIcon } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-
-import { Report } from "@shared/schema";
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+import { UploadCard } from "@/components/UploadCard";
+import { ReportView } from "@/components/ReportView";
+import { useReport, useReports } from "@/hooks/use-reports";
+import { motion, AnimatePresence } from "framer-motion";
+import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Home() {
-  const [file, setFile] = useState<File | null>(null);
-  const [password, setPassword] = useState("");
-  const { toast } = useToast();
-
-  const { data: reports, isLoading: isLoadingReports } = useQuery<Report[]>({
-    queryKey: ["/api/reports"],
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const res = await apiRequest("POST", "/api/analyze", formData);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
-      toast({ title: "Analysis complete", description: "Your CAS has been processed." });
-      setFile(null);
-      setPassword("");
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Analysis failed",
-        description: error.message,
-      });
-    },
-  });
-
-  const handleUpload = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file) {
-      toast({
-        variant: "destructive",
-        title: "No file selected",
-        description: "Please select a CAS PDF file to analyze.",
-      });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("password", password);
-    uploadMutation.mutate(formData);
-  };
+  const [activeReportId, setActiveReportId] = useState<number | null>(null);
+  
+  // Fetch specific report if selected
+  const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
+  
+  // Fetch list of past reports
+  const { data: reportsList } = useReports();
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">CAS Analyzer</h1>
-        <p className="text-muted-foreground">
-          Upload your Consolidated Account Statement PDF for AI-powered portfolio analysis.
-        </p>
-      </header>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Upload Statement
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="cas-file">CAS PDF File</Label>
-                <Input
-                  id="cas-file"
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  required
-                  data-testid="input-cas-file"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">PDF Password (if any)</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  data-testid="input-password"
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={uploadMutation.isPending}
-                data-testid="button-upload"
-              >
-                {uploadMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  "Start Analysis"
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <div className="md:col-span-2 space-y-6">
-          {isLoadingReports ? (
-            <div className="flex justify-center p-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="min-h-screen bg-slate-50/50 font-sans pb-20">
+      {/* Navbar */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2" onClick={() => setActiveReportId(null)}>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20 cursor-pointer">
+              <BarChart2 className="w-5 h-5" />
             </div>
-          ) : !reports || reports.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
-                <FileText className="h-12 w-12 text-muted-foreground opacity-20" />
-                <p className="text-muted-foreground">No analysis reports yet. Upload a statement to get started.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            reports.map((report) => (
-              <Card key={report.id} className="overflow-hidden">
-                <CardHeader className="bg-muted/50">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{report.filename}</CardTitle>
-                    <span className="text-xs text-muted-foreground">
-                      {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : ""}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold mb-2">Portfolio Summary</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-primary/5 p-3 rounded-lg">
-                            <p className="text-xs text-muted-foreground">Net Asset Value</p>
-                            <p className="text-xl font-bold">
-                              ₹{(report.analysis as any).summary.net_asset_value.toLocaleString()}
-                            </p>
-                          </div>
-                          <div className="bg-primary/5 p-3 rounded-lg">
-                            <p className="text-xs text-muted-foreground">Total Cost</p>
-                            <p className="text-xl font-bold">
-                              ₹{(report.analysis as any).summary.total_cost.toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="font-semibold mb-2">Top Holdings</h3>
-                        <div className="space-y-2">
-                          {(report.analysis as any).holdings.slice(0, 3).map((h: any, i: number) => (
-                            <div key={i} className="flex justify-between text-sm p-2 border-b">
-                              <span className="truncate mr-2">{h.scheme_name}</span>
-                              <span className="font-medium">₹{h.current_value.toLocaleString()}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="h-[300px]">
-                      <h3 className="font-semibold mb-2 flex items-center gap-2">
-                        <PieChartIcon className="h-4 w-4" />
-                        Asset Allocation
-                      </h3>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={(report.analysis as any).asset_allocation}
-                            dataKey="percentage"
-                            nameKey="asset_class"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                          >
-                            {(report.analysis as any).asset_allocation.map((entry: any, index: number) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+            <span className="text-xl font-bold font-display text-slate-900 cursor-pointer">FinAnalyze</span>
+          </div>
+          <div className="text-sm text-slate-500 font-medium">
+            AI-Powered Portfolio Insights
+          </div>
         </div>
-      </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <AnimatePresence mode="wait">
+          {!activeReportId ? (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-16"
+            >
+              {/* Hero Section */}
+              <div className="text-center space-y-6 max-w-3xl mx-auto">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-primary text-sm font-medium border border-blue-100 mb-2">
+                  <Zap className="w-4 h-4 fill-primary" />
+                  <span>Instant Portfolio X-Ray</span>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-bold font-display text-slate-900 tracking-tight leading-tight">
+                  Unlock hidden insights in your <span className="gradient-text">Investment Portfolio</span>
+                </h1>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                  Upload your CAS (Consolidated Account Statement) PDF securely. Our AI analyzes your holdings, asset allocation, and provides actionable insights in seconds.
+                </p>
+                
+                <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500 pt-4">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    Secure Analysis
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-blue-500" />
+                    PDF Support
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <BarChart2 className="w-5 h-5 text-violet-500" />
+                    Visual Reports
+                  </div>
+                </div>
+              </div>
+
+              {/* Upload Component */}
+              <div className="relative z-10">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/50 to-transparent -z-10 blur-3xl scale-150 transform opacity-50" />
+                <UploadCard onSuccess={setActiveReportId} />
+              </div>
+
+              {/* Recent Reports List */}
+              {reportsList && reportsList.length > 0 && (
+                <div className="max-w-4xl mx-auto pt-10 border-t border-slate-200">
+                  <h3 className="text-xl font-bold font-display text-slate-900 mb-6">Recent Analyses</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {reportsList.map((report) => (
+                      <div 
+                        key={report.id}
+                        onClick={() => setActiveReportId(report.id)}
+                        className="group bg-white p-5 rounded-xl border border-slate-200 hover:border-primary/50 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-primary transition-colors">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-900 group-hover:text-primary transition-colors">{report.filename}</h4>
+                            <p className="text-xs text-slate-500">
+                              {report.createdAt ? format(new Date(report.createdAt), "MMM d, yyyy • h:mm a") : "Unknown Date"}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary transition-colors" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="report"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <button 
+                onClick={() => setActiveReportId(null)}
+                className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+              >
+                <ChevronRight className="w-4 h-4 rotate-180" />
+                Back to Upload
+              </button>
+
+              {isLoadingReport ? (
+                <div className="flex flex-col items-center justify-center h-64">
+                  <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+                  <p className="text-slate-500 font-medium">Loading report data...</p>
+                </div>
+              ) : activeReport ? (
+                <ReportView report={activeReport} />
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-slate-500">Report not found.</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
