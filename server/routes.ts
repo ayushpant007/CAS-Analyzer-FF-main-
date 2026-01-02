@@ -62,11 +62,13 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Read CSV ratios
-      let csvContent = "";
+      let categoryCsv = "";
+      let fundTypeCsv = "";
       try {
-        csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8");
+        categoryCsv = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8");
+        fundTypeCsv = await fs.readFile(path.join(process.cwd(), "server/assets/fund_type_ratios.csv"), "utf-8");
       } catch (e) {
-        console.error("Error reading ratios CSV:", e);
+        console.error("Error reading ratios CSVs:", e);
       }
 
       // Analyze with Gemini
@@ -81,8 +83,12 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. 
 Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
 
-Reference Ratios CSV:
-${csvContent}
+Reference Ratios:
+Category Ratios CSV:
+${categoryCsv}
+
+Fund Type Ratios CSV:
+${fundTypeCsv}
 
 Extract:
 1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
@@ -92,9 +98,9 @@ Extract:
 5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string}]
 6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
    - Current Category Allocation (Equity, Debt, Hybrid, Others)
-   - Comparison with Category Ratio (Current % vs Target % from CSV)
+   - Comparison with Category Ratio (Current % vs Target % from Category Ratios CSV)
    - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
-   - Comparison with Type Ratio (Current % vs Target % from CSV)
+   - Comparison with Type Ratio (Current % vs Target % from Fund Type Ratios CSV)
 
 Return ONLY valid JSON with this exact structure: {
   "summary": {"net_asset_value": number, "total_cost": number}, 
