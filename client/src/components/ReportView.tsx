@@ -93,7 +93,7 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Historical Portfolio Valuation Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-4 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
           <h3 className="text-lg font-bold">Consolidated Portfolio Valuation for Year</h3>
         </div>
         <div className="p-6">
