@@ -7,6 +7,8 @@ export * from "./models/chat";
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull(),
+  investorType: text("investor_type"),
+  ageGroup: text("age_group"),
   analysis: jsonb("analysis").notNull(), // The AI result
   createdAt: timestamp("created_at").defaultNow(),
 });
