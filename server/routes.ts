@@ -89,7 +89,7 @@ Extract:
 2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
 3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
 4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
-5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string}]
+5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
 6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
    - Current Category Allocation (Equity, Debt, Hybrid, Others)
    - Comparison with Category Ratio (Current % vs Target % from CSV)
@@ -109,6 +109,7 @@ Return ONLY valid JSON with this exact structure: {
 For mf_snapshot, ensure you accurately identify:
 - fund_category: e.g. Equity, Debt, Hybrid, etc.
 - fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, etc.
+- isin: The 12-character International Securities Identification Number for the fund.
 
 Ensure ALL funds and folios are extracted comprehensively without omission. Ensure all numerical values are numbers.
 
@@ -143,10 +144,55 @@ ${text}`;
     res.json(list);
   });
 
-   app.get(api.reports.get.path, async (req, res) => {
+  app.get(api.reports.get.path, async (req, res) => {
     const report = await storage.getReport(Number(req.params.id));
     if (!report) return res.status(404).json({ message: "Report not found" });
     res.json(report);
+  });
+
+  app.get("/api/scrape-performance/:isin", async (req, res) => {
+    const isin = req.params.isin;
+    const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
+
+    try {
+      const { stdout: searchResult } = await execAsync(`curl -s -L -H "User-Agent: ${userAgent}" "https://www.google.com/search?q=site:moneycontrol.com+${isin}"`);
+      const $search = cheerio.load(searchResult);
+      const mcUrl = $search('a[href*="moneycontrol.com/mutual-funds/nav/"]').first().attr('href')?.split('&')[0].split('=')[1] || 
+                    $search('a[href*="moneycontrol.com"]').first().attr('href')?.split('&')[0].split('=')[1];
+
+      if (!mcUrl) {
+        return res.status(404).json({ message: "Could not find Moneycontrol page for this ISIN" });
+      }
+
+      const { stdout: mcPage } = await execAsync(`curl -s -L -H "User-Agent: ${userAgent}" "${mcUrl}"`);
+      const $ = cheerio.load(mcPage);
+
+      const performance: any = {
+        cagr: { "1y": "N/A", "3y": "N/A", "5y": "N/A" },
+        risk_ratios: { "std_dev": "N/A", "sharpe": "N/A", "beta": "N/A", "alpha": "N/A" }
+      };
+
+      // Selectors might need adjustment as Moneycontrol UI changes frequently
+      $('table.mctable1 tr').each((_, el) => {
+        const text = $(el).text();
+        if (text.includes("1 Year")) performance.cagr["1y"] = $(el).find('td').last().text().trim();
+        if (text.includes("3 Year")) performance.cagr["3y"] = $(el).find('td').last().text().trim();
+        if (text.includes("5 Year")) performance.cagr["5y"] = $(el).find('td').last().text().trim();
+      });
+
+      $('.perf_risk_ratios table tr').each((_, el) => {
+        const text = $(el).text();
+        if (text.includes("Std Dev")) performance.risk_ratios["std_dev"] = $(el).find('td').last().text().trim();
+        if (text.includes("Sharpe")) performance.risk_ratios["sharpe"] = $(el).find('td').last().text().trim();
+        if (text.includes("Beta")) performance.risk_ratios["beta"] = $(el).find('td').last().text().trim();
+        if (text.includes("Alpha")) performance.risk_ratios["alpha"] = $(el).find('td').last().text().trim();
+      });
+
+      res.json(performance);
+    } catch (error: any) {
+      console.error("Scraping error:", error);
+      res.status(500).json({ message: "Failed to scrape performance data" });
+    }
   });
 
   return httpServer;

@@ -1,8 +1,18 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
-import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar } from "lucide-react";
+import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+
+interface PerformanceData {
+  cagr: { "1y": string; "3y": string; "5y": string };
+  risk_ratios: { std_dev: string; sharpe: string; beta: string; alpha: string };
+}
 
 interface ReportViewProps {
   report: EnhancedReport;
@@ -12,6 +22,28 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
+  const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
+  const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
+  const { toast } = useToast();
+
+  const analyzePerformance = async (isin: string) => {
+    if (!isin) return;
+    setAnalyzingIsin(isin);
+    try {
+      const res = await fetch(`/api/scrape-performance/${isin}`);
+      if (!res.ok) throw new Error("Failed to fetch performance data");
+      const data = await res.json();
+      setPerformances(prev => ({ ...prev, [isin]: data }));
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setAnalyzingIsin(null);
+    }
+  };
   
   const container = {
     hidden: { opacity: 0 },
@@ -324,6 +356,91 @@ export function ReportView({ report }: ReportViewProps) {
           </div>
         </motion.div>
       )}
+
+      {/* Scheme Performance Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-4 text-white">
+          <h3 className="text-lg font-bold">Scheme Level Performance Analysis</h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
+        </div>
+        <div className="p-6 space-y-4">
+          {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+            <div key={i} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-slate-900">{mf.scheme_name}</h4>
+                  <div className="flex flex-wrap gap-2 text-[10px] uppercase font-bold text-slate-500">
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">ISIN: {mf.isin || 'N/A'}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_category}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_type}</span>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => analyzePerformance(mf.isin)}
+                  disabled={analyzingIsin === mf.isin || !mf.isin}
+                  className="hover-elevate"
+                >
+                  {analyzingIsin === mf.isin ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Activity className="w-4 h-4 mr-2" />
+                  )}
+                  Analyze Performance
+                </Button>
+              </div>
+
+              {performances[mf.isin] && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200"
+                >
+                  <div className="space-y-3">
+                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Returns (CAGR)</h5>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">1-Year</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">3-Year</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">5-Year</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Ratios</h5>
+                    <div className="grid grid-cols-4 gap-2">
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">Std Dev</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["std_dev"]}</p>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">Sharpe</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["sharpe"]}</p>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">Beta</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["beta"]}</p>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                        <p className="text-[10px] text-slate-500">Alpha</p>
+                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["alpha"]}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          ))}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
