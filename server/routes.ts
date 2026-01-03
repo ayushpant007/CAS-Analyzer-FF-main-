@@ -15,49 +15,8 @@ import { registerImageRoutes } from "./replit_integrations/image/routes";
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Gemini clients
-const apiKeys = [
-  process.env.GEMINI_API_KEY_1,
-  process.env.GEMINI_API_KEY_2,
-  process.env.GEMINI_API_KEY_3,
-  process.env.GEMINI_API_KEY_4,
-].filter(Boolean);
-
-const genAIs = apiKeys.map(key => new GoogleGenerativeAI(key as string));
-
-async function getSchemePerformance(schemeName: string, genAIIndex: number) {
-  const genAI = genAIs[genAIIndex % genAIs.length] || new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
-  const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-  const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
-  const model = genAI.getGenerativeModel({ 
-    model: sanitizedModel,
-  });
-
-  const prompt = `As a financial expert with access to historical Indian Mutual Fund data, provide the estimated CAGR (Compound Annual Growth Rate) returns for the following scheme for 1-year, 3-year, and 5-year periods.
-
-Scheme Name: ${schemeName}
-
-Rules:
-1. Return ONLY a JSON object. No markdown, no "json" tag.
-2. If exact data is missing, use typical returns for this fund category (Equity MidCap ~15-20%, Debt ~6-8%, etc).
-3. Values MUST be non-zero numbers.
-4. Format: {"scheme_name": "${schemeName}", "cagr_1y": 15.5, "cagr_3y": 18.2, "cagr_5y": 14.9}`;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().replace(/```json|```/g, "").trim();
-    return JSON.parse(text);
-  } catch (e) {
-    console.error(`Error fetching performance for ${schemeName}:`, e);
-    // Return conservative estimates instead of zeros
-    return { 
-      scheme_name: schemeName, 
-      cagr_1y: 12.5, 
-      cagr_3y: 14.2, 
-      cagr_5y: 13.8 
-    };
-  }
-}
+// Initialize Gemini client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
@@ -114,8 +73,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
       const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
       
-      const primaryGenAI = genAIs[0] || new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
-      const model = primaryGenAI.getGenerativeModel({ 
+      const model = genAI.getGenerativeModel({ 
         model: sanitizedModel,
         generationConfig: { responseMimeType: "application/json" }
       });
@@ -160,14 +118,6 @@ ${text}`;
       const result = await model.generateContent(prompt);
       const analysisRaw = result.response.text() || "{}";
       const analysis = JSON.parse(analysisRaw);
-
-      // Fetch scheme performance in parallel
-      if (analysis.mf_snapshot && analysis.mf_snapshot.length > 0) {
-        const uniqueSchemes = Array.from(new Set(analysis.mf_snapshot.map((s: any) => s.scheme_name)));
-        const performancePromises = uniqueSchemes.map((name, index) => getSchemePerformance(name as string, index));
-        const performanceData = await Promise.all(performancePromises);
-        analysis.scheme_performance = performanceData;
-      }
 
       const report = await storage.createReport({
         filename: req.file.originalname,
