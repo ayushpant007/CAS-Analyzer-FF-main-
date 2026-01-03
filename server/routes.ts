@@ -104,7 +104,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
       const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
       
-      const model = genAI.getGenerativeModel({ 
+      const primaryGenAI = genAIs[0] || new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+      const model = primaryGenAI.getGenerativeModel({ 
         model: sanitizedModel,
         generationConfig: { responseMimeType: "application/json" }
       });
