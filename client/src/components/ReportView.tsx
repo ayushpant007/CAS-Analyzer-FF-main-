@@ -324,6 +324,43 @@ export function ReportView({ report }: ReportViewProps) {
           </div>
         </motion.div>
       )}
+
+      {/* Scheme Level Performance Section */}
+      {analysis.scheme_performance && analysis.scheme_performance.length > 0 && (
+        <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
+            <h3 className="text-lg font-bold">Scheme Level Performance (CAGR Returns)</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4">Scheme Name</th>
+                  <th className="px-6 py-4 text-right">1 Year CAGR</th>
+                  <th className="px-6 py-4 text-right">3 Year CAGR</th>
+                  <th className="px-6 py-4 text-right">5 Year CAGR</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {analysis.scheme_performance.map((sp: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{sp.scheme_name}</td>
+                    <td className={`px-6 py-4 text-right font-bold ${sp.cagr_1y >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {sp.cagr_1y.toFixed(2)}%
+                    </td>
+                    <td className={`px-6 py-4 text-right font-bold ${sp.cagr_3y >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {sp.cagr_3y.toFixed(2)}%
+                    </td>
+                    <td className={`px-6 py-4 text-right font-bold ${sp.cagr_5y >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {sp.cagr_5y.toFixed(2)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

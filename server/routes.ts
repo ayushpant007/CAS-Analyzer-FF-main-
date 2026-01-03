@@ -15,8 +15,39 @@ import { registerImageRoutes } from "./replit_integrations/image/routes";
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+// Initialize Gemini clients
+const apiKeys = [
+  process.env.GEMINI_API_KEY_1,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
+  process.env.GEMINI_API_KEY_4,
+].filter(Boolean);
+
+const genAIs = apiKeys.map(key => new GoogleGenerativeAI(key as string));
+
+async function getSchemePerformance(schemeName: string, genAIIndex: number) {
+  const genAI = genAIs[genAIIndex % genAIs.length] || new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+  const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
+  const model = genAI.getGenerativeModel({ 
+    model: sanitizedModel,
+    generationConfig: { responseMimeType: "application/json" }
+  });
+
+  const prompt = `As a financial expert, provide the typical CAGR (Compound Annual Growth Rate) returns for the following Indian Mutual Fund scheme for 1-year, 3-year, and 5-year periods. If the exact current data is not available, provide the most recent historical average for these periods.
+
+Scheme Name: ${schemeName}
+
+Return ONLY valid JSON: {"scheme_name": "${schemeName}", "cagr_1y": number, "cagr_3y": number, "cagr_5y": number}`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    return JSON.parse(result.response.text());
+  } catch (e) {
+    console.error(`Error fetching performance for ${schemeName}:`, e);
+    return { scheme_name: schemeName, cagr_1y: 0, cagr_3y: 0, cagr_5y: 0 };
+  }
+}
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
@@ -118,6 +149,14 @@ ${text}`;
       const result = await model.generateContent(prompt);
       const analysisRaw = result.response.text() || "{}";
       const analysis = JSON.parse(analysisRaw);
+
+      // Fetch scheme performance in parallel
+      if (analysis.mf_snapshot && analysis.mf_snapshot.length > 0) {
+        const uniqueSchemes = Array.from(new Set(analysis.mf_snapshot.map((s: any) => s.scheme_name)));
+        const performancePromises = uniqueSchemes.map((name, index) => getSchemePerformance(name as string, index));
+        const performanceData = await Promise.all(performancePromises);
+        analysis.scheme_performance = performanceData;
+      }
 
       const report = await storage.createReport({
         filename: req.file.originalname,
