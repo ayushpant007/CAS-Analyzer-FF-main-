@@ -160,7 +160,7 @@ ${text}`;
       // but they don't use ISIN in the URL directly. They use a scheme code.
       // So we still need to search. Let's use a more robust search and handle failures.
       
-      const searchUrl = `https://www.google.com/search?q=moneycontrol+mutual+fund+nav+${isin}`;
+      const searchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+%22${isin}%22+performance`;
       const curlCommand = `curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${searchUrl}"`;
       
       console.log(`Searching for performance: ${isin}`);
@@ -177,7 +177,7 @@ ${text}`;
             const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
             const candidateUrl = match ? decodeURIComponent(match[1]) : href;
             
-            if (candidateUrl.includes('moneycontrol.com/mutual-funds/nav/')) {
+            if (candidateUrl.includes('moneycontrol.com/mutual-funds/')) {
               mcUrl = candidateUrl;
               return false; // Found a good one, break
             }
@@ -188,10 +188,22 @@ ${text}`;
       }
 
       if (!mcUrl) {
-        console.log(`No MC URL found via Google for ${isin}. Trying fallback.`);
-        // Fallback: try a slightly different search query or direct guess if possible
-        // For now, return 404 with a better message
-        return res.status(404).json({ message: `Could not find performance page for fund ${isin}. Please try again later.` });
+        console.log(`No MC URL found via Google for ${isin}. Trying alternative search.`);
+        const altSearchUrl = `https://www.google.com/search?q=moneycontrol+mutual+fund+${isin}`;
+        const { stdout: altSearchResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${altSearchUrl}"`);
+        const $altSearch = cheerio.load(altSearchResult);
+        $altSearch('a').each((_, el) => {
+          const href = $altSearch(el).attr('href');
+          if (href && href.includes('moneycontrol.com/mutual-funds/')) {
+            const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
+            mcUrl = match ? decodeURIComponent(match[1]) : href;
+            return false;
+          }
+        });
+      }
+
+      if (!mcUrl) {
+        return res.status(404).json({ message: `Could not find performance page for fund ${isin}.` });
       }
 
       console.log(`Fetching performance from: ${mcUrl}`);
