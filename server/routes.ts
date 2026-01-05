@@ -210,7 +210,15 @@ ${text}`;
           const fund = snapshot.find((f: any) => f.isin === isin);
           if (fund?.scheme_name) {
             console.log(`Trying name-based search for: ${fund.scheme_name}`);
-            const nameSearchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+${encodeURIComponent(fund.scheme_name)}+performance`;
+            // Clean fund name: remove "- Regular Scheme", "- Direct Plan", "(Formerly...)", etc.
+            const cleanName = fund.scheme_name
+              .replace(/-(?:\s+)?Regular(?:\s+)?Scheme/i, "")
+              .replace(/-(?:\s+)?Direct(?:\s+)?Plan/i, "")
+              .replace(/-(?:\s+)?Growth/i, "")
+              .replace(/\(Formerly.*?\)/i, "")
+              .trim();
+              
+            const nameSearchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+${encodeURIComponent(cleanName)}+mutual+fund+performance`;
             const { stdout: nameResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${nameSearchUrl}"`);
             const $name = cheerio.load(nameResult);
             $name('a').each((_, el) => {
