@@ -165,7 +165,7 @@ ${text}`;
       }
 
       // Use a more robust model name and check if it exists
-      const modelName = "gemini-1.5-flash"; // Force 1.5 flash for better stability/quota
+      const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite"; 
       const model = genAI.getGenerativeModel({ 
         model: modelName,
         tools: [{ googleSearch: {} }] as any
