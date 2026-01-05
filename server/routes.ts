@@ -164,8 +164,10 @@ ${text}`;
         fundName = fund?.scheme_name || "";
       }
 
+      // Use a more robust model name and check if it exists
+      const modelName = "gemini-1.5-flash"; // Force 1.5 flash for better stability/quota
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.0-flash",
+        model: modelName,
         tools: [{ googleSearch: {} }] as any
       });
 
@@ -192,15 +194,31 @@ ${text}`;
           "beta": {"fund": string, "category_avg": string},
           "alpha": {"fund": string, "category_avg": string}
         }
-      }`;
+      }
+      
+      If you cannot find specific data for this ISIN, return a JSON object with a single "error" key: {"error": "Data Unavailable"}.`;
 
       console.log(`Analyzing fund with Gemini: ${fundName} (${isin})`);
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
-      
-      // Extract JSON from markdown code block if present
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+      let performance;
+      try {
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        
+        // Extract JSON from markdown code block if present
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+
+        if (performance.error) {
+          return res.status(404).json({ message: performance.error });
+        }
+      } catch (geminiError: any) {
+        console.error("Gemini Content Generation Error:", geminiError);
+        // Check for quota error
+        if (geminiError.status === 429 || (geminiError.message && geminiError.message.includes("429"))) {
+          return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
+        }
+        throw geminiError;
+      }
 
       res.json(performance);
     } catch (error: any) {
