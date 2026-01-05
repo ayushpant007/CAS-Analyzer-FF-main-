@@ -163,26 +163,35 @@ ${text}`;
       const searchUrl = `https://www.google.com/search?q=moneycontrol+mutual+fund+nav+${isin}`;
       const curlCommand = `curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${searchUrl}"`;
       
+      console.log(`Searching for performance: ${isin}`);
       let mcUrl = "";
       try {
         const { stdout: searchResult } = await execAsync(curlCommand);
         const $search = cheerio.load(searchResult);
         
+        // Google search result links often have a prefix, need to clean them
         $search('a').each((_, el) => {
-          const href = $(el).attr('href');
-          if (href && href.includes('moneycontrol.com/mutual-funds/nav/')) {
+          const href = $search(el).attr('href');
+          if (href && (href.includes('moneycontrol.com/mutual-funds/nav/') || href.includes('moneycontrol.com/mutual-funds/'))) {
+            // Extract the actual URL from Google's redirect link if present
             const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
-            mcUrl = match ? decodeURIComponent(match[1]) : href;
-            return false;
+            const candidateUrl = match ? decodeURIComponent(match[1]) : href;
+            
+            if (candidateUrl.includes('moneycontrol.com/mutual-funds/nav/')) {
+              mcUrl = candidateUrl;
+              return false; // Found a good one, break
+            }
           }
         });
       } catch (searchError) {
-        console.error("Search failed, trying direct fallback:", searchError);
+        console.error("Search failed:", searchError);
       }
 
       if (!mcUrl) {
-        // If search fails, we can't easily guess the URL as it uses internal MC codes
-        return res.status(404).json({ message: "Could not find performance page for this fund. Please try again later." });
+        console.log(`No MC URL found via Google for ${isin}. Trying fallback.`);
+        // Fallback: try a slightly different search query or direct guess if possible
+        // For now, return 404 with a better message
+        return res.status(404).json({ message: `Could not find performance page for fund ${isin}. Please try again later.` });
       }
 
       console.log(`Fetching performance from: ${mcUrl}`);
@@ -194,24 +203,43 @@ ${text}`;
         risk_ratios: { "std_dev": "N/A", "sharpe": "N/A", "beta": "N/A", "alpha": "N/A" }
       };
 
-      // Improved selectors for CAGR
-      $('.mctable1 tr, .perf_table tr').each((_, el) => {
-        const text = $(el).text().toLowerCase();
-        const value = $(el).find('td').last().text().trim();
-        if (text.includes("1-year") || text.includes("1 year")) performance.cagr["1y"] = value;
-        if (text.includes("3-year") || text.includes("3 year")) performance.cagr["3y"] = value;
-        if (text.includes("5-year") || text.includes("5 year")) performance.cagr["5y"] = value;
+      // Moneycontrol performance table structure analysis
+      // They often use "mctable1" or just "table" with specific text headers
+      $('table tr').each((_, el) => {
+        const row = $(el);
+        const text = row.text().toLowerCase();
+        const cells = row.find('td');
+        
+        if (cells.length >= 2) {
+          const value = cells.last().text().trim();
+          
+          // CAGR checks
+          if (text.includes("1-year") || text.includes("1 year")) performance.cagr["1y"] = value;
+          else if (text.includes("3-year") || text.includes("3 year")) performance.cagr["3y"] = value;
+          else if (text.includes("5-year") || text.includes("5 year")) performance.cagr["5y"] = value;
+          
+          // Risk ratio checks
+          if (text.includes("std dev") || text.includes("standard deviation")) performance.risk_ratios["std_dev"] = value;
+          else if (text.includes("sharpe")) performance.risk_ratios["sharpe"] = value;
+          else if (text.includes("beta")) performance.risk_ratios["beta"] = value;
+          else if (text.includes("alpha")) performance.risk_ratios["alpha"] = value;
+        }
       });
 
-      // Improved selectors for Risk Ratios
-      $('.perf_risk_ratios table tr, .risk_ratio_table tr').each((_, el) => {
-        const text = $(el).text().toLowerCase();
-        const value = $(el).find('td').last().text().trim();
-        if (text.includes("std dev")) performance.risk_ratios["std_dev"] = value;
-        if (text.includes("sharpe")) performance.risk_ratios["sharpe"] = value;
-        if (text.includes("beta")) performance.risk_ratios["beta"] = value;
-        if (text.includes("alpha")) performance.risk_ratios["alpha"] = value;
-      });
+      // Secondary check for headers if table rows didn't match perfectly
+      if (performance.cagr["1y"] === "N/A") {
+        $('.perf_table, .mctable1').find('tr').each((_, el) => {
+           const row = $(el);
+           const cells = row.find('td, th');
+           if (cells.length >= 2) {
+             const key = cells.eq(0).text().toLowerCase();
+             const val = cells.last().text().trim();
+             if (key.includes('1 year') || key.includes('1y')) performance.cagr["1y"] = val;
+             if (key.includes('3 year') || key.includes('3y')) performance.cagr["3y"] = val;
+             if (key.includes('5 year') || key.includes('5y')) performance.cagr["5y"] = val;
+           }
+        });
+      }
 
       res.json(performance);
     } catch (error: any) {
