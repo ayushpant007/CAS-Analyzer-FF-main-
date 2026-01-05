@@ -10,8 +10,19 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 interface PerformanceData {
+  nav: { value: number; date: string };
   cagr: { "1y": string; "3y": string; "5y": string };
-  risk_ratios: { std_dev: string; sharpe: string; beta: string; alpha: string };
+  portfolio: {
+    sectors: Array<{ name: string; weight: number }>;
+    holdings: Array<{ name: string; weight: number }>;
+  };
+  stats: { aum_crores: number; expense_ratio: string; turnover: string };
+  risk_ratios: {
+    std_dev: { fund: string; category_avg: string };
+    sharpe: { fund: string; category_avg: string };
+    beta: { fund: string; category_avg: string };
+    alpha: { fund: string; category_avg: string };
+  };
 }
 
 interface ReportViewProps {
@@ -398,43 +409,82 @@ export function ReportView({ report }: ReportViewProps) {
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200"
+                  className="space-y-6 pt-4 border-t border-slate-200"
                 >
-                  <div className="space-y-3">
-                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Returns (CAGR)</h5>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">1-Year</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Returns & Basic Stats */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
+                        <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
                       </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">3-Year</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">1-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">3-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">5-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
+                        </div>
                       </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">5-Year</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">AUM (Cr)</p>
+                          <p className="text-xs font-bold text-slate-700">₹{performances[mf.isin].stats?.aum_crores}</p>
+                        </div>
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">Exp. Ratio</p>
+                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.expense_ratio}</p>
+                        </div>
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">Turnover</p>
+                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.turnover}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Risk Ratios */}
+                    <div className="space-y-4">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Metrics (Fund vs Cat Avg)</h5>
+                      <div className="grid grid-cols-4 gap-2">
+                        {['std_dev', 'sharpe', 'beta', 'alpha'].map((ratio) => (
+                          <div key={ratio} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[10px] text-slate-500 capitalize">{ratio.replace('_', ' ')}</p>
+                            <p className="font-bold text-slate-900 text-xs">{(performances[mf.isin].risk_ratios as any)[ratio]?.fund}</p>
+                            <p className="text-[8px] text-slate-400">Avg: {(performances[mf.isin].risk_ratios as any)[ratio]?.category_avg}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Ratios</h5>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">Std Dev</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["std_dev"]}</p>
+
+                  {/* Portfolio Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{h.name}</span>
+                            <span className="font-bold text-slate-900">{h.weight}%</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">Sharpe</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["sharpe"]}</p>
-                      </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">Beta</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["beta"]}</p>
-                      </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                        <p className="text-[10px] text-slate-500">Alpha</p>
-                        <p className="font-bold text-slate-900">{performances[mf.isin].risk_ratios["alpha"]}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{s.name}</span>
+                            <span className="font-bold text-slate-900">{s.weight}%</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

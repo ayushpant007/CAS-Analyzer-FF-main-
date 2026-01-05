@@ -153,168 +153,59 @@ ${text}`;
 
   app.get("/api/scrape-performance/:isin", async (req, res) => {
     const isin = req.params.isin;
-    const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
+    const reportId = req.query.reportId;
 
     try {
-      // Direct approach: Moneycontrol URLs are often predictable if we have the ISIN
-      // but they don't use ISIN in the URL directly. They use a scheme code.
-      // So we still need to search. Let's use a more robust search and handle failures.
-      
-      const searchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+%22${isin}%22+performance`;
-      const curlCommand = `curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" "${searchUrl}"`;
-      
-      console.log(`Searching for performance: ${isin}`);
-      let mcUrl = "";
-      try {
-        const { stdout: searchResult } = await execAsync(curlCommand);
-        // Fallback search if the first one fails or returns nothing useful
-        if (!searchResult || searchResult.includes("did not match any documents")) {
-           console.log(`Initial Google search for ${isin} returned no results.`);
-           throw new Error("No results");
-        }
-        
-        const $search = cheerio.load(searchResult);
-        
-        $search('a').each((_, el) => {
-          const href = $search(el).attr('href');
-          if (href) {
-            const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
-            const candidateUrl = match ? decodeURIComponent(match[1]) : href;
-            
-            if (candidateUrl.includes('moneycontrol.com/mutual-funds/') && !candidateUrl.includes('google.com')) {
-              mcUrl = candidateUrl;
-              return false;
-            }
-          }
-        });
-      } catch (searchError) {
-        console.log(`Initial search failed for ${isin}, trying direct ISIN search.`);
-        const directUrl = `https://www.google.com/search?q=moneycontrol+mutual+fund+${isin}+nav`;
-        const { stdout: directResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${directUrl}"`);
-        const $direct = cheerio.load(directResult);
-        $direct('a').each((_, el) => {
-          const href = $direct(el).attr('href');
-          if (href) {
-            const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
-            const candidateUrl = match ? decodeURIComponent(match[1]) : href;
-            if (candidateUrl.includes('moneycontrol.com/mutual-funds/') && !candidateUrl.includes('google.com')) {
-              mcUrl = candidateUrl;
-              return false;
-            }
-          }
-        });
+      let fundName = "";
+      if (reportId) {
+        const report = await storage.getReport(Number(reportId));
+        const snapshot = (report?.analysis as any)?.mf_snapshot || [];
+        const fund = snapshot.find((f: any) => f.isin === isin);
+        fundName = fund?.scheme_name || "";
       }
 
-      // Final fallback: try searching by fund name if we have it
-      if (!mcUrl) {
-        const reportId = req.query.reportId;
-        if (reportId) {
-          const report = await storage.getReport(Number(reportId));
-          const snapshot = (report?.analysis as any)?.mf_snapshot || [];
-          const fund = snapshot.find((f: any) => f.isin === isin);
-          if (fund?.scheme_name) {
-            console.log(`Trying name-based search for: ${fund.scheme_name}`);
-            // Clean fund name: remove common suffixes and terms
-            const cleanName = fund.scheme_name
-              .replace(/-(?:\s+)?Regular(?:\s+)?Scheme/i, "")
-              .replace(/-(?:\s+)?Regular(?:\s+)?Plan/i, "")
-              .replace(/-(?:\s+)?Direct(?:\s+)?Plan/i, "")
-              .replace(/-(?:\s+)?Growth/i, "")
-              .replace(/\(Formerly.*?\)/i, "")
-              .replace(/Mutual Fund/i, "")
-              .replace(/Plan/i, "")
-              .replace(/Scheme/i, "")
-              .trim();
-              
-            const nameSearchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+${encodeURIComponent(cleanName)}+mutual+fund+nav`;
-            console.log(`Searching with name: ${cleanName}`);
-            const { stdout: nameResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${nameSearchUrl}"`);
-            const $name = cheerio.load(nameResult);
-            $name('a').each((_, el) => {
-              const href = $name(el).attr('href');
-              if (href) {
-                const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
-                const candidateUrl = match ? decodeURIComponent(match[1]) : href;
-                if (candidateUrl.includes('moneycontrol.com/mutual-funds/') && !candidateUrl.includes('google.com')) {
-                  mcUrl = candidateUrl;
-                  return false;
-                }
-              }
-            });
-          }
-        }
-      }
-
-      if (!mcUrl) {
-        // Last-ditch: simpler search on Bing as a backup search engine
-        console.log(`Trying last-ditch search for ${isin} on Bing`);
-        const finalUrl = `https://www.bing.com/search?q=moneycontrol+mutual+fund+${isin}`;
-        const { stdout: finalResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${finalUrl}"`);
-        const $final = cheerio.load(finalResult);
-        $final('a').each((_, el) => {
-          const href = $final(el).attr('href');
-          if (href && href.includes('moneycontrol.com/mutual-funds/')) {
-            mcUrl = href;
-            return false;
-          }
-        });
-      }
-
-      if (!mcUrl) {
-        return res.status(404).json({ message: `Could not find performance page for fund ${isin}.` });
-      }
-
-      console.log(`Fetching performance from: ${mcUrl}`);
-      const { stdout: mcPage } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${mcUrl}"`);
-      const $ = cheerio.load(mcPage);
-
-      const performance: any = {
-        cagr: { "1y": "N/A", "3y": "N/A", "5y": "N/A" },
-        risk_ratios: { "std_dev": "N/A", "sharpe": "N/A", "beta": "N/A", "alpha": "N/A" }
-      };
-
-      // Moneycontrol performance table structure analysis
-      // They often use "mctable1" or just "table" with specific text headers
-      $('table tr').each((_, el) => {
-        const row = $(el);
-        const text = row.text().toLowerCase();
-        const cells = row.find('td');
-        
-        if (cells.length >= 2) {
-          const value = cells.last().text().trim();
-          
-          // CAGR checks
-          if (text.includes("1-year") || text.includes("1 year")) performance.cagr["1y"] = value;
-          else if (text.includes("3-year") || text.includes("3 year")) performance.cagr["3y"] = value;
-          else if (text.includes("5-year") || text.includes("5 year")) performance.cagr["5y"] = value;
-          
-          // Risk ratio checks
-          if (text.includes("std dev") || text.includes("standard deviation")) performance.risk_ratios["std_dev"] = value;
-          else if (text.includes("sharpe")) performance.risk_ratios["sharpe"] = value;
-          else if (text.includes("beta")) performance.risk_ratios["beta"] = value;
-          else if (text.includes("alpha")) performance.risk_ratios["alpha"] = value;
-        }
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.0-flash",
+        tools: [{ googleSearch: {} }] as any
       });
 
-      // Secondary check for headers if table rows didn't match perfectly
-      if (performance.cagr["1y"] === "N/A") {
-        $('.perf_table, .mctable1').find('tr').each((_, el) => {
-           const row = $(el);
-           const cells = row.find('td, th');
-           if (cells.length >= 2) {
-             const key = cells.eq(0).text().toLowerCase();
-             const val = cells.last().text().trim();
-             if (key.includes('1 year') || key.includes('1y')) performance.cagr["1y"] = val;
-             if (key.includes('3 year') || key.includes('3y')) performance.cagr["3y"] = val;
-             if (key.includes('5 year') || key.includes('5y')) performance.cagr["5y"] = val;
-           }
-        });
-      }
+      const prompt = `Search the latest 2026 financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
+      Provide the following details:
+      1. nav: Latest NAV and the date it was recorded.
+      2. cagr: 1-Year, 3-Year, and 5-Year CAGR.
+      3. portfolio: Top 10 Sectors and Top 10 Holdings (with % weights).
+      4. stats: AUM (in Crores), Expense Ratio, and Portfolio Turnover.
+      5. ratios: Sharpe Ratio, Std Deviation, and Beta. Each must include the Fund Value and the Category Average.
+
+      Return the result STRICTLY as a JSON object with this structure:
+      {
+        "nav": {"value": number, "date": string},
+        "cagr": {"1y": string, "3y": string, "5y": string},
+        "portfolio": {
+          "sectors": [{"name": string, "weight": number}],
+          "holdings": [{"name": string, "weight": number}]
+        },
+        "stats": {"aum_crores": number, "expense_ratio": string, "turnover": string},
+        "risk_ratios": {
+          "std_dev": {"fund": string, "category_avg": string},
+          "sharpe": {"fund": string, "category_avg": string},
+          "beta": {"fund": string, "category_avg": string},
+          "alpha": {"fund": string, "category_avg": string}
+        }
+      }`;
+
+      console.log(`Analyzing fund with Gemini: ${fundName} (${isin})`);
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+      
+      // Extract JSON from markdown code block if present
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
 
       res.json(performance);
     } catch (error: any) {
-      console.error("Scraping error:", error);
-      res.status(500).json({ message: "Performance data currently unavailable" });
+      console.error("Gemini analysis error:", error);
+      res.status(404).json({ message: "Data Unavailable" });
     }
   });
 
