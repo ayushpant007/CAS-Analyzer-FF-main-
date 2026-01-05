@@ -30,8 +30,11 @@ export function ReportView({ report }: ReportViewProps) {
     if (!isin) return;
     setAnalyzingIsin(isin);
     try {
-      const res = await fetch(`/api/scrape-performance/${isin}`);
-      if (!res.ok) throw new Error("Failed to fetch performance data");
+      const res = await fetch(`/api/scrape-performance/${isin}?reportId=${report.id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to fetch performance data");
+      }
       const data = await res.json();
       setPerformances(prev => ({ ...prev, [isin]: data }));
     } catch (err: any) {
@@ -197,7 +200,7 @@ export function ReportView({ report }: ReportViewProps) {
                 <RechartsTooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 />
-                <Legend verticalAlign="right" align="right" layout="vertical" />
+                <Legend verticalAlign="middle" align="right" layout="vertical" />
               </PieChart>
             </ResponsiveContainer>
           </div>

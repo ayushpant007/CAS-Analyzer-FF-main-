@@ -161,45 +161,68 @@ ${text}`;
       // So we still need to search. Let's use a more robust search and handle failures.
       
       const searchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+%22${isin}%22+performance`;
-      const curlCommand = `curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${searchUrl}"`;
+      const curlCommand = `curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" "${searchUrl}"`;
       
       console.log(`Searching for performance: ${isin}`);
       let mcUrl = "";
       try {
         const { stdout: searchResult } = await execAsync(curlCommand);
+        // Fallback search if the first one fails or returns nothing useful
+        if (!searchResult || searchResult.includes("did not match any documents")) {
+           throw new Error("No results");
+        }
+        
         const $search = cheerio.load(searchResult);
         
-        // Google search result links often have a prefix, need to clean them
         $search('a').each((_, el) => {
           const href = $search(el).attr('href');
           if (href && (href.includes('moneycontrol.com/mutual-funds/nav/') || href.includes('moneycontrol.com/mutual-funds/'))) {
-            // Extract the actual URL from Google's redirect link if present
             const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
             const candidateUrl = match ? decodeURIComponent(match[1]) : href;
             
             if (candidateUrl.includes('moneycontrol.com/mutual-funds/')) {
               mcUrl = candidateUrl;
-              return false; // Found a good one, break
+              return false;
             }
           }
         });
       } catch (searchError) {
-        console.error("Search failed:", searchError);
-      }
-
-      if (!mcUrl) {
-        console.log(`No MC URL found via Google for ${isin}. Trying alternative search.`);
-        const altSearchUrl = `https://www.google.com/search?q=moneycontrol+mutual+fund+${isin}`;
-        const { stdout: altSearchResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${altSearchUrl}"`);
-        const $altSearch = cheerio.load(altSearchResult);
-        $altSearch('a').each((_, el) => {
-          const href = $altSearch(el).attr('href');
+        console.log(`Initial search failed for ${isin}, trying direct ISIN search.`);
+        const directUrl = `https://www.google.com/search?q=moneycontrol+mutual+fund+${isin}`;
+        const { stdout: directResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${directUrl}"`);
+        const $direct = cheerio.load(directResult);
+        $direct('a').each((_, el) => {
+          const href = $direct(el).attr('href');
           if (href && href.includes('moneycontrol.com/mutual-funds/')) {
             const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
             mcUrl = match ? decodeURIComponent(match[1]) : href;
             return false;
           }
         });
+      }
+
+      // Final fallback: try searching by fund name if we have it
+      if (!mcUrl) {
+        const reportId = req.query.reportId;
+        if (reportId) {
+          const report = await storage.getReport(Number(reportId));
+          const snapshot = (report?.analysis as any)?.mf_snapshot || [];
+          const fund = snapshot.find((f: any) => f.isin === isin);
+          if (fund?.scheme_name) {
+            console.log(`Trying name-based search for: ${fund.scheme_name}`);
+            const nameSearchUrl = `https://www.google.com/search?q=site%3Amoneycontrol.com+${encodeURIComponent(fund.scheme_name)}+performance`;
+            const { stdout: nameResult } = await execAsync(`curl -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" "${nameSearchUrl}"`);
+            const $name = cheerio.load(nameResult);
+            $name('a').each((_, el) => {
+              const href = $name(el).attr('href');
+              if (href && href.includes('moneycontrol.com/mutual-funds/')) {
+                const match = href.match(/\/url\?q=(https?:\/\/[^&]+)/);
+                mcUrl = match ? decodeURIComponent(match[1]) : href;
+                return false;
+              }
+            });
+          }
+        }
       }
 
       if (!mcUrl) {
