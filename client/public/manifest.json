@@ -1,0 +1,22 @@
+{
+  "short_name": "FinAnalyze",
+  "name": "FinAnalyze - AI Portfolio Insights",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/3b82f6/white?text=FA",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://placehold.co/512x512/3b82f6/white?text=FA",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#3b82f6",
+  "description": "AI-powered financial portfolio analysis platform"
+}
