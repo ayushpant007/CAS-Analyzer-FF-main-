@@ -1,13 +1,15 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
-import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2 } from "lucide-react";
+import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface PerformanceData {
   nav: { value: number; date: string };
@@ -35,7 +37,61 @@ export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
+  const [isDownloading, setIsDownloading] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const downloadPDF = async () => {
+    if (!reportRef.current) return;
+    setIsDownloading(true);
+    
+    try {
+      const element = reportRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#f8fafc" // match bg-slate-50
+      });
+      
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
+      }
+      
+      pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "PDF report downloaded successfully",
+      });
+    } catch (err: any) {
+      console.error("PDF Export Error:", err);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating your PDF report.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(null as any); // Reset to false
+      setIsDownloading(false);
+    }
+  };
 
   const analyzePerformance = async (isin: string) => {
     if (!isin) return;
@@ -75,13 +131,30 @@ export function ReportView({ report }: ReportViewProps) {
   };
 
   return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-8"
-    >
-      {/* Header Section */}
+    <div className="space-y-4">
+      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
+        <Button 
+          onClick={downloadPDF} 
+          disabled={isDownloading}
+          className="hover-elevate bg-slate-900 text-white"
+        >
+          {isDownloading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4 mr-2" />
+          )}
+          {isDownloading ? "Generating PDF..." : "Download Full Report"}
+        </Button>
+      </div>
+
+      <motion.div 
+        ref={reportRef}
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="space-y-8 p-4 md:p-8"
+      >
+        {/* Header Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
           <h1 className="text-3xl font-bold font-display text-slate-900 mb-1">{report.filename}</h1>
@@ -495,5 +568,6 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
     </motion.div>
-  );
+  </div>
+);
 }
