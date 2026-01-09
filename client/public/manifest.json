@@ -3,12 +3,12 @@
   "name": "FinAnalyze - Smart Portfolio Insights",
   "icons": [
     {
-      "src": "/generated_icon_192.png",
+      "src": "/generated_icon_192.png?v=2",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/generated_icon_512.png",
+      "src": "/generated_icon_512.png?v=2",
       "type": "image/png",
       "sizes": "512x512"
     }
