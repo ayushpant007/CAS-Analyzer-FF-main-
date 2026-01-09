@@ -1,10 +1,10 @@
-const CACHE_NAME = 'finanalyze-v3';
+const CACHE_NAME = 'finanalyze-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon_v3_192.png',
-  '/icon_v3_512.png'
+  '/icon_v4_192.png',
+  '/icon_v4_512.png'
 ];
 
 self.addEventListener('install', (event) => {
