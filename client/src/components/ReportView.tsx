@@ -189,7 +189,9 @@ export function ReportView({ report }: ReportViewProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(analysis.account_summaries || []).map((acc: any, i: number) => (
+              {(analysis.account_summaries || [])
+                .filter((acc: any) => acc.type === "Mutual Fund Folios")
+                .map((acc: any, i: number) => (
                 <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-semibold text-slate-700">{acc.type}</td>
                   <td className="px-6 py-4 text-slate-500">{acc.details}</td>
