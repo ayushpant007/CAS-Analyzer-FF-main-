@@ -27,6 +27,33 @@ interface PerformanceData {
   };
 }
 
+const IDEAL_ALLOCATIONS: Record<string, Record<string, Record<string, string>>> = {
+  "20-35": {
+    "High Aggressive": { "Equity": "100%", "Debt": "0%", "Hybrid": "0%", "Gold/Silver/Other": "0%" },
+    "Aggressive": { "Equity": "90%", "Debt": "10%", "Hybrid": "0%", "Gold/Silver/Other": "0%" },
+    "Moderate": { "Equity": "55%", "Debt": "25%", "Hybrid": "20%", "Gold/Silver/Other": "0%" },
+    "Conservative": { "Equity": "50%", "Debt": "40%", "Hybrid": "10%", "Gold/Silver/Other": "0%" }
+  },
+  "35-50": {
+    "High Aggressive": { "Equity": "90%", "Debt": "10%", "Hybrid": "0%", "Gold/Silver/Other": "0%" },
+    "Aggressive": { "Equity": "75%", "Debt": "15%", "Hybrid": "10%", "Gold/Silver/Other": "0%" },
+    "Moderate": { "Equity": "55%", "Debt": "30%", "Hybrid": "15%", "Gold/Silver/Other": "0%" },
+    "Conservative": { "Equity": "40%", "Debt": "50%", "Hybrid": "10%", "Gold/Silver/Other": "0%" }
+  },
+  "50-60": {
+    "High Aggressive": { "Equity": "60%", "Debt": "30%", "Hybrid": "10%", "Gold/Silver/Other": "0%" },
+    "Aggressive": { "Equity": "50%", "Debt": "40%", "Hybrid": "10%", "Gold/Silver/Other": "0%" },
+    "Moderate": { "Equity": "45%", "Debt": "40%", "Hybrid": "15%", "Gold/Silver/Other": "0%" },
+    "Conservative": { "Equity": "30%", "Debt": "60%", "Hybrid": "10%", "Gold/Silver/Other": "0%" }
+  },
+  "60+": {
+    "High Aggressive": { "Equity": "35%", "Debt": "40%", "Hybrid": "20%", "Gold/Silver/Other": "5%" },
+    "Aggressive": { "Equity": "30%", "Debt": "40%", "Hybrid": "20%", "Gold/Silver/Other": "10%" },
+    "Moderate": { "Equity": "10%", "Debt": "50%", "Hybrid": "30%", "Gold/Silver/Other": "10%" },
+    "Conservative": { "Equity": "10%", "Debt": "70%", "Hybrid": "20%", "Gold/Silver/Other": "0%" }
+  }
+};
+
 interface ReportViewProps {
   report: EnhancedReport;
 }
@@ -207,6 +234,53 @@ export function ReportView({ report }: ReportViewProps) {
                   ₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}
                 </td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Asset Allocation Check */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Asset Allocation Check</h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-6 py-4">Fund Category</th>
+                <th className="px-6 py-4 text-right">Actual</th>
+                <th className="px-6 py-4 text-right">Ideal</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(() => {
+                const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
+                const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver/Other"];
+                
+                // Group actual allocation by requested categories
+                const actualMap: Record<string, number> = {};
+                (analysis.asset_allocation || []).forEach((a: any) => {
+                  const cat = a.asset_class;
+                  if (cat.toLowerCase().includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + (a.percentage || 0);
+                  else if (cat.toLowerCase().includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + (a.percentage || 0);
+                  else if (cat.toLowerCase().includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + (a.percentage || 0);
+                  else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + (a.percentage || 0);
+                });
+
+                return categories.map((cat) => (
+                  <tr key={cat} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{cat}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-900">
+                      {(actualMap[cat] || 0).toFixed(2)}%
+                    </td>
+                    <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                      {ideal[cat] || "0%"}
+                    </td>
+                  </tr>
+                ));
+              })()}
             </tbody>
           </table>
         </div>
