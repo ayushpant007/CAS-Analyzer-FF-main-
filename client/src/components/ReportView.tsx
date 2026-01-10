@@ -212,6 +212,37 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
+      {/* Mutual Fund Short Summary */}
+      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          {
+            label: "Invested Amount",
+            value: `₹${(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}`,
+            color: "text-slate-900"
+          },
+          {
+            label: "Valuation",
+            value: `₹${(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}`,
+            color: "text-blue-600"
+          },
+          {
+            label: "Total (Absolute) Return",
+            value: `₹${(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}`,
+            color: (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0) >= 0 ? "text-emerald-600" : "text-rose-600"
+          },
+          {
+            label: "XIRR",
+            value: `${analysis.summary?.xirr?.toFixed(2) ?? '0.00'}%`,
+            color: (analysis.summary?.xirr || 0) >= 0 ? "text-emerald-600" : "text-rose-600"
+          }
+        ].map((stat, i) => (
+          <Card key={i} className="p-4 bg-white border-slate-200 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{stat.label}</p>
+            <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+          </Card>
+        ))}
+      </motion.div>
+
       {/* Historical Portfolio Valuation Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
