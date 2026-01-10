@@ -227,7 +227,19 @@ export function ReportView({ report }: ReportViewProps) {
           },
           {
             label: "Total (Absolute) Return",
-            value: `₹${(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}`,
+            value: (
+              <div className="flex flex-col">
+                <span>₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}</span>
+                <span className="text-xs font-semibold">
+                  {(() => {
+                    const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
+                    const totalReturn = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0);
+                    const percentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
+                    return `(${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%)`;
+                  })()}
+                </span>
+              </div>
+            ),
             color: (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0) >= 0 ? "text-emerald-600" : "text-rose-600"
           },
           {
