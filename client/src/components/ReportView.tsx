@@ -261,12 +261,16 @@ export function ReportView({ report }: ReportViewProps) {
                 
                 // Group actual allocation by requested categories
                 const actualMap: Record<string, number> = {};
-                (analysis.asset_allocation || []).forEach((a: any) => {
-                  const cat = a.asset_class;
-                  if (cat.toLowerCase().includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + (a.percentage || 0);
-                  else if (cat.toLowerCase().includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + (a.percentage || 0);
-                  else if (cat.toLowerCase().includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + (a.percentage || 0);
-                  else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + (a.percentage || 0);
+                (analysis.mf_snapshot || []).forEach((mf: any) => {
+                  const cat = (mf.fund_category || "").toLowerCase();
+                  const valuation = mf.valuation || 0;
+                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                  const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                  if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
+                  else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
+                  else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
+                  else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + percentage;
                 });
 
                 return categories.map((cat) => (
