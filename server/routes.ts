@@ -10,6 +10,36 @@ import os from "os";
 import { promisify } from "util";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as cheerio from "cheerio";
+
+async function getAIResponseWithRetry(genAIInstance: any, modelName: string, promptText: string, options: any = {}) {
+  const models = Array.from(new Set([modelName.toLowerCase().replace(/\s+/g, '-'), "gemini-1.5-flash", "gemini-2.0-flash"]));
+  let lastError;
+  for (const m of models) {
+    let retries = 2;
+    while (retries >= 0) {
+      try {
+        console.log(`Requesting Gemini model: ${m} (Retries left: ${retries})`);
+        const model = genAIInstance.getGenerativeModel({ 
+          model: m, 
+          generationConfig: options.generationConfig || { responseMimeType: "application/json" },
+          ...options 
+        });
+        const result = await model.generateContent(promptText);
+        return result.response.text();
+      } catch (error: any) {
+        lastError = error;
+        console.error(`Gemini Error (${m}):`, error.status, error.message);
+        if ((error.status === 503 || error.status === 429) && retries > 0) {
+          retries--;
+          await new Promise(r => setTimeout(r, 2000));
+        } else {
+          break; // Try next model
+        }
+      }
+    }
+  }
+  throw lastError;
+}
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 
