@@ -290,9 +290,6 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {/* Mutual Fund Short Summary */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
       {/* Mutual Fund Portfolio Snapshot Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
