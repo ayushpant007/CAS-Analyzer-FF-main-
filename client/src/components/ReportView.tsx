@@ -669,7 +669,7 @@ export function ReportView({ report }: ReportViewProps) {
       {/* Scheme Performance Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-4 text-white">
-          <h3 className="text-lg font-bold">Scheme Level Performance Analysis</h3>
+          <h3 className="text-lg font-bold">Risk Metrics Check </h3>
           <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
         </div>
         <div className="p-6 space-y-4">
