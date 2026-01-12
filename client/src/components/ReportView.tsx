@@ -197,8 +197,8 @@ export function ReportView({ report }: ReportViewProps) {
       </motion.div>
 
       {/* Summary Section - Account Wise */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <motion.div variants={item} className="flex flex-col gap-8">
+        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
             <h3 className="text-lg font-bold">Portfolio Account Summary</h3>
             <div className="text-right">
@@ -240,21 +240,21 @@ export function ReportView({ report }: ReportViewProps) {
           </div>
         </motion.div>
 
-        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 flex flex-col justify-center space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-5 bg-slate-50 rounded-xl border border-slate-100">
               <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Invested Amount</p>
-              <p className="text-xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-slate-900">
                 ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
               </p>
             </div>
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+            <div className="p-5 bg-blue-50 rounded-xl border border-blue-100">
               <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider mb-1">Current Valuation</p>
-              <p className="text-xl font-bold text-blue-900">
+              <p className="text-2xl font-bold text-blue-900">
                 ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
               </p>
             </div>
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-100">
               <p className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider mb-1">Total Absolute Return</p>
               {(() => {
                 const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
@@ -263,31 +263,28 @@ export function ReportView({ report }: ReportViewProps) {
                 const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
                 return (
                   <div>
-                    <p className={`text-xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <p className={`text-2xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                       ₹{absoluteReturn.toLocaleString()}
                     </p>
-                    <p className={`text-xs font-semibold ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <p className={`text-sm font-semibold ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {absoluteReturn >= 0 ? '+' : ''}{absoluteReturnPct.toFixed(2)}%
                     </p>
                   </div>
                 );
               })()}
             </div>
-            <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+            <div className="p-5 bg-indigo-50 rounded-xl border border-indigo-100">
               <p className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider mb-1">Approx. CAGR (Portfolio)</p>
               {(() => {
                 const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
                 const currentValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
                 const absoluteReturnPct = totalInvested > 0 ? (currentValuation / totalInvested) - 1 : 0;
-                // Simple approx CAGR if dates are missing, or use a default term
-                // Since true XIRR requires cashflow dates which we don't have per-transaction,
-                // we'll show a placeholder or simplified return metric.
                 return (
                   <div>
-                    <p className="text-xl font-bold text-indigo-900">
+                    <p className="text-2xl font-bold text-indigo-900">
                       {totalInvested > 0 ? ((Math.pow(1 + absoluteReturnPct, 1/2) - 1) * 100).toFixed(2) : '0.00'}%
                     </p>
-                    <p className="text-[8px] text-indigo-400 font-medium">Estimated 2-Year CAGR</p>
+                    <p className="text-[10px] text-indigo-400 font-medium">Estimated 2-Year CAGR</p>
                   </div>
                 );
               })()}
