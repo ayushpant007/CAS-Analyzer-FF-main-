@@ -10,36 +10,6 @@ import os from "os";
 import { promisify } from "util";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as cheerio from "cheerio";
-
-async function getAIResponseWithRetry(genAIInstance: any, modelName: string, promptText: string, options: any = {}) {
-  const models = Array.from(new Set([modelName.toLowerCase().replace(/\s+/g, '-'), "gemini-1.5-flash", "gemini-2.0-flash"]));
-  let lastError;
-  for (const m of models) {
-    let retries = 2;
-    while (retries >= 0) {
-      try {
-        console.log(`Requesting Gemini model: ${m} (Retries left: ${retries})`);
-        const model = genAIInstance.getGenerativeModel({ 
-          model: m, 
-          generationConfig: options.generationConfig || { responseMimeType: "application/json" },
-          ...options 
-        });
-        const result = await model.generateContent(promptText);
-        return result.response.text();
-      } catch (error: any) {
-        lastError = error;
-        console.error(`Gemini Error (${m}):`, error.status, error.message);
-        if ((error.status === 503 || error.status === 429) && retries > 0) {
-          retries--;
-          await new Promise(r => setTimeout(r, 2000));
-        } else {
-          break; // Try next model
-        }
-      }
-    }
-  }
-  throw lastError;
-}
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 
@@ -262,22 +232,16 @@ ${text}`;
     const reportId = req.query.reportId;
     
     // Rotating API keys logic
-    const apiKeys = Array.from(new Set([
+    const apiKeys = [
       process.env.GEMINI_API_KEY,
       process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-      process.env.GEMINI_API_KEY_1,
       process.env.GEMINI_API_KEY_2,
-      process.env.GEMINI_API_KEY_3,
-      process.env.GEMINI_API_KEY_4
-    ])).filter(Boolean);
-
-    console.log(`Starting analysis with ${apiKeys.length} available API keys`);
+      process.env.GEMINI_API_KEY_3
+    ].filter(Boolean);
 
     let lastError;
-    for (let i = 0; i < apiKeys.length; i++) {
-      const key = apiKeys[i];
+    for (const key of apiKeys) {
       try {
-        console.log(`Attempting analysis with key index ${i}`);
         const genAIInstance = new GoogleGenerativeAI(key!);
         let fundName = "";
         if (reportId) {
@@ -310,18 +274,12 @@ ${text}`;
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        
-        if (!jsonMatch) {
-          throw new Error("Invalid response format from AI");
-        }
+        const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
 
-        const performance = JSON.parse(jsonMatch[0]);
-        console.log(`Successfully analyzed ${fundName}`);
         return res.json(performance);
       } catch (err: any) {
-        console.error(`Attempt ${i + 1} failed:`, err.message);
+        console.error(`Attempt with key failed:`, err.message);
         lastError = err;
-        // If it's not a quota error, we might want to fail early, but let's try all keys anyway
         continue;
       }
     }
