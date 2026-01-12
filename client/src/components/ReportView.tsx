@@ -197,46 +197,103 @@ export function ReportView({ report }: ReportViewProps) {
       </motion.div>
 
       {/* Summary Section - Account Wise */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
-          <h3 className="text-lg font-bold">Portfolio Account Summary</h3>
-          <div className="text-right">
-            <p className="text-xs opacity-80 uppercase tracking-wider font-semibold">Consolidated Value</p>
-            <p className="text-xl font-bold">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</p>
+      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
+            <h3 className="text-lg font-bold">Portfolio Account Summary</h3>
+            <div className="text-right">
+              <p className="text-xs opacity-80 uppercase tracking-wider font-semibold">Consolidated Value</p>
+              <p className="text-xl font-bold">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</p>
+            </div>
           </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Account Type</th>
-                <th className="px-6 py-4">Account Details</th>
-                <th className="px-6 py-4 text-right">No. of Schemes</th>
-                <th className="px-6 py-4 text-right">Value (₹)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(analysis.account_summaries || [])
-                .filter((acc: any) => acc.type === "Mutual Fund Folios")
-                .map((acc: any, i: number) => (
-                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-slate-700">{acc.type}</td>
-                  <td className="px-6 py-4 text-slate-500">{acc.details}</td>
-                  <td className="px-6 py-4 text-right font-mono">{acc.count}</td>
-                  <td className="px-6 py-4 text-right font-bold text-slate-900">
-                    {acc.value?.toLocaleString() ?? '0.00'}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4">Account Type</th>
+                  <th className="px-6 py-4">Account Details</th>
+                  <th className="px-6 py-4 text-right">No. of Schemes</th>
+                  <th className="px-6 py-4 text-right">Value (₹)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(analysis.account_summaries || [])
+                  .filter((acc: any) => acc.type === "Mutual Fund Folios")
+                  .map((acc: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{acc.type}</td>
+                    <td className="px-6 py-4 text-slate-500">{acc.details}</td>
+                    <td className="px-6 py-4 text-right font-mono">{acc.count}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-900">
+                      {acc.value?.toLocaleString() ?? '0.00'}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
+                  <td colSpan={3} className="px-6 py-4 text-right uppercase tracking-wider text-xs text-slate-500">Total Portfolio Value</td>
+                  <td className="px-6 py-4 text-right text-lg text-slate-900">
+                    ₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}
                   </td>
                 </tr>
-              ))}
-              <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
-                <td colSpan={3} className="px-6 py-4 text-right uppercase tracking-wider text-xs text-slate-500">Total Portfolio Value</td>
-                <td className="px-6 py-4 text-right text-lg text-slate-900">
-                  ₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+
+        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 flex flex-col justify-center space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Invested Amount</p>
+              <p className="text-xl font-bold text-slate-900">
+                ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider mb-1">Current Valuation</p>
+              <p className="text-xl font-bold text-blue-900">
+                ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+              <p className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider mb-1">Total Absolute Return</p>
+              {(() => {
+                const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
+                const currentValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                const absoluteReturn = currentValuation - totalInvested;
+                const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
+                return (
+                  <div>
+                    <p className={`text-xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      ₹{absoluteReturn.toLocaleString()}
+                    </p>
+                    <p className={`text-xs font-semibold ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {absoluteReturn >= 0 ? '+' : ''}{absoluteReturnPct.toFixed(2)}%
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+              <p className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider mb-1">Approx. CAGR (Portfolio)</p>
+              {(() => {
+                const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
+                const currentValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                const absoluteReturnPct = totalInvested > 0 ? (currentValuation / totalInvested) - 1 : 0;
+                // Simple approx CAGR if dates are missing, or use a default term
+                // Since true XIRR requires cashflow dates which we don't have per-transaction,
+                // we'll show a placeholder or simplified return metric.
+                return (
+                  <div>
+                    <p className="text-xl font-bold text-indigo-900">
+                      {totalInvested > 0 ? ((Math.pow(1 + absoluteReturnPct, 1/2) - 1) * 100).toFixed(2) : '0.00'}%
+                    </p>
+                    <p className="text-[8px] text-indigo-400 font-medium">Estimated 2-Year CAGR</p>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </motion.div>
       </motion.div>
 
       {/* Asset Allocation Check */}
@@ -345,6 +402,64 @@ export function ReportView({ report }: ReportViewProps) {
           </table>
         </div>
       </motion.div>
+
+      {/* Historical Performance Chart */}
+      {analysis.historical_valuations && analysis.historical_valuations.length > 0 && (
+        <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-600" />
+              Historical Portfolio Trend
+            </h3>
+            <div className="flex items-center gap-4 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+              <span className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-500 rounded-sm"></div> Portfolio Value</span>
+            </div>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analysis.historical_valuations}>
+                <XAxis 
+                  dataKey="month_year" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tickFormatter={(val) => `₹${(val / 100000).toFixed(0)}L`}
+                />
+                <RechartsTooltip 
+                  cursor={{ fill: '#f1f5f9' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-800">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{payload[0].payload.month_year}</p>
+                          <p className="text-sm font-bold">₹{payload[0].value?.toLocaleString()}</p>
+                          {payload[0].payload.change_percentage && (
+                            <p className={`text-[10px] font-bold ${payload[0].payload.change_percentage >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {payload[0].payload.change_percentage >= 0 ? '↑' : '↓'} {Math.abs(payload[0].payload.change_percentage)}%
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="valuation" 
+                  fill="#3b82f6" 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+      )}
 
       {/* Allocation Comparison Section */}
       {(analysis.category_comparison || analysis.type_comparison) && (
