@@ -333,95 +333,163 @@ export function ReportView({ report }: ReportViewProps) {
         ))}
       </motion.div>
 
-      {/* Mutual Fund Short Summary */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Invested Amount",
-            value: `₹${(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}`,
-            color: "text-slate-900"
-          },
-          {
-            label: "Valuation",
-            value: `₹${(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}`,
-            color: "text-blue-600"
-          },
-          {
-            label: "Total (Absolute) Return",
-            value: (
-              <div className="flex flex-col">
-                <span>₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}</span>
-                <span className="text-xs font-semibold">
-                  {(() => {
-                    const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
-                    const totalReturn = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0);
-                    const percentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
-                    return `(${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%)`;
-                  })()}
-                </span>
-              </div>
-            ),
-            color: (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0) >= 0 ? "text-emerald-600" : "text-rose-600"
-          },
-          {
-            label: "XIRR",
-            value: `${analysis.summary?.xirr?.toFixed(2) ?? '0.00'}%`,
-            color: (analysis.summary?.xirr || 0) >= 0 ? "text-emerald-600" : "text-rose-600"
-          }
-        ].map((stat, i) => (
-          <Card key={i} className="p-4 bg-white border-slate-200 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{stat.label}</p>
-            <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
-          </Card>
-        ))}
-      </motion.div>
-
-      {/* Asset Allocation Check */}
+      {/* Historical Portfolio Valuation Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Asset Allocation Check</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
+          <h3 className="text-lg font-bold">Consolidated Portfolio Valuation for Year</h3>
+        </div>
+        <div className="p-6">
+          <div className="h-64 w-full mb-8">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analysis.historical_valuations || []}>
+                <XAxis dataKey="month_year" tick={{fontSize: 12}} />
+                <YAxis hide />
+                <RechartsTooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Bar dataKey="valuation" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4">Month-Year</th>
+                  <th className="px-6 py-4 text-right">Portfolio Valuation (In ₹)</th>
+                  <th className="px-6 py-4 text-right">Changes in ₹</th>
+                  <th className="px-6 py-4 text-right">Changes in %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(analysis.historical_valuations || []).map((v: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{v.month_year}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-900">{v.valuation?.toLocaleString() ?? '0.00'}</td>
+                    <td className={`px-6 py-4 text-right font-mono ${v.change_value >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {v.change_value >= 0 ? '+' : ''}{v.change_value?.toLocaleString() ?? '0.00'}
+                    </td>
+                    <td className={`px-6 py-4 text-right font-bold ${v.change_percentage >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {v.change_percentage >= 0 ? '+' : ''}{v.change_percentage?.toFixed(2) ?? '0.00'}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Asset Class Allocation Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Consolidated Portfolio for Accounts for the Month</h3>
+        </div>
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={analysis.asset_allocation || []}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  nameKey="asset_class"
+                >
+                  {(analysis.asset_allocation || []).map((_: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Legend verticalAlign="middle" align="right" layout="vertical" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4">Asset Class</th>
+                  <th className="px-6 py-4 text-right">Value</th>
+                  <th className="px-6 py-4 text-right">Percentage</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(analysis.asset_allocation || []).map((a: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700">{a.asset_class}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-900">{a.value?.toLocaleString() ?? '0.00'}</td>
+                    <td className="px-6 py-4 text-right font-mono text-slate-500">{a.percentage?.toFixed(2) ?? '0.00'}%</td>
+                  </tr>
+                ))}
+                <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
+                  <td className="px-6 py-4 uppercase tracking-wider text-xs text-slate-500">Total</td>
+                  <td className="px-6 py-4 text-right text-lg text-slate-900">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</td>
+                  <td className="px-6 py-4 text-right text-slate-500">100.00%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Mutual Fund Portfolio Snapshot Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-xs text-left">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4">Fund Category</th>
-                <th className="px-6 py-4 text-right">Actual</th>
-                <th className="px-6 py-4 text-right">Ideal</th>
+                <th className="px-4 py-3">Scheme Name</th>
+                <th className="px-4 py-3">Category / Type</th>
+                <th className="px-4 py-3">Folio No.</th>
+                <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
+                <th className="px-4 py-3 text-right">NAV (₹)</th>
+                <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
+                <th className="px-4 py-3 text-right">Valuation (₹)</th>
+                <th className="px-4 py-3 text-right">Unrealised P/L (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(() => {
-                const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver/Other"];
-                
-                // Group actual allocation by requested categories
-                const actualMap: Record<string, number> = {};
-                (analysis.mf_snapshot || []).forEach((mf: any) => {
-                  const cat = (mf.fund_category || "").toLowerCase();
-                  const valuation = mf.valuation || 0;
-                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
-
-                  if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                  else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                  else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                  else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + percentage;
-                });
-
-                return categories.map((cat) => (
-                  <tr key={cat} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-slate-700">{cat}</td>
-                    <td className="px-6 py-4 text-right font-bold text-slate-900">
-                      {(actualMap[cat] || 0).toFixed(2)}%
-                    </td>
-                    <td className="px-6 py-4 text-right text-slate-500 font-medium">
-                      {ideal[cat] || "0%"}
-                    </td>
-                  </tr>
-                ));
-              })()}
+              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-900">{mf.fund_category || 'N/A'}</span>
+                      <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
+                  <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {mf.unrealised_profit_loss?.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-slate-800 text-white font-bold">
+                <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
+                <td className="px-4 py-3 text-right">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right text-sm">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right">
+                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
