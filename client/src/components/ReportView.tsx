@@ -26,7 +26,10 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
     setLoading(true);
     try {
       const res = await fetch(`/api/scheme-performance/${scheme.isin}?reportId=${reportId}`);
-      if (!res.ok) throw new Error("Failed to fetch performance data");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to fetch performance data");
+      }
       const json = await res.json();
       setData(json);
     } catch (e: any) {
