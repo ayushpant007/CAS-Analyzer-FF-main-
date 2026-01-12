@@ -480,173 +480,58 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {/* Scheme Level Performance Section */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Scheme Level Performance</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Benchmark Comparison & Historical Returns</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Scheme Name</th>
-                <th className="px-6 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(analysis.mf_snapshot || []).map((scheme: any, i: number) => (
-                <PerformanceRow key={i} scheme={scheme} reportId={report.id} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
-
-      {/* Risk Metrics Check Section */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-4 text-white">
-          <h3 className="text-lg font-bold">Risk Metrics Check </h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
-        </div>
-        <div className="p-6 space-y-4">
-          {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
-            <div key={i} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-slate-900">{mf.scheme_name}</h4>
-                  <div className="flex flex-wrap gap-2 text-[10px] uppercase font-bold text-slate-500">
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">ISIN: {mf.isin || 'N/A'}</span>
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_category}</span>
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_type}</span>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => analyzePerformance(mf.isin)}
-                  disabled={analyzingIsin === mf.isin || !mf.isin}
-                  className="hover-elevate"
+      {/* Portfolio Holdings & Analysis */}
+      <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-slate-800 p-4 text-white">
+            <h3 className="text-lg font-bold">Sector Exposure</h3>
+          </div>
+          <div className="h-[300px] p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={analysis.sector_allocation || []}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="percentage"
+                  nameKey="sector"
                 >
-                  {analyzingIsin === mf.isin ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Activity className="w-4 h-4 mr-2" />
-                  )}
-                  Analyze Performance
-                </Button>
-              </div>
-
-              {performances[mf.isin] && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="space-y-6 pt-4 border-t border-slate-200"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Returns & Basic Stats */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-end">
-                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
-                        <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                          <p className="text-[10px] text-slate-500">1-Year</p>
-                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                          <p className="text-[10px] text-slate-500">3-Year</p>
-                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                          <p className="text-[10px] text-slate-500">5-Year</p>
-                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
-                          <p className="text-[10px] text-slate-500">AUM (Cr)</p>
-                          <p className="text-xs font-bold text-slate-700">₹{performances[mf.isin].stats?.aum_crores}</p>
-                        </div>
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
-                          <p className="text-[10px] text-slate-500">Exp. Ratio</p>
-                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.expense_ratio}</p>
-                        </div>
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
-                          <p className="text-[10px] text-slate-500">Turnover</p>
-                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.turnover}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Risk Ratios */}
-                    <div className="space-y-4">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Metrics (Fund vs Cat Avg)</h5>
-                      <div className="grid grid-cols-4 gap-2">
-                        {['std_dev', 'sharpe', 'beta', 'alpha'].map((ratio) => (
-                          <div key={ratio} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[10px] text-slate-500 capitalize">{ratio.replace('_', ' ')}</p>
-                            <p className="font-bold text-slate-900 text-xs">{(performances[mf.isin].risk_ratios as any)[ratio]?.fund}</p>
-                            <p className="text-[8px] text-slate-400">Avg: {(performances[mf.isin].risk_ratios as any)[ratio]?.category_avg}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Portfolio Breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
-                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
-                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
-                          <div key={idx} className="flex justify-between p-2 text-[10px]">
-                            <span className="text-slate-700 truncate mr-2">{h.name}</span>
-                            <span className="font-bold text-slate-900">{h.weight}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
-                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
-                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
-                          <div key={idx} className="flex justify-between p-2 text-[10px]">
-                            <span className="text-slate-700 truncate mr-2">{s.name}</span>
-                            <span className="font-bold text-slate-900">{s.weight}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          ))}
+                  {(analysis.sector_allocation || []).map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip />
+                <Legend verticalAlign="bottom" height={36}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </motion.div>
 
-      {/* Scheme Level Performance Section */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Scheme Level Performance</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Benchmark Comparison & Historical Returns</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Scheme Name</th>
-                <th className="px-6 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(analysis.mf_snapshot || []).map((scheme: any, i: number) => (
-                <PerformanceRow key={i} scheme={scheme} reportId={report.id} />
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-slate-800 p-4 text-white">
+            <h3 className="text-lg font-bold">Top Holdings</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                <tr>
+                  <th className="px-4 py-3">Holding</th>
+                  <th className="px-4 py-3 text-right">Weight</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(analysis.top_holdings || []).slice(0, 8).map((h: any, i: number) => (
+                  <tr key={i}>
+                    <td className="px-4 py-3 text-slate-700 font-medium truncate max-w-[200px]">{h.name}</td>
+                    <td className="px-4 py-3 text-right font-bold text-slate-900">{h.percentage}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </motion.div>
 
