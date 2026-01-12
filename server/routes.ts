@@ -232,18 +232,22 @@ ${text}`;
     const reportId = req.query.reportId;
     
     // Rotating API keys logic
-    const apiKeys = [
+    const apiKeys = Array.from(new Set([
       process.env.GEMINI_API_KEY,
       process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
       process.env.GEMINI_API_KEY_1,
       process.env.GEMINI_API_KEY_2,
       process.env.GEMINI_API_KEY_3,
       process.env.GEMINI_API_KEY_4
-    ].filter(Boolean);
+    ])).filter(Boolean);
+
+    console.log(`Starting analysis with ${apiKeys.length} available API keys`);
 
     let lastError;
-    for (const key of apiKeys) {
+    for (let i = 0; i < apiKeys.length; i++) {
+      const key = apiKeys[i];
       try {
+        console.log(`Attempting analysis with key index ${i}`);
         const genAIInstance = new GoogleGenerativeAI(key!);
         let fundName = "";
         if (reportId) {
@@ -276,12 +280,18 @@ ${text}`;
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+        
+        if (!jsonMatch) {
+          throw new Error("Invalid response format from AI");
+        }
 
+        const performance = JSON.parse(jsonMatch[0]);
+        console.log(`Successfully analyzed ${fundName}`);
         return res.json(performance);
       } catch (err: any) {
-        console.error(`Attempt with key failed:`, err.message);
+        console.error(`Attempt ${i + 1} failed:`, err.message);
         lastError = err;
+        // If it's not a quota error, we might want to fail early, but let's try all keys anyway
         continue;
       }
     }
