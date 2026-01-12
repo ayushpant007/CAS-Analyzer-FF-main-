@@ -251,7 +251,7 @@ ${text}`;
           fundName = fund?.scheme_name || "";
         }
 
-        const modelName = "gemini-2.0-flash-lite"; 
+        const modelName = "gemini-2.5-flash-lite"; 
         const model = genAIInstance.getGenerativeModel({ 
           model: modelName,
           tools: [{ googleSearch: {} }] as any
