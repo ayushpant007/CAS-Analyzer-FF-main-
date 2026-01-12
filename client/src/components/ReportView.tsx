@@ -666,30 +666,7 @@ export function ReportView({ report }: ReportViewProps) {
         </motion.div>
       )}
 
-      {/* Scheme Level Performance Section */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Scheme Level Performance</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Benchmark Comparison & Historical Returns</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Scheme Name</th>
-                <th className="px-6 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(analysis.mf_snapshot || []).map((scheme: any, i: number) => (
-                <PerformanceRow key={i} scheme={scheme} reportId={report.id} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
-
-      {/* Risk Metrics Check Section */}
+      {/* Scheme Performance Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-4 text-white">
           <h3 className="text-lg font-bold">Risk Metrics Check </h3>
@@ -786,7 +763,7 @@ export function ReportView({ report }: ReportViewProps) {
                     <div className="space-y-2">
                       <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
                       <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
-                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h: any, idx: number) => (
+                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
                           <div key={idx} className="flex justify-between p-2 text-[10px]">
                             <span className="text-slate-700 truncate mr-2">{h.name}</span>
                             <span className="font-bold text-slate-900">{h.weight}%</span>
@@ -797,7 +774,7 @@ export function ReportView({ report }: ReportViewProps) {
                     <div className="space-y-2">
                       <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
                       <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
-                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s: any, idx: number) => (
+                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
                           <div key={idx} className="flex justify-between p-2 text-[10px]">
                             <span className="text-slate-700 truncate mr-2">{s.name}</span>
                             <span className="font-bold text-slate-900">{s.weight}%</span>
