@@ -227,5 +227,65 @@ ${text}`;
     }
   });
 
+  app.get("/api/scheme-performance/:isin", async (req, res) => {
+    const isin = req.params.isin;
+    const reportId = req.query.reportId;
+    
+    // Rotating API keys logic
+    const apiKeys = [
+      process.env.GEMINI_API_KEY,
+      process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      process.env.GEMINI_API_KEY_2,
+      process.env.GEMINI_API_KEY_3
+    ].filter(Boolean);
+
+    let lastError;
+    for (const key of apiKeys) {
+      try {
+        const genAIInstance = new GoogleGenerativeAI(key!);
+        let fundName = "";
+        if (reportId) {
+          const report = await storage.getReport(Number(reportId));
+          const snapshot = (report?.analysis as any)?.mf_snapshot || [];
+          const fund = snapshot.find((f: any) => f.isin === isin);
+          fundName = fund?.scheme_name || "";
+        }
+
+        const modelName = "gemini-2.0-flash-lite"; 
+        const model = genAIInstance.getGenerativeModel({ 
+          model: modelName,
+          tools: [{ googleSearch: {} }] as any
+        });
+
+        const prompt = `Search the latest financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
+        Provide the following details:
+        1. cagr: 1-Year, 3-Year, and 5-Year CAGR for the scheme.
+        2. benchmark: Identify the correct benchmark for this fund and provide its 1-Year, 3-Year, and 5-Year returns.
+        
+        Return the result STRICTLY as a JSON object with this structure:
+        {
+          "scheme_returns": {"1y": string, "3y": string, "5y": string},
+          "benchmark_name": string,
+          "benchmark_returns": {"1y": string, "3y": string, "5y": string}
+        }
+        
+        Ensure returns are strings like "15.5%". If data is unavailable, use "N/A".`;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+
+        return res.json(performance);
+      } catch (err: any) {
+        console.error(`Attempt with key failed:`, err.message);
+        lastError = err;
+        continue;
+      }
+    }
+    
+    res.status(lastError?.status || 500).json({ message: lastError?.message || "All API keys failed" });
+  });
+
   return httpServer;
 }

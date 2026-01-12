@@ -1,6 +1,6 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
-import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download } from "lucide-react";
+import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { useState, useRef } from "react";
@@ -10,6 +10,114 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
+interface SchemePerformanceData {
+  scheme_returns: { "1y": string; "3y": string; "5y": string };
+  benchmark_name: string;
+  benchmark_returns: { "1y": string; "3y": string; "5y": string };
+}
+
+function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number }) {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<SchemePerformanceData | null>(null);
+  const { toast } = useToast();
+
+  const analyze = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/scheme-performance/${scheme.isin}?reportId=${reportId}`);
+      if (!res.ok) throw new Error("Failed to fetch performance data");
+      const json = await res.json();
+      setData(json);
+    } catch (e: any) {
+      toast({
+        title: "Analysis Failed",
+        description: e.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const compare = (s: string, b: string) => {
+    const sv = parseFloat(s.replace('%', ''));
+    const bv = parseFloat(b.replace('%', ''));
+    if (isNaN(sv) || isNaN(bv)) return null;
+    return sv > bv ? "green" : "red";
+  };
+
+  return (
+    <>
+      <tr className="hover:bg-slate-50/50 transition-colors">
+        <td className="px-6 py-4 font-semibold text-slate-700">{scheme.scheme_name}</td>
+        <td className="px-6 py-4 text-right">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={analyze} 
+            disabled={loading}
+            className="hover-elevate"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Analyse Scheme
+          </Button>
+        </td>
+      </tr>
+      {data && (
+        <tr className="bg-slate-50/50">
+          <td colSpan={2} className="px-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Scheme CAGR</h4>
+                <div className="flex gap-4">
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
+                    <p className="text-sm font-bold text-slate-900">{data.scheme_returns["1y"]}</p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">3Y</p>
+                    <p className="text-sm font-bold text-slate-900">{data.scheme_returns["3y"]}</p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">5Y</p>
+                    <p className="text-sm font-bold text-slate-900">{data.scheme_returns["5y"]}</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Benchmark: {data.benchmark_name}</h4>
+                <div className="flex gap-4">
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
+                    <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                      {data.benchmark_returns["1y"]}
+                      <Flag className={`h-3 w-3 ${compare(data.scheme_returns["1y"], data.benchmark_returns["1y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">3Y</p>
+                    <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                      {data.benchmark_returns["3y"]}
+                      <Flag className={`h-3 w-3 ${compare(data.scheme_returns["3y"], data.benchmark_returns["3y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">5Y</p>
+                    <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                      {data.benchmark_returns["5y"]}
+                      <Flag className={`h-3 w-3 ${compare(data.scheme_returns["5y"], data.benchmark_returns["5y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
 
 interface PerformanceData {
   nav: { value: number; date: string };
@@ -344,6 +452,29 @@ export function ReportView({ report }: ReportViewProps) {
                   </tr>
                 ));
               })()}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Scheme Level Performance Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Scheme Level Performance</h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Benchmark Comparison & Historical Returns</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-6 py-4">Scheme Name</th>
+                <th className="px-6 py-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(analysis.mf_snapshot || []).map((scheme: any, i: number) => (
+                <PerformanceRow key={i} scheme={scheme} reportId={report.id} />
+              ))}
             </tbody>
           </table>
         </div>
