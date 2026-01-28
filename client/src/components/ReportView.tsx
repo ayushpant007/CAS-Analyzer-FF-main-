@@ -440,17 +440,28 @@ export function ReportView({ report }: ReportViewProps) {
                   else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + percentage;
                 });
 
-                return categories.map((cat) => (
-                  <tr key={cat} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-slate-700">{cat}</td>
-                    <td className="px-6 py-4 text-right font-bold text-slate-900">
-                      {(actualMap[cat] || 0).toFixed(2)}%
-                    </td>
-                    <td className="px-6 py-4 text-right text-slate-500 font-medium">
-                      {ideal[cat] || "0%"}
-                    </td>
-                  </tr>
-                ));
+                return categories.map((cat) => {
+                  const actual = actualMap[cat] || 0;
+                  const idealStr = ideal[cat] || "0%";
+                  const idealVal = parseFloat(idealStr.replace('%', ''));
+                  
+                  let statusColor = "text-slate-900";
+                  if (actual < idealVal) statusColor = "text-rose-600";
+                  else if (actual > idealVal) statusColor = "text-amber-500";
+                  else if (actual === idealVal && actual > 0) statusColor = "text-emerald-600";
+
+                  return (
+                    <tr key={cat} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 font-semibold text-slate-700">{cat}</td>
+                      <td className={`px-6 py-4 text-right font-bold ${statusColor}`}>
+                        {actual.toFixed(2)}%
+                      </td>
+                      <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                        {idealStr}
+                      </td>
+                    </tr>
+                  );
+                });
               })()}
             </tbody>
           </table>
