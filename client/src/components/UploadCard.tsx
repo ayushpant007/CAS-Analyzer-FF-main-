@@ -18,7 +18,7 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
   
   const { mutate: analyze, isPending, error } = useAnalyzeReport();
   const { toast } = useToast();
-
+  
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);

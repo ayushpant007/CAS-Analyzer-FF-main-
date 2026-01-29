@@ -349,7 +349,7 @@ export function ReportView({ report }: ReportViewProps) {
         </motion.div>
 
         <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-4 text-white">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
             <h3 className="text-lg font-bold">Investment Stats</h3>
           </div>
           <div className="p-6">
@@ -468,6 +468,95 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
+      {/* Category Wise Distribution Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Category Wise Distribution</h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Portfolio weightage by fund category</p>
+        </div>
+        <div className="p-6">
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={(() => {
+                    const actualMap: Record<string, number> = {};
+                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                    
+                    (analysis.mf_snapshot || []).forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      const valuation = mf.valuation || 0;
+                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                      let finalCat = "Other";
+                      if (cat.includes("equity")) finalCat = "Equity";
+                      else if (cat.includes("debt")) finalCat = "Debt";
+                      else if (cat.includes("hybrid")) finalCat = "Hybrid";
+                      else if (cat.includes("gold") || cat.includes("silver")) finalCat = "Gold/Silver";
+
+                      actualMap[finalCat] = (actualMap[finalCat] || 0) + percentage;
+                    });
+
+                    return Object.entries(actualMap)
+                      .filter(([_, value]) => value > 0)
+                      .map(([name, value]) => ({ name, value }));
+                  })()}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {COLORS.map((color, index) => (
+                    <Cell key={`cell-${index}`} fill={color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white p-2 border border-slate-200 rounded shadow-sm">
+                          <p className="text-xs font-bold text-slate-900">{payload[0].name}</p>
+                          <p className="text-xs text-blue-600 font-bold">{payload[0].value.toFixed(2)}%</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend verticalAlign="bottom" height={36}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+            {(() => {
+              const actualMap: Record<string, number> = {};
+              const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+              const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+              
+              (analysis.mf_snapshot || []).forEach((mf: any) => {
+                const cat = (mf.fund_category || "").toLowerCase();
+                const valuation = mf.valuation || 0;
+                const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
+                else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
+                else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
+                else actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + percentage;
+              });
+
+              return categories.map((cat, idx) => (
+                <div key={cat} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">{cat}</p>
+                  <p className="text-lg font-bold text-slate-900">{(actualMap[cat] || 0).toFixed(2)}%</p>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      </motion.div>
+
       {/* Scheme Level Performance Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
@@ -493,7 +582,7 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Risk Metrics Check Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-4 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
           <h3 className="text-lg font-bold">Risk Metrics Check </h3>
           <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
         </div>
@@ -729,11 +818,11 @@ export function ReportView({ report }: ReportViewProps) {
         </motion.div>
       )}
 
-      {/* Allocation Comparison Section */}
+      {/* Risk-Based Allocation Analysis Section */}
       {(analysis.category_comparison || analysis.type_comparison) && (
         <motion.div variants={item} className="space-y-8">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-4 text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
               <h3 className="text-lg font-bold">Risk-Based Allocation Analysis</h3>
               <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
             </div>
