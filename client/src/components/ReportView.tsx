@@ -521,7 +521,7 @@ export function ReportView({ report }: ReportViewProps) {
                         <div className="bg-white p-3 border border-slate-200 shadow-xl rounded-lg">
                           <p className="text-sm font-bold text-slate-900 mb-1">{payload[0].payload.name}</p>
                           <p className="text-sm font-medium text-blue-600">
-                            Allocation: {payload[0].value?.toFixed(2)}%
+                            Allocation: {Number(payload[0].value)?.toFixed(2)}%
                           </p>
                         </div>
                       );
