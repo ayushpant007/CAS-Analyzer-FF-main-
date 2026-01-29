@@ -475,58 +475,148 @@ export function ReportView({ report }: ReportViewProps) {
           <p className="text-xs opacity-80 uppercase tracking-wider">Portfolio weightage by fund category</p>
         </div>
         <div className="p-6">
-          <div className="h-[300px] w-full">
+          <div className="h-[500px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={(() => {
-                    const actualMap: Record<string, number> = {};
-                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                    
-                    (analysis.mf_snapshot || []).forEach((mf: any) => {
-                      const cat = (mf.fund_category || "").toLowerCase();
-                      const valuation = mf.valuation || 0;
-                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+              <BarChart
+                layout="vertical"
+                data={(() => {
+                  const data: any[] = [];
+                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                  const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                  const typeMap: Record<string, Record<string, number>> = {};
+                  const mainMap: Record<string, number> = {};
 
-                      let finalCat = "Other";
-                      if (cat.includes("equity")) finalCat = "Equity";
-                      else if (cat.includes("debt")) finalCat = "Debt";
-                      else if (cat.includes("hybrid")) finalCat = "Hybrid";
-                      else if (cat.includes("gold") || cat.includes("silver")) finalCat = "Gold/Silver";
+                  (analysis.mf_snapshot || []).forEach((mf: any) => {
+                    const cat = (mf.fund_category || "").toLowerCase();
+                    const type = mf.fund_type || "Other";
+                    const valuation = mf.valuation || 0;
+                    const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
 
-                      actualMap[finalCat] = (actualMap[finalCat] || 0) + percentage;
-                    });
+                    let mainCat = "Gold/Silver";
+                    if (cat.includes("equity")) mainCat = "Equity";
+                    else if (cat.includes("debt")) mainCat = "Debt";
+                    else if (cat.includes("hybrid")) mainCat = "Hybrid";
 
-                    return Object.entries(actualMap)
-                      .filter(([_, value]) => value > 0)
-                      .map(([name, value]) => ({ name, value }));
-                  })()}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {COLORS.map((color, index) => (
-                    <Cell key={`cell-${index}`} fill={color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip 
+                    mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                    if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                    typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+                  });
+
+                  mainCategories.forEach(mainCat => {
+                    if (mainMap[mainCat] > 0) {
+                      data.push({
+                        name: mainCat,
+                        value: mainMap[mainCat],
+                        isMain: true,
+                        category: mainCat
+                      });
+
+                      const subTypes = Object.entries(typeMap[mainCat] || {})
+                        .sort((a, b) => b[1] - a[1]);
+                      
+                      subTypes.forEach(([type, val]) => {
+                        data.push({
+                          name: `  • ${type}`,
+                          value: val,
+                          isMain: false,
+                          category: mainCat
+                        });
+                      });
+                    }
+                  });
+                  return data;
+                })()}
+                margin={{ left: 140, right: 60, top: 10, bottom: 10 }}
+              >
+                <XAxis type="number" hide domain={[0, 100]} />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={130} 
+                  tick={(props) => {
+                    const { x, y, payload } = props;
+                    const isMain = !payload.value.includes("•");
+                    return (
+                      <text 
+                        x={x} 
+                        y={y} 
+                        dy={4} 
+                        textAnchor="end" 
+                        fill={isMain ? "#0f172a" : "#64748b"} 
+                        style={{ 
+                          fontSize: isMain ? '12px' : '10px', 
+                          fontWeight: isMain ? 700 : 400,
+                          fontFamily: 'Inter, sans-serif'
+                        }}
+                      >
+                        {payload.value}
+                      </text>
+                    );
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsTooltip
+                  cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
-                        <div className="bg-white p-2 border border-slate-200 rounded shadow-sm">
-                          <p className="text-xs font-bold text-slate-900">{payload[0].name}</p>
-                          <p className="text-xs text-blue-600 font-bold">{payload[0].value.toFixed(2)}%</p>
+                        <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl">
+                          <p className="text-xs font-bold text-slate-900 mb-1">{data.name.replace('  • ', '')}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].color }} />
+                            <p className="text-xs text-blue-600 font-bold">{data.value.toFixed(2)}%</p>
+                          </div>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Legend verticalAlign="bottom" height={36}/>
-              </PieChart>
+                <Bar 
+                  dataKey="value" 
+                  radius={[0, 6, 6, 0]}
+                  barSize={20}
+                >
+                  {(() => {
+                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                    const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                    const typeMap: Record<string, Record<string, number>> = {};
+                    const mainMap: Record<string, number> = {};
+
+                    (analysis.mf_snapshot || []).forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      const type = mf.fund_type || "Other";
+                      const valuation = mf.valuation || 0;
+                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                      let mainCat = "Gold/Silver";
+                      if (cat.includes("equity")) mainCat = "Equity";
+                      else if (cat.includes("debt")) mainCat = "Debt";
+                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                      mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                      if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                      typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+                    });
+
+                    const cellData: any[] = [];
+                    mainCategories.forEach((mainCat, idx) => {
+                      if (mainMap[mainCat] > 0) {
+                        cellData.push({ color: COLORS[idx % COLORS.length], opacity: 1 });
+                        const subTypesCount = Object.keys(typeMap[mainCat] || {}).length;
+                        for(let i=0; i<subTypesCount; i++) {
+                          cellData.push({ color: COLORS[idx % COLORS.length], opacity: 0.5 });
+                        }
+                      }
+                    });
+                    return cellData.map((d, i) => (
+                      <Cell key={`cell-${i}`} fill={d.color} fillOpacity={d.opacity} />
+                    ));
+                  })()}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
