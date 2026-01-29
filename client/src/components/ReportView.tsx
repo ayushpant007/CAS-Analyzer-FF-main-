@@ -182,14 +182,23 @@ export function ReportView({ report }: ReportViewProps) {
     
     try {
       const element = reportRef.current;
+      
+      // Temporary style to ensure full visibility for capture
+      const originalStyle = element.style.height;
+      element.style.height = 'auto';
+      
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1.5, // Reduced scale for smaller file size
         useCORS: true,
         logging: false,
-        backgroundColor: "#f8fafc" // match bg-slate-50
+        backgroundColor: "#f8fafc",
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       });
       
-      const imgData = canvas.toDataURL("image/png");
+      element.style.height = originalStyle;
+      
+      const imgData = canvas.toDataURL("image/jpeg", 0.7); // Use JPEG with 70% quality for significant size reduction
       const pdf = new jsPDF("p", "mm", "a4");
       
       const imgProps = pdf.getImageProperties(imgData);
@@ -198,15 +207,16 @@ export function ReportView({ report }: ReportViewProps) {
       
       let heightLeft = pdfHeight;
       let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
       
-      while (heightLeft >= 0) {
+      while (heightLeft > 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
       }
       
       pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
@@ -266,7 +276,7 @@ export function ReportView({ report }: ReportViewProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
       <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
         <Button 
           onClick={downloadPDF} 
