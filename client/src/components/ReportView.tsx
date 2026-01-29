@@ -1,5 +1,5 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, LineChart, Line, CartesianGrid } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -475,69 +475,148 @@ export function ReportView({ report }: ReportViewProps) {
           <p className="text-xs opacity-80 uppercase tracking-wider">Portfolio weightage by fund category</p>
         </div>
         <div className="p-6">
-          <div className="h-[400px] w-full mt-4">
+          <div className="h-[500px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <BarChart
+                layout="vertical"
                 data={(() => {
-                  const dataMap: Record<string, any> = {};
+                  const data: any[] = [];
                   const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  
+                  const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                  const typeMap: Record<string, Record<string, number>> = {};
+                  const mainMap: Record<string, number> = {};
+
                   (analysis.mf_snapshot || []).forEach((mf: any) => {
-                    const cat = (mf.fund_category || "Other");
+                    const cat = (mf.fund_category || "").toLowerCase();
+                    const type = mf.fund_type || "Other";
                     const valuation = mf.valuation || 0;
                     const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
-                    
-                    if (!dataMap[cat]) {
-                      dataMap[cat] = { name: cat, value: 0 };
-                    }
-                    dataMap[cat].value += percentage;
+
+                    let mainCat = "Gold/Silver";
+                    if (cat.includes("equity")) mainCat = "Equity";
+                    else if (cat.includes("debt")) mainCat = "Debt";
+                    else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                    mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                    if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                    typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
                   });
 
-                  return Object.values(dataMap).sort((a, b) => b.value - a.value);
+                  mainCategories.forEach(mainCat => {
+                    if (mainMap[mainCat] > 0) {
+                      data.push({
+                        name: mainCat,
+                        value: mainMap[mainCat],
+                        isMain: true,
+                        category: mainCat
+                      });
+
+                      const subTypes = Object.entries(typeMap[mainCat] || {})
+                        .sort((a, b) => b[1] - a[1]);
+                      
+                      subTypes.forEach(([type, val]) => {
+                        data.push({
+                          name: `  • ${type}`,
+                          value: val,
+                          isMain: false,
+                          category: mainCat
+                        });
+                      });
+                    }
+                  });
+                  return data;
                 })()}
-                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                margin={{ left: 140, right: 60, top: 10, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 12 }}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
+                <XAxis type="number" hide domain={[0, 100]} />
                 <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={130} 
+                  tick={(props) => {
+                    const { x, y, payload } = props;
+                    const isMain = !payload.value.includes("•");
+                    return (
+                      <text 
+                        x={x} 
+                        y={y} 
+                        dy={4} 
+                        textAnchor="end" 
+                        fill={isMain ? "#0f172a" : "#64748b"} 
+                        style={{ 
+                          fontSize: isMain ? '12px' : '10px', 
+                          fontWeight: isMain ? 700 : 400,
+                          fontFamily: 'Inter, sans-serif'
+                        }}
+                      >
+                        {payload.value}
+                      </text>
+                    );
+                  }}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 12 }}
-                  tickFormatter={(value) => `${value}%`}
                 />
                 <RechartsTooltip
+                  cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
-                        <div className="bg-white p-3 border border-slate-200 shadow-xl rounded-lg">
-                          <p className="text-sm font-bold text-slate-900 mb-1">{payload[0].payload.name}</p>
-                          <p className="text-sm font-medium text-blue-600">
-                            Allocation: {Number(payload[0].value)?.toFixed(2)}%
-                          </p>
+                        <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl">
+                          <p className="text-xs font-bold text-slate-900 mb-1">{data.name.replace('  • ', '')}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].color }} />
+                            <p className="text-xs text-blue-600 font-bold">{data.value.toFixed(2)}%</p>
+                          </div>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="value" 
-                  stroke="#3b82f6" 
-                  strokeWidth={3}
-                  dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 8, strokeWidth: 0 }}
-                />
-              </LineChart>
+                  radius={[0, 6, 6, 0]}
+                  barSize={20}
+                >
+                  {(() => {
+                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                    const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                    const typeMap: Record<string, Record<string, number>> = {};
+                    const mainMap: Record<string, number> = {};
+
+                    (analysis.mf_snapshot || []).forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      const type = mf.fund_type || "Other";
+                      const valuation = mf.valuation || 0;
+                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                      let mainCat = "Gold/Silver";
+                      if (cat.includes("equity")) mainCat = "Equity";
+                      else if (cat.includes("debt")) mainCat = "Debt";
+                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                      mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                      if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                      typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+                    });
+
+                    const cellData: any[] = [];
+                    mainCategories.forEach((mainCat, idx) => {
+                      if (mainMap[mainCat] > 0) {
+                        cellData.push({ color: COLORS[idx % COLORS.length], opacity: 1 });
+                        const subTypesCount = Object.keys(typeMap[mainCat] || {}).length;
+                        for(let i=0; i<subTypesCount; i++) {
+                          cellData.push({ color: COLORS[idx % COLORS.length], opacity: 0.5 });
+                        }
+                      }
+                    });
+                    return cellData.map((d, i) => (
+                      <Cell key={`cell-${i}`} fill={d.color} fillOpacity={d.opacity} />
+                    ));
+                  })()}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
@@ -691,71 +770,41 @@ export function ReportView({ report }: ReportViewProps) {
                       </div>
                     </div>
 
-                    {/* Risk Analysis */}
+                    {/* Risk Ratios */}
                     <div className="space-y-4">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Analysis (vs Category)</h5>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-white p-3 rounded-xl border border-slate-100">
-                          <p className="text-[10px] text-slate-500 mb-1">Standard Deviation</p>
-                          <div className="flex justify-between items-baseline">
-                            <span className="text-sm font-bold text-slate-900">{performances[mf.isin].risk_ratios?.std_dev?.fund}</span>
-                            <span className="text-[10px] text-slate-400">Avg: {performances[mf.isin].risk_ratios?.std_dev?.category_avg}</span>
-                          </div>
-                        </div>
-                        <div className="bg-white p-3 rounded-xl border border-slate-100">
-                          <p className="text-[10px] text-slate-500 mb-1">Sharpe Ratio</p>
-                          <div className="flex justify-between items-baseline">
-                            <span className="text-sm font-bold text-slate-900">{performances[mf.isin].risk_ratios?.sharpe?.fund}</span>
-                            <span className="text-[10px] text-slate-400">Avg: {performances[mf.isin].risk_ratios?.sharpe?.category_avg}</span>
-                          </div>
-                        </div>
-                        <div className="bg-white p-3 rounded-xl border border-slate-100">
-                          <p className="text-[10px] text-slate-500 mb-1">Beta</p>
-                          <div className="flex justify-between items-baseline">
-                            <span className="text-sm font-bold text-slate-900">{performances[mf.isin].risk_ratios?.beta?.fund}</span>
-                            <span className="text-[10px] text-slate-400">Avg: {performances[mf.isin].risk_ratios?.beta?.category_avg}</span>
-                          </div>
-                        </div>
-                        <div className="bg-white p-3 rounded-xl border border-slate-100">
-                          <p className="text-[10px] text-slate-500 mb-1">Alpha</p>
-                          <div className="flex justify-between items-baseline">
-                            <span className="text-sm font-bold text-slate-900">{performances[mf.isin].risk_ratios?.alpha?.fund}</span>
-                            <span className="text-[10px] text-slate-400">Avg: {performances[mf.isin].risk_ratios?.alpha?.category_avg}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Portfolio Insights */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                    <div className="space-y-3">
-                      <h6 className="text-[10px] font-bold text-slate-400 uppercase">Top 5 Sectors</h6>
-                      <div className="space-y-2">
-                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
-                          <div key={idx} className="space-y-1">
-                            <div className="flex justify-between text-[10px]">
-                              <span className="text-slate-600 font-medium">{s.name}</span>
-                              <span className="text-slate-900 font-bold">{s.weight}%</span>
-                            </div>
-                            <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${s.weight}%` }}
-                                className="h-full bg-blue-500"
-                              />
-                            </div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Metrics (Fund vs Cat Avg)</h5>
+                      <div className="grid grid-cols-4 gap-2">
+                        {['std_dev', 'sharpe', 'beta', 'alpha'].map((ratio) => (
+                          <div key={ratio} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[10px] text-slate-500 capitalize">{ratio.replace('_', ' ')}</p>
+                            <p className="font-bold text-slate-900 text-xs">{(performances[mf.isin].risk_ratios as any)[ratio]?.fund}</p>
+                            <p className="text-[8px] text-slate-400">Avg: {(performances[mf.isin].risk_ratios as any)[ratio]?.category_avg}</p>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <h6 className="text-[10px] font-bold text-slate-400 uppercase">Top 5 Holdings</h6>
-                      <div className="space-y-2">
+                  </div>
+
+                  {/* Portfolio Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
                         {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
-                          <div key={idx} className="flex justify-between items-center p-2 bg-white rounded-lg border border-slate-100">
-                            <span className="text-[10px] text-slate-600 font-medium truncate mr-2">{h.name}</span>
-                            <span className="text-[10px] text-slate-900 font-bold shrink-0">{h.weight}%</span>
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{h.name}</span>
+                            <span className="font-bold text-slate-900">{h.weight}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{s.name}</span>
+                            <span className="font-bold text-slate-900">{s.weight}%</span>
                           </div>
                         ))}
                       </div>
@@ -768,56 +817,193 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {/* Suggested Strategy Section */}
+      {/* Mutual Fund Portfolio Snapshot Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Recommended Action Strategy</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">AI Generated Portfolio Optimization</p>
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-indigo-700">
-                <Lightbulb className="w-5 h-5" />
-                <h4 className="font-bold">Portfolio Insights</h4>
-              </div>
-              <ul className="space-y-3">
-                {(analysis.insights || []).map((insight: string, i: number) => (
-                  <li key={i} className="flex gap-3 text-sm text-slate-600">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                    {insight}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-emerald-700">
-                <ArrowUpRight className="w-5 h-5" />
-                <h4 className="font-bold">Strategic Recommendations</h4>
-              </div>
-              <ul className="space-y-3">
-                {(analysis.recommendations || []).map((rec: string, i: number) => (
-                  <li key={i} className="flex gap-3 text-sm text-slate-600 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    {rec}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-4 py-3">Scheme Name</th>
+                <th className="px-4 py-3">Category / Type</th>
+                <th className="px-4 py-3">Folio No.</th>
+                <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
+                <th className="px-4 py-3 text-right">NAV (₹)</th>
+                <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
+                <th className="px-4 py-3 text-right">Valuation (₹)</th>
+                <th className="px-4 py-3 text-right">Unrealised P/L (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-900">{mf.fund_category || 'N/A'}</span>
+                      <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
+                  <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {mf.unrealised_profit_loss?.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-slate-800 text-white font-bold">
+                <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
+                <td className="px-4 py-3 text-right">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right text-sm">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right">
+                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
 
-          <div className="mt-8 p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-4">
-            <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0" />
-            <div>
-              <h5 className="text-sm font-bold text-amber-900 mb-1">Financial Disclaimer</h5>
-              <p className="text-xs text-amber-700 leading-relaxed">
-                This analysis is generated based on the provided CAS statement. Mutual fund investments are subject to market risks. Please read all scheme related documents carefully before investing. Consult a certified financial advisor before making any investment decisions.
-              </p>
+      {/* Historical Performance Chart */}
+      {analysis.historical_valuations && analysis.historical_valuations.length > 0 && (
+        <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-600" />
+              Historical Portfolio Trend
+            </h3>
+            <div className="flex items-center gap-4 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+              <span className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-500 rounded-sm"></div> Portfolio Value</span>
             </div>
           </div>
-        </div>
-      </motion.div>
-      </motion.div>
-    </div>
-  );
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analysis.historical_valuations}>
+                <XAxis 
+                  dataKey="month_year" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tickFormatter={(val) => `₹${(val / 100000).toFixed(0)}L`}
+                />
+                <RechartsTooltip 
+                  cursor={{ fill: '#f1f5f9' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-800">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{payload[0].payload.month_year}</p>
+                          <p className="text-sm font-bold">₹{payload[0].value?.toLocaleString()}</p>
+                          {payload[0].payload.change_percentage && (
+                            <p className={`text-[10px] font-bold ${payload[0].payload.change_percentage >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {payload[0].payload.change_percentage >= 0 ? '↑' : '↓'} {Math.abs(payload[0].payload.change_percentage)}%
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="valuation" 
+                  fill="#3b82f6" 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Risk-Based Allocation Analysis Section */}
+      {(analysis.category_comparison || analysis.type_comparison) && (
+        <motion.div variants={item} className="space-y-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+              <h3 className="text-lg font-bold">Risk-Based Allocation Analysis</h3>
+              <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+              {/* Category Table */}
+              <div className="p-4">
+                <h4 className="text-sm font-bold text-slate-900 mb-4 px-2 uppercase tracking-tight">Category Allocation</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-medium">
+                      <tr>
+                        <th className="px-4 py-3">Category</th>
+                        <th className="px-4 py-3 text-right">Current %</th>
+                        <th className="px-4 py-3 text-right">Target %</th>
+                        <th className="px-4 py-3 text-right">Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {(analysis.category_comparison || []).map((c: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-700">{c.category}</td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900">{(c.current_pct || 0).toFixed(2)}%</td>
+                          <td className="px-4 py-3 text-right text-slate-500">{(c.target_pct || 0).toFixed(2)}%</td>
+                          <td className={`px-4 py-3 text-right font-mono font-bold ${((c.current_pct || 0) - (c.target_pct || 0)) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {((c.current_pct || 0) - (c.target_pct || 0)) > 0 ? '+' : ''}{((c.current_pct || 0) - (c.target_pct || 0)).toFixed(2)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Type Table */}
+              <div className="p-4">
+                <h4 className="text-sm font-bold text-slate-900 mb-4 px-2 uppercase tracking-tight">Fund Type Allocation</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-medium">
+                      <tr>
+                        <th className="px-4 py-3">Type</th>
+                        <th className="px-4 py-3 text-right">Current %</th>
+                        <th className="px-4 py-3 text-right">Target %</th>
+                        <th className="px-4 py-3 text-right">Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {(analysis.type_comparison || []).map((t: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-700">{t.type}</td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900">{(t.current_pct || 0).toFixed(2)}%</td>
+                          <td className="px-4 py-3 text-right text-slate-500">{(t.target_pct || 0).toFixed(2)}%</td>
+                          <td className={`px-4 py-3 text-right font-mono font-bold ${((t.current_pct || 0) - (t.target_pct || 0)) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {((t.current_pct || 0) - (t.target_pct || 0)) > 0 ? '+' : ''}{((t.current_pct || 0) - (t.target_pct || 0)).toFixed(2)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+    </motion.div>
+  </div>
+);
 }
