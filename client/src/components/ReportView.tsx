@@ -532,24 +532,47 @@ export function ReportView({ report }: ReportViewProps) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             {(() => {
               const actualMap: Record<string, number> = {};
+              const typeMap: Record<string, Record<string, number>> = {};
               const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-              const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+              const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
               
               (analysis.mf_snapshot || []).forEach((mf: any) => {
                 const cat = (mf.fund_category || "").toLowerCase();
+                const type = mf.fund_type || "Other";
                 const valuation = mf.valuation || 0;
                 const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
 
-                if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                else actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + percentage;
+                let mainCat = "Gold/Silver";
+                if (cat.includes("equity")) mainCat = "Equity";
+                else if (cat.includes("debt")) mainCat = "Debt";
+                else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                actualMap[mainCat] = (actualMap[mainCat] || 0) + percentage;
+                
+                if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
               });
 
-              return categories.map((cat, idx) => (
-                <div key={cat} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">{cat}</p>
-                  <p className="text-lg font-bold text-slate-900">{(actualMap[cat] || 0).toFixed(2)}%</p>
+              return mainCategories.map((cat, idx) => (
+                <div key={cat} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                  <div className="text-center pb-2 border-b border-slate-200/50">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">{cat}</p>
+                    <p className="text-xl font-bold text-slate-900">{(actualMap[cat] || 0).toFixed(2)}%</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    {typeMap[cat] && Object.entries(typeMap[cat]).length > 0 ? (
+                      Object.entries(typeMap[cat])
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([type, pct]) => (
+                          <div key={type} className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-600 truncate mr-2" title={type}>{type}</span>
+                            <span className="font-bold text-slate-900 shrink-0">{pct.toFixed(2)}%</span>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-[10px] text-slate-400 text-center italic">No data</p>
+                    )}
+                  </div>
                 </div>
               ));
             })()}
