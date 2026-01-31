@@ -168,33 +168,39 @@ ${text}`;
         fundName = fund?.scheme_name || "";
       }
 
-      const prompt = `You are a financial analyst assistant. Based on your knowledge, provide financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
+      const prompt = `You are a financial analyst assistant. Based on your knowledge, provide accurate financial data for the Indian mutual fund: ${fundName} with ISIN ${isin}. 
+      
+      IMPORTANT: Only provide data you are confident about. Use realistic values typical for Indian mutual funds.
+      
       Provide the following details:
-      1. nav: Latest NAV and the date it was recorded.
-      2. cagr: 1-Year, 3-Year, and 5-Year CAGR.
-      3. portfolio: Top 10 Sectors and Top 10 Holdings (with % weights).
-      4. stats: AUM (in Crores), Expense Ratio, and Portfolio Turnover.
-      5. ratios: Sharpe Ratio, Std Deviation, Beta, and Alpha. Each must include the Fund Value and the Category Average.
+      1. nav: Latest NAV (typical range 10-2000 for Indian MFs) and date in YYYY-MM-DD format.
+      2. cagr: 1-Year, 3-Year, and 5-Year CAGR as percentage strings like "15.5%".
+      3. portfolio: Top 5 Sectors and Top 5 Holdings with percentage weights as numbers (e.g., 12.5 for 12.5%, NOT 0.125).
+      4. stats: AUM in Crores (number), Expense Ratio as string like "1.5%", Portfolio Turnover as string like "45%".
+      5. risk_ratios: Std Deviation, Sharpe Ratio, Beta, and Alpha. Each with fund value and category average as strings.
 
       Return the result STRICTLY as a JSON object with this structure:
       {
-        "nav": {"value": number, "date": string},
-        "cagr": {"1y": string, "3y": string, "5y": string},
+        "nav": {"value": number, "date": "YYYY-MM-DD"},
+        "cagr": {"1y": "X.XX%", "3y": "X.XX%", "5y": "X.XX%"},
         "portfolio": {
           "sectors": [{"name": string, "weight": number}],
           "holdings": [{"name": string, "weight": number}]
         },
-        "stats": {"aum_crores": number, "expense_ratio": string, "turnover": string},
+        "stats": {"aum_crores": number, "expense_ratio": "X.XX%", "turnover": "XX%"},
         "risk_ratios": {
-          "std_dev": {"fund": string, "category_avg": string},
-          "sharpe": {"fund": string, "category_avg": string},
-          "beta": {"fund": string, "category_avg": string},
-          "alpha": {"fund": string, "category_avg": string}
+          "std_dev": {"fund": "XX.XX%", "category_avg": "XX.XX%"},
+          "sharpe": {"fund": "X.XX", "category_avg": "X.XX"},
+          "beta": {"fund": "X.XX", "category_avg": "X.XX"},
+          "alpha": {"fund": "X.XX%", "category_avg": "X.XX%"}
         }
       }
       
-      If you cannot find specific data for this ISIN, return a JSON object with a single "error" key: {"error": "Data Unavailable"}.
-      Return ONLY the JSON object, no additional text or markdown.`;
+      CRITICAL: Weight values must be percentage numbers (12.5 means 12.5%), NOT decimals (0.125).
+      Example: {"name": "HDFC Bank", "weight": 8.5} means 8.5% weight.
+      
+      If you cannot find specific data for this ISIN, return: {"error": "Data Unavailable"}.
+      Return ONLY the JSON object, no markdown or extra text.`;
 
       console.log(`Analyzing fund with Groq: ${fundName} (${isin})`);
       let performance;
