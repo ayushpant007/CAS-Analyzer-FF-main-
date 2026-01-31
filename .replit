@@ -47,3 +47,4 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_gemini_ai
 [userenv.shared]
 GEMINI_API_KEY = "AIzaSyBVL-KNOMWCzOzWXvncWysgDOoSY4t2RXQ"
 GEMINI_MODEL = "gemini-2.5-flash-lite"
+GROQ_API_KEY = "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"
