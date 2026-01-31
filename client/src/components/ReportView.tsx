@@ -173,7 +173,6 @@ export function ReportView({ report }: ReportViewProps) {
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
   const [isDownloading, setIsDownloading] = useState(false);
-  const [showConcise, setShowConcise] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -278,14 +277,7 @@ export function ReportView({ report }: ReportViewProps) {
 
   return (
     <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
-      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm gap-2">
-        <Button
-          onClick={() => setShowConcise(!showConcise)}
-          variant="outline"
-          className="hover-elevate bg-white"
-        >
-          {showConcise ? "Show Full Report" : "Generate Concise Report"}
-        </Button>
+      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
         <Button 
           onClick={downloadPDF} 
           disabled={isDownloading}
@@ -322,69 +314,7 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {showConcise ? (
-        <motion.div variants={item} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
-              <h4 className="text-sm font-bold text-blue-900 uppercase tracking-wider mb-2">Net Portfolio Value</h4>
-              <p className="text-3xl font-bold text-blue-900">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</p>
-            </Card>
-            <Card className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100">
-              <h4 className="text-sm font-bold text-emerald-900 uppercase tracking-wider mb-2">Invested Amount</h4>
-              <p className="text-3xl font-bold text-emerald-900">
-                ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
-              </p>
-            </Card>
-            <Card className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100">
-              <h4 className="text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">Key Recommendation</h4>
-              <p className="text-sm text-amber-900 line-clamp-3">
-                {analysis.recommendations?.[0] || "Maintain current allocation strategy."}
-              </p>
-            </Card>
-          </div>
-
-          <Card className="p-6">
-            <h3 className="text-lg font-bold mb-4">Top Holdings Allocation</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={(analysis.mf_snapshot || [])
-                      .sort((a: any, b: any) => (b.valuation || 0) - (a.valuation || 0))
-                      .slice(0, 5)
-                      .map((mf: any) => ({ name: mf.scheme_name, value: mf.valuation }))}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {COLORS.map((color, index) => (
-                      <Cell key={`cell-${index}`} fill={color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <div className="bg-slate-900 text-white p-6 rounded-2xl">
-            <div className="flex items-center gap-2 mb-4 text-amber-400">
-              <Lightbulb className="w-5 h-5" />
-              <h3 className="text-lg font-bold">Concise AI Insight</h3>
-            </div>
-            <p className="text-slate-300 leading-relaxed italic">
-              "Your portfolio shows strong concentration in {(analysis.mf_snapshot?.[0]?.fund_category || "Equity")}. 
-              Consider diversifying across {analysis.recommendations?.[1]?.toLowerCase() || "other assets"} to optimize risk-adjusted returns."
-            </p>
-          </div>
-        </motion.div>
-      ) : (
-        <>
-          {/* Summary Section - Account Wise */}
+      {/* Summary Section - Account Wise */}
       <motion.div variants={item} className="flex flex-col gap-8">
         <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
@@ -577,56 +507,76 @@ export function ReportView({ report }: ReportViewProps) {
                     else if (cat.includes("debt")) mainCat = "Debt";
                     else if (cat.includes("hybrid")) mainCat = "Hybrid";
 
+                    mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
                     if (!typeMap[mainCat]) typeMap[mainCat] = {};
                     typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
-                    mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
                   });
 
-                  mainCategories.forEach(cat => {
-                    if (mainMap[cat]) {
+                  mainCategories.forEach(mainCat => {
+                    if (mainMap[mainCat] > 0) {
                       data.push({
-                        category: cat,
-                        ...typeMap[cat],
-                        total: mainMap[cat]
+                        name: mainCat,
+                        value: mainMap[mainCat],
+                        isMain: true,
+                        category: mainCat
+                      });
+
+                      const subTypes = Object.entries(typeMap[mainCat] || {})
+                        .sort((a, b) => b[1] - a[1]);
+                      
+                      subTypes.forEach(([type, val]) => {
+                        data.push({
+                          name: `  • ${type}`,
+                          value: val,
+                          isMain: false,
+                          category: mainCat
+                        });
                       });
                     }
                   });
-
-                  return data.sort((a, b) => b.total - a.total);
+                  return data;
                 })()}
-                margin={{ left: 40, right: 40 }}
+                margin={{ left: 140, right: 60, top: 10, bottom: 10 }}
               >
-                <XAxis type="number" hide />
+                <XAxis type="number" hide domain={[0, 100]} />
                 <YAxis 
-                  dataKey="category" 
+                  dataKey="name" 
                   type="category" 
-                  axisLine={false} 
+                  width={130} 
+                  tick={(props) => {
+                    const { x, y, payload } = props;
+                    const isMain = !payload.value.includes("•");
+                    return (
+                      <text 
+                        x={x} 
+                        y={y} 
+                        dy={4} 
+                        textAnchor="end" 
+                        fill={isMain ? "#0f172a" : "#64748b"} 
+                        style={{ 
+                          fontSize: isMain ? '12px' : '10px', 
+                          fontWeight: isMain ? 700 : 400,
+                          fontFamily: 'Inter, sans-serif'
+                        }}
+                      >
+                        {payload.value}
+                      </text>
+                    );
+                  }}
+                  axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fontWeight: 600, fill: '#475569' }}
                 />
-                <RechartsTooltip 
-                  cursor={{ fill: '#f1f5f9' }}
-                  content={({ active, payload, label }) => {
+                <RechartsTooltip
+                  cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
+                  content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
-                        <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
-                          <p className="font-bold text-slate-900 mb-2">{label}</p>
-                          <div className="space-y-1">
-                            {payload.map((entry: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="text-xs text-slate-500">{entry.name}</span>
-                                </div>
-                                <span className="text-xs font-bold text-slate-900">{entry.value.toFixed(2)}%</span>
-                              </div>
-                            ))}
-                            <div className="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between gap-4">
-                              <span className="text-xs font-bold text-slate-900">Total</span>
-                              <span className="text-xs font-bold text-blue-600">
-                                {payload.reduce((acc: number, curr: any) => acc + curr.value, 0).toFixed(2)}%
-                              </span>
-                            </div>
+                        <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl">
+                          <p className="text-xs font-bold text-slate-900 mb-1">{data.name.replace('  • ', '')}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].color }} />
+                            <p className="text-xs text-blue-600 font-bold">{data.value.toFixed(2)}%</p>
                           </div>
                         </div>
                       );
@@ -634,32 +584,114 @@ export function ReportView({ report }: ReportViewProps) {
                     return null;
                   }}
                 />
-                <Bar dataKey="Growth" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Dividend" stackId="a" fill="#60a5fa" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Other" stackId="a" fill="#93c5fd" radius={[0, 4, 4, 0]} />
+                <Bar 
+                  dataKey="value" 
+                  radius={[0, 6, 6, 0]}
+                  barSize={20}
+                >
+                  {(() => {
+                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                    const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                    const typeMap: Record<string, Record<string, number>> = {};
+                    const mainMap: Record<string, number> = {};
+
+                    (analysis.mf_snapshot || []).forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      const type = mf.fund_type || "Other";
+                      const valuation = mf.valuation || 0;
+                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                      let mainCat = "Gold/Silver";
+                      if (cat.includes("equity")) mainCat = "Equity";
+                      else if (cat.includes("debt")) mainCat = "Debt";
+                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                      mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                      if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                      typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+                    });
+
+                    const cellData: any[] = [];
+                    mainCategories.forEach((mainCat, idx) => {
+                      if (mainMap[mainCat] > 0) {
+                        cellData.push({ color: COLORS[idx % COLORS.length], opacity: 1 });
+                        const subTypesCount = Object.keys(typeMap[mainCat] || {}).length;
+                        for(let i=0; i<subTypesCount; i++) {
+                          cellData.push({ color: COLORS[idx % COLORS.length], opacity: 0.5 });
+                        }
+                      }
+                    });
+                    return cellData.map((d, i) => (
+                      <Cell key={`cell-${i}`} fill={d.color} fillOpacity={d.opacity} />
+                    ));
+                  })()}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+            {(() => {
+              const actualMap: Record<string, number> = {};
+              const typeMap: Record<string, Record<string, number>> = {};
+              const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+              const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+              
+              (analysis.mf_snapshot || []).forEach((mf: any) => {
+                const cat = (mf.fund_category || "").toLowerCase();
+                const type = mf.fund_type || "Other";
+                const valuation = mf.valuation || 0;
+                const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                let mainCat = "Gold/Silver";
+                if (cat.includes("equity")) mainCat = "Equity";
+                else if (cat.includes("debt")) mainCat = "Debt";
+                else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                actualMap[mainCat] = (actualMap[mainCat] || 0) + percentage;
+                
+                if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+              });
+
+              return mainCategories.map((cat, idx) => (
+                <div key={cat} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                  <div className="text-center pb-2 border-b border-slate-200/50">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">{cat}</p>
+                    <p className="text-xl font-bold text-slate-900">{(actualMap[cat] || 0).toFixed(2)}%</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    {typeMap[cat] && Object.entries(typeMap[cat]).length > 0 ? (
+                      Object.entries(typeMap[cat])
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([type, pct]) => (
+                          <div key={type} className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-600 truncate mr-2" title={type}>{type}</span>
+                            <span className="font-bold text-slate-900 shrink-0">{pct.toFixed(2)}%</span>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-[10px] text-slate-400 text-center italic">No data</p>
+                    )}
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </motion.div>
 
-      {/* Scheme Wise Portfolio Section */}
+      {/* Scheme Level Performance Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold">Scheme Wise Portfolio</h3>
-            <p className="text-xs opacity-80 uppercase tracking-wider">Detailed breakdown of mutual fund holdings</p>
-          </div>
-          <div className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md">
-            <span className="text-xs font-bold">{(analysis.mf_snapshot || []).length} Schemes</span>
-          </div>
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Scheme Level Performance</h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Benchmark Comparison & Historical Returns</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4">Scheme Name</th>
-                <th className="px-6 py-4 text-right">Performance</th>
+                <th className="px-6 py-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -670,8 +702,186 @@ export function ReportView({ report }: ReportViewProps) {
           </table>
         </div>
       </motion.div>
-      </>
-      )}
+
+      {/* Risk Metrics Check Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Risk Metrics Check </h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
+        </div>
+        <div className="p-6 space-y-4">
+          {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+            <div key={i} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-slate-900">{mf.scheme_name}</h4>
+                  <div className="flex flex-wrap gap-2 text-[10px] uppercase font-bold text-slate-500">
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">ISIN: {mf.isin || 'N/A'}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_category}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_type}</span>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => analyzePerformance(mf.isin)}
+                  disabled={analyzingIsin === mf.isin || !mf.isin}
+                  className="hover-elevate"
+                >
+                  {analyzingIsin === mf.isin ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Activity className="w-4 h-4 mr-2" />
+                  )}
+                  Analyze Performance
+                </Button>
+              </div>
+
+              {performances[mf.isin] && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-6 pt-4 border-t border-slate-200"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Returns & Basic Stats */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
+                        <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">1-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">3-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">5-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">AUM (Cr)</p>
+                          <p className="text-xs font-bold text-slate-700">₹{performances[mf.isin].stats?.aum_crores}</p>
+                        </div>
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">Exp. Ratio</p>
+                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.expense_ratio}</p>
+                        </div>
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">Turnover</p>
+                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.turnover}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Risk Ratios */}
+                    <div className="space-y-4">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Metrics (Fund vs Cat Avg)</h5>
+                      <div className="grid grid-cols-4 gap-2">
+                        {['std_dev', 'sharpe', 'beta', 'alpha'].map((ratio) => (
+                          <div key={ratio} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[10px] text-slate-500 capitalize">{ratio.replace('_', ' ')}</p>
+                            <p className="font-bold text-slate-900 text-xs">{(performances[mf.isin].risk_ratios as any)[ratio]?.fund}</p>
+                            <p className="text-[8px] text-slate-400">Avg: {(performances[mf.isin].risk_ratios as any)[ratio]?.category_avg}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Portfolio Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{h.name}</span>
+                            <span className="font-bold text-slate-900">{h.weight}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{s.name}</span>
+                            <span className="font-bold text-slate-900">{s.weight}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Mutual Fund Portfolio Snapshot Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-4 py-3">Scheme Name</th>
+                <th className="px-4 py-3">Category / Type</th>
+                <th className="px-4 py-3">Folio No.</th>
+                <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
+                <th className="px-4 py-3 text-right">NAV (₹)</th>
+                <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
+                <th className="px-4 py-3 text-right">Valuation (₹)</th>
+                <th className="px-4 py-3 text-right">Unrealised P/L (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-900">{mf.fund_category || 'N/A'}</span>
+                      <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
+                  <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {mf.unrealised_profit_loss?.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-slate-800 text-white font-bold">
+                <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
+                <td className="px-4 py-3 text-right">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right text-sm">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right">
+                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
 
       {/* Historical Performance Chart */}
       {analysis.historical_valuations && analysis.historical_valuations.length > 0 && (
