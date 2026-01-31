@@ -12,12 +12,16 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as cheerio from "cheerio";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
+import Groq from "groq-sdk";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Initialize Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_1 || process.env.GEMINI_API_KEY_4 || "");
+
+// Initialize Groq client
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
@@ -164,20 +168,13 @@ ${text}`;
         fundName = fund?.scheme_name || "";
       }
 
-      // Use a more robust model name and check if it exists
-      const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite"; 
-      const model = genAI.getGenerativeModel({ 
-        model: modelName,
-        tools: [{ googleSearch: {} }] as any
-      });
-
-      const prompt = `Search the latest 2026 financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
+      const prompt = `You are a financial analyst assistant. Based on your knowledge, provide financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
       Provide the following details:
       1. nav: Latest NAV and the date it was recorded.
       2. cagr: 1-Year, 3-Year, and 5-Year CAGR.
       3. portfolio: Top 10 Sectors and Top 10 Holdings (with % weights).
       4. stats: AUM (in Crores), Expense Ratio, and Portfolio Turnover.
-      5. ratios: Sharpe Ratio, Std Deviation, and Beta. Each must include the Fund Value and the Category Average.
+      5. ratios: Sharpe Ratio, Std Deviation, Beta, and Alpha. Each must include the Fund Value and the Category Average.
 
       Return the result STRICTLY as a JSON object with this structure:
       {
@@ -196,13 +193,20 @@ ${text}`;
         }
       }
       
-      If you cannot find specific data for this ISIN, return a JSON object with a single "error" key: {"error": "Data Unavailable"}.`;
+      If you cannot find specific data for this ISIN, return a JSON object with a single "error" key: {"error": "Data Unavailable"}.
+      Return ONLY the JSON object, no additional text or markdown.`;
 
-      console.log(`Analyzing fund with Gemini: ${fundName} (${isin})`);
+      console.log(`Analyzing fund with Groq: ${fundName} (${isin})`);
       let performance;
       try {
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const result = await groq.chat.completions.create({
+          messages: [{ role: "user", content: prompt }],
+          model: "llama-3.1-8b-instant",
+          temperature: 0.1,
+          max_tokens: 2048,
+        });
+        
+        const responseText = result.choices[0]?.message?.content || "{}";
         
         // Extract JSON from markdown code block if present
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -211,18 +215,18 @@ ${text}`;
         if (performance.error) {
           return res.status(404).json({ message: performance.error });
         }
-      } catch (geminiError: any) {
-        console.error("Gemini Content Generation Error:", geminiError);
-        // Check for quota error
-        if (geminiError.status === 429 || (geminiError.message && geminiError.message.includes("429"))) {
+      } catch (groqError: any) {
+        console.error("Groq Content Generation Error:", groqError);
+        // Check for rate limit error
+        if (groqError.status === 429 || (groqError.message && groqError.message.includes("429"))) {
           return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
         }
-        throw geminiError;
+        throw groqError;
       }
 
       res.json(performance);
     } catch (error: any) {
-      console.error("Gemini analysis error:", error);
+      console.error("Groq analysis error:", error);
       res.status(404).json({ message: "Data Unavailable" });
     }
   });
@@ -231,60 +235,51 @@ ${text}`;
     const isin = req.params.isin;
     const reportId = req.query.reportId;
     
-    // Rotating API keys logic
-    const apiKeys = [
-      process.env.GEMINI_API_KEY_1,
-      process.env.GEMINI_API_KEY_4,
-      process.env.GEMINI_API_KEY_2,
-      process.env.GEMINI_API_KEY_3
-    ].filter(Boolean);
-
-    let lastError;
-    for (const key of apiKeys) {
-      try {
-        const genAIInstance = new GoogleGenerativeAI(key!);
-        let fundName = "";
-        if (reportId) {
-          const report = await storage.getReport(Number(reportId));
-          const snapshot = (report?.analysis as any)?.mf_snapshot || [];
-          const fund = snapshot.find((f: any) => f.isin === isin);
-          fundName = fund?.scheme_name || "";
-        }
-
-        const modelName = "gemini-2.5-flash-lite"; 
-        const model = genAIInstance.getGenerativeModel({ 
-          model: modelName,
-          tools: [{ googleSearch: {} }] as any
-        });
-
-        const prompt = `Search the latest financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
-        Provide the following details:
-        1. cagr: 1-Year, 3-Year, and 5-Year CAGR for the scheme.
-        2. benchmark: Identify the correct benchmark for this fund and provide its 1-Year, 3-Year, and 5-Year returns.
-        
-        Return the result STRICTLY as a JSON object with this structure:
-        {
-          "scheme_returns": {"1y": string, "3y": string, "5y": string},
-          "benchmark_name": string,
-          "benchmark_returns": {"1y": string, "3y": string, "5y": string}
-        }
-        
-        Ensure returns are strings like "15.5%". If data is unavailable, use "N/A".`;
-
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
-
-        return res.json(performance);
-      } catch (err: any) {
-        console.error(`Attempt with key failed:`, err.message);
-        lastError = err;
-        continue;
+    try {
+      let fundName = "";
+      if (reportId) {
+        const report = await storage.getReport(Number(reportId));
+        const snapshot = (report?.analysis as any)?.mf_snapshot || [];
+        const fund = snapshot.find((f: any) => f.isin === isin);
+        fundName = fund?.scheme_name || "";
       }
+
+      const prompt = `You are a financial analyst assistant. Based on your knowledge, provide financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
+      Provide the following details:
+      1. cagr: 1-Year, 3-Year, and 5-Year CAGR for the scheme.
+      2. benchmark: Identify the correct benchmark for this fund and provide its 1-Year, 3-Year, and 5-Year returns.
+      
+      Return the result STRICTLY as a JSON object with this structure:
+      {
+        "scheme_returns": {"1y": string, "3y": string, "5y": string},
+        "benchmark_name": string,
+        "benchmark_returns": {"1y": string, "3y": string, "5y": string}
+      }
+      
+      Ensure returns are strings like "15.5%". If data is unavailable, use "N/A".
+      Return ONLY the JSON object, no additional text or markdown.`;
+
+      console.log(`Fetching scheme performance with Groq: ${fundName} (${isin})`);
+      
+      const result = await groq.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "llama-3.1-8b-instant",
+        temperature: 0.1,
+        max_tokens: 1024,
+      });
+      
+      const responseText = result.choices[0]?.message?.content || "{}";
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+
+      return res.json(performance);
+    } catch (err: any) {
+      console.error(`Groq scheme performance error:`, err.message);
+      if (err.status === 429 || (err.message && err.message.includes("429"))) {
+        return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
+      }
+      res.status(err?.status || 500).json({ message: err?.message || "Failed to fetch scheme performance" });
     }
-    
-    res.status(lastError?.status || 500).json({ message: lastError?.message || "All API keys failed" });
   });
 
   return httpServer;
