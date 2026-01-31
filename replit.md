@@ -52,7 +52,7 @@ Main tables:
 - **Features**: 
   - PDF content analysis for portfolio insights
   - Chat functionality for follow-up questions
-- **Configuration**: Uses environment variables `GEMINI_API_KEY` and `GEMINI_MODEL` (e.g., `gemini-2.5-flash`). Falls back to `AI_INTEGRATIONS_GEMINI_API_KEY` if configured.
+- **Configuration**: Uses environment variables `GEMINI_API_KEY_1` and `GEMINI_MODEL` (e.g., `gemini-2.5-flash`). Falls back to `GEMINI_API_KEY_4` if configured.
 
 ### Build Process
 - **Development**: `npm run dev` runs tsx with Vite middleware
@@ -68,7 +68,7 @@ Main tables:
 
 ### AI Services
 - **Gemini API**: Portfolio analysis and chat
-- Environment variables: `GEMINI_API_KEY`, `GEMINI_MODEL`
+- Environment variables: `GEMINI_API_KEY_1`, `GEMINI_MODEL`
 
 ### System Dependencies
 - **poppler-utils**: Required for `pdftotext` command to parse PDF files

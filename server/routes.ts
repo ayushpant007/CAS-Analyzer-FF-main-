@@ -17,7 +17,7 @@ const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_1 || process.env.GEMINI_API_KEY_4 || "");
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
@@ -233,8 +233,8 @@ ${text}`;
     
     // Rotating API keys logic
     const apiKeys = [
-      process.env.GEMINI_API_KEY,
-      process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      process.env.GEMINI_API_KEY_1,
+      process.env.GEMINI_API_KEY_4,
       process.env.GEMINI_API_KEY_2,
       process.env.GEMINI_API_KEY_3
     ].filter(Boolean);

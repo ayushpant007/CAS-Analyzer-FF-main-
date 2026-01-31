@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Buffer } from "node:buffer";
 
-export const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "");
+export const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_1 || process.env.GEMINI_API_KEY_4 || "");
 
 /**
  * Generate an image and return as Buffer.
