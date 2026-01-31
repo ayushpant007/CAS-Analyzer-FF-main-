@@ -275,30 +275,212 @@ export function ReportView({ report }: ReportViewProps) {
     show: { opacity: 1, y: 0 }
   };
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// ... existing interfaces ...
+
+export function ReportView({ report }: ReportViewProps) {
+  const analysis = report.analysis as any;
+  const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
+  const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [activeTab, setActiveTab] = useState("full");
+  const reportRef = useRef<HTMLDivElement>(null);
+  const conciseRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const downloadPDF = async (ref: React.RefObject<HTMLDivElement>, type: string) => {
+    if (!ref.current) return;
+    setIsDownloading(true);
+    
+    try {
+      const element = ref.current;
+      const originalStyle = element.style.height;
+      element.style.height = 'auto';
+      
+      const canvas = await html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#f8fafc",
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
+      
+      element.style.height = originalStyle;
+      
+      const imgData = canvas.toDataURL("image/jpeg", 0.7);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`FinAnalyze_${type}_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: `${type} report downloaded successfully`,
+      });
+    } catch (err: any) {
+      console.error("PDF Export Error:", err);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating your PDF report.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
     <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
-      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
-        <Button 
-          onClick={downloadPDF} 
-          disabled={isDownloading}
-          className="hover-elevate bg-slate-900 text-white"
-        >
-          {isDownloading ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4 mr-2" />
-          )}
-          {isDownloading ? "Generating PDF..." : "Download Full Report"}
-        </Button>
-      </div>
+      <Tabs defaultValue="full" onValueChange={setActiveTab} className="w-full">
+        <div className="flex justify-between items-center sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
+          <TabsList className="bg-slate-200/50">
+            <TabsTrigger value="full" className="data-[state=active]:bg-white">Full View</TabsTrigger>
+            <TabsTrigger value="concise" className="data-[state=active]:bg-white">Concise View</TabsTrigger>
+          </TabsList>
+          
+          <Button 
+            onClick={() => downloadPDF(activeTab === "full" ? reportRef : conciseRef, activeTab === "full" ? "Full" : "Concise")} 
+            disabled={isDownloading}
+            className="hover-elevate bg-slate-900 text-white"
+          >
+            {isDownloading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            {isDownloading ? "Generating PDF..." : `Download ${activeTab === "full" ? "Full" : "Concise"} Report`}
+          </Button>
+        </div>
 
-      <motion.div 
-        ref={reportRef}
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="space-y-8 p-4 md:p-8"
-      >
+        <TabsContent value="full">
+          <motion.div 
+            ref={reportRef}
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="space-y-8 p-4 md:p-8"
+          >
+            {/* ... rest of the existing full report content ... */}
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="concise">
+          <motion.div 
+            ref={conciseRef}
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="space-y-8 p-4 md:p-8 bg-white rounded-2xl border border-slate-200 shadow-sm"
+          >
+            <motion.div variants={item} className="pb-6 border-b border-slate-200">
+              <h1 className="text-2xl font-bold text-slate-900 mb-1">Executive Summary: {report.filename}</h1>
+              <p className="text-sm text-slate-500">Key insights and recommendations at a glance</p>
+            </motion.div>
+
+            <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-6 bg-blue-50 rounded-xl border border-blue-100">
+                <h3 className="text-blue-900 font-bold mb-2">Portfolio Overview</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-blue-700">Total Valuation</span>
+                    <span className="font-bold">₹{analysis.summary?.net_asset_value?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-blue-700">No. of Schemes</span>
+                    <span className="font-bold">{(analysis.mf_snapshot || []).length}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-emerald-50 rounded-xl border border-emerald-100">
+                <h3 className="text-emerald-900 font-bold mb-2">Key Highlights</h3>
+                <ul className="text-sm text-emerald-800 space-y-1">
+                  <li>• Portfolio analyzed for {report.investorType} ({report.ageGroup})</li>
+                  <li>• Status: Analysis Complete</li>
+                </ul>
+              </div>
+            </motion.div>
+
+            <motion.div variants={item}>
+              <h3 className="text-lg font-bold mb-4">Core Recommendations</h3>
+              <div className="space-y-3">
+                {(analysis.recommendations || []).slice(0, 3).map((rec: any, i: number) => (
+                  <div key={i} className="flex gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <Lightbulb className="w-5 h-5 text-amber-500 shrink-0" />
+                    <p className="text-sm text-slate-700">{rec.message || rec}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div variants={item}>
+              <h3 className="text-lg font-bold mb-4">Asset Allocation</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={(() => {
+                        const actualMap: Record<string, number> = {};
+                        (analysis.mf_snapshot || []).forEach((mf: any) => {
+                          const cat = (mf.fund_category || "Other").split(' ')[0];
+                          actualMap[cat] = (actualMap[cat] || 0) + (mf.valuation || 0);
+                        });
+                        return Object.entries(actualMap).map(([name, value]) => ({ name, value }));
+                      })()}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {COLORS.map((color, index) => (
+                        <Cell key={`cell-${index}`} fill={color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </motion.div>
+          </motion.div>
+        </TabsContent>
+      </Tabs>
+
         {/* Header Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
