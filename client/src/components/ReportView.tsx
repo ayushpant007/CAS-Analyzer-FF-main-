@@ -416,65 +416,77 @@ export function ReportView({ report }: ReportViewProps) {
         </motion.div>
       </motion.div>
 
-      {/* Asset Allocation Check */}
+      {/* Risk-Based Allocation Analysis */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Asset Allocation Check</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
+        <div className="bg-[#4158D0] bg-gradient-to-r from-[#4158D0] via-[#C850C0] to-[#FFCC70] p-6 text-white">
+          <h3 className="text-xl font-bold mb-1">Risk-Based Allocation Analysis</h3>
+          <p className="text-sm opacity-90 uppercase tracking-widest font-medium">PROFILE: {report.investorType} | AGE: {report.ageGroup}</p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Fund Category</th>
-                <th className="px-6 py-4 text-right">Actual</th>
-                <th className="px-6 py-4 text-right">Ideal</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(() => {
-                const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver/Other"];
-                
-                // Group actual allocation by requested categories
-                const actualMap: Record<string, number> = {};
-                (analysis.mf_snapshot || []).forEach((mf: any) => {
-                  const cat = (mf.fund_category || "").toLowerCase();
-                  const valuation = mf.valuation || 0;
-                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          {/* Category Allocation */}
+          <div className="p-6">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6">CATEGORY ALLOCATION</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-slate-400 border-b border-slate-50">
+                    <th className="text-left pb-4 font-medium">Category</th>
+                    <th className="text-right pb-4 font-medium px-4">Current %</th>
+                    <th className="text-right pb-4 font-medium px-4">Target %</th>
+                    <th className="text-right pb-4 font-medium">Diff</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {(analysis.category_comparison || []).map((cat: any, i: number) => {
+                    const diff = (cat.current_pct || 0) - (cat.target_pct || 0);
+                    return (
+                      <tr key={i} className="group">
+                        <td className="py-4 font-bold text-slate-700">{cat.category}</td>
+                        <td className="py-4 text-right font-bold px-4">{cat.current_pct?.toFixed(2)}%</td>
+                        <td className="py-4 text-right text-slate-500 px-4">{cat.target_pct?.toFixed(2)}%</td>
+                        <td className={`py-4 text-right font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                          {diff >= 0 ? '+' : ''}{diff.toFixed(2)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-                  if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                  else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                  else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                  else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + percentage;
-                });
-
-                return categories.map((cat) => {
-                  const actual = actualMap[cat] || 0;
-                  const idealStr = ideal[cat] || "0%";
-                  const idealVal = parseFloat(idealStr.replace('%', ''));
-                  
-                  let statusColor = "text-slate-900";
-                  if (actual < idealVal) statusColor = "text-rose-600";
-                  else if (actual > idealVal) statusColor = "text-amber-500";
-                  else if (actual === idealVal && actual > 0) statusColor = "text-emerald-600";
-
-                  return (
-                    <tr key={cat} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-slate-700">{cat}</td>
-                      <td className={`px-6 py-4 text-right font-bold ${statusColor}`}>
-                        {actual.toFixed(2)}%
-                      </td>
-                      <td className="px-6 py-4 text-right text-slate-500 font-medium">
-                        {idealStr}
-                      </td>
-                    </tr>
-                  );
-                });
-              })()}
-            </tbody>
-          </table>
+          {/* Fund Type Allocation */}
+          <div className="p-6">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6">FUND TYPE ALLOCATION</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-slate-400 border-b border-slate-50">
+                    <th className="text-left pb-4 font-medium">Type</th>
+                    <th className="text-right pb-4 font-medium px-4">Current %</th>
+                    <th className="text-right pb-4 font-medium px-4">Target %</th>
+                    <th className="text-right pb-4 font-medium">Diff</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {(analysis.type_comparison || []).map((type: any, i: number) => {
+                    const diff = (type.current_pct || 0) - (type.target_pct || 0);
+                    return (
+                      <tr key={i} className="group">
+                        <td className="py-4 font-bold text-slate-700">{type.type}</td>
+                        <td className="py-4 text-right font-bold px-4">{type.current_pct?.toFixed(2)}%</td>
+                        <td className="py-4 text-right text-slate-500 px-4">{type.target_pct?.toFixed(2)}%</td>
+                        <td className={`py-4 text-right font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                          {diff >= 0 ? '+' : ''}{diff.toFixed(2)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </motion.div>
 

@@ -95,11 +95,9 @@ Extract:
 3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
 4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
 5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
-6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
-   - Current Category Allocation (Equity, Debt, Hybrid, Others)
-   - Comparison with Category Ratio (Current % vs Target % from CSV)
-   - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
-   - Comparison with Type Ratio (Current % vs Target % from CSV)
+6. Risk-Based Allocation Analysis (using the CSV ratios for the given Age Group and Risk Profile):
+   - Category Allocation: [{"category": string, "current_pct": number, "target_pct": number}] (Categories: Equity, Debt, Hybrid, Others)
+   - Fund Type Allocation: [{"type": string, "current_pct": number, "target_pct": number}] (Types: Large Cap, Mid Cap, Small Cap, Multi + Flexi Cap, Sectoral)
 
 Return ONLY valid JSON with this exact structure: {
   "summary": {"net_asset_value": number, "total_cost": number}, 
@@ -107,8 +105,8 @@ Return ONLY valid JSON with this exact structure: {
   "historical_valuations": [...], 
   "asset_allocation": [...], 
   "mf_snapshot": [...],
-  "category_comparison": [{"category": string, "current_pct": number, "target_pct": number}],
-  "type_comparison": [{"type": string, "current_pct": number, "target_pct": number}]
+  "category_comparison": [...],
+  "type_comparison": [...]
 }. 
 
 For mf_snapshot, ensure you accurately identify:
