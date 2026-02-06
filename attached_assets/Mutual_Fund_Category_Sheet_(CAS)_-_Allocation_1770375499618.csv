@@ -1,0 +1,17 @@
+Age Group,Risk Profile,Equity (%),Debt (%),Hybrid (%),Gold/Silver (%),Others (%)
+20 - 35,High Aggressive,85%,5%,0%,5%,5%
+20 - 35,Aggressive,75%,10%,5%,5%,5%
+20 - 35,Moderate,60%,20%,10%,5%,5%
+20 - 35,Conservative,40%,35%,15%,5%,5%
+35 - 50,High Aggressive,75%,10%,5%,5%,5%
+35 - 50,Aggressive,65%,15%,10%,5%,5%
+35 - 50,Moderate,50%,30%,10%,5%,5%
+35 - 50,Conservative,30%,50%,10%,5%,5%
+50 - 60,High Aggressive,65%,15%,10%,5%,5%
+50 - 60,Aggressive,50%,30%,10%,5%,5%
+50 - 60,Moderate,35%,45%,10%,5%,5%
+50 - 60,Conservative,20%,65%,5%,5%,5%
+60+,High Aggressive,40%,40%,10%,5%,5%
+60+,Aggressive,30%,50%,10%,5%,5%
+60+,Moderate,20%,60%,10%,5%,5%
+60+,Conservative,10%,75%,5%,5%,5%
