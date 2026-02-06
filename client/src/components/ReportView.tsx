@@ -137,28 +137,28 @@ interface PerformanceData {
 
 const IDEAL_ALLOCATIONS: Record<string, Record<string, Record<string, string>>> = {
   "20-35": {
-    "High Aggressive": { "Equity": "85%", "Debt": "5%", "Hybrid": "0%", "Gold/Silver & Others": "10%" },
-    "Aggressive": { "Equity": "75%", "Debt": "10%", "Hybrid": "5%", "Gold/Silver & Others": "10%" },
-    "Moderate": { "Equity": "60%", "Debt": "20%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Conservative": { "Equity": "40%", "Debt": "35%", "Hybrid": "15%", "Gold/Silver & Others": "10%" }
+    "High Aggressive": { "Equity": "100%", "Debt": "0%", "Hybrid": "0%", "Gold/Silver/Other": "0%" },
+    "Aggressive": { "Equity": "90%", "Debt": "10%", "Hybrid": "0%", "Gold/Silver/Other": "0%" },
+    "Moderate": { "Equity": "55%", "Debt": "25%", "Hybrid": "20%", "Gold/Silver/Other": "0%" },
+    "Conservative": { "Equity": "50%", "Debt": "40%", "Hybrid": "10%", "Gold/Silver/Other": "0%" }
   },
   "35-50": {
-    "High Aggressive": { "Equity": "75%", "Debt": "10%", "Hybrid": "5%", "Gold/Silver & Others": "10%" },
-    "Aggressive": { "Equity": "65%", "Debt": "15%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Moderate": { "Equity": "50%", "Debt": "30%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Conservative": { "Equity": "30%", "Debt": "50%", "Hybrid": "10%", "Gold/Silver & Others": "10%" }
+    "High Aggressive": { "Equity": "90%", "Debt": "10%", "Hybrid": "0%", "Gold/Silver/Other": "0%" },
+    "Aggressive": { "Equity": "75%", "Debt": "15%", "Hybrid": "10%", "Gold/Silver/Other": "0%" },
+    "Moderate": { "Equity": "55%", "Debt": "30%", "Hybrid": "15%", "Gold/Silver/Other": "0%" },
+    "Conservative": { "Equity": "40%", "Debt": "50%", "Hybrid": "10%", "Gold/Silver/Other": "0%" }
   },
   "50-60": {
-    "High Aggressive": { "Equity": "65%", "Debt": "15%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Aggressive": { "Equity": "50%", "Debt": "30%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Moderate": { "Equity": "35%", "Debt": "45%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Conservative": { "Equity": "20%", "Debt": "65%", "Hybrid": "5%", "Gold/Silver & Others": "10%" }
+    "High Aggressive": { "Equity": "60%", "Debt": "30%", "Hybrid": "10%", "Gold/Silver/Other": "0%" },
+    "Aggressive": { "Equity": "50%", "Debt": "40%", "Hybrid": "10%", "Gold/Silver/Other": "0%" },
+    "Moderate": { "Equity": "45%", "Debt": "40%", "Hybrid": "15%", "Gold/Silver/Other": "0%" },
+    "Conservative": { "Equity": "30%", "Debt": "60%", "Hybrid": "10%", "Gold/Silver/Other": "0%" }
   },
   "60+": {
-    "High Aggressive": { "Equity": "40%", "Debt": "40%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Aggressive": { "Equity": "30%", "Debt": "50%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Moderate": { "Equity": "20%", "Debt": "60%", "Hybrid": "10%", "Gold/Silver & Others": "10%" },
-    "Conservative": { "Equity": "10%", "Debt": "75%", "Hybrid": "5%", "Gold/Silver & Others": "10%" }
+    "High Aggressive": { "Equity": "35%", "Debt": "40%", "Hybrid": "20%", "Gold/Silver/Other": "5%" },
+    "Aggressive": { "Equity": "30%", "Debt": "40%", "Hybrid": "20%", "Gold/Silver/Other": "10%" },
+    "Moderate": { "Equity": "10%", "Debt": "50%", "Hybrid": "30%", "Gold/Silver/Other": "10%" },
+    "Conservative": { "Equity": "10%", "Debt": "70%", "Hybrid": "20%", "Gold/Silver/Other": "0%" }
   }
 };
 
@@ -183,11 +183,12 @@ export function ReportView({ report }: ReportViewProps) {
     try {
       const element = reportRef.current;
       
+      // Temporary style to ensure full visibility for capture
       const originalStyle = element.style.height;
       element.style.height = 'auto';
       
       const canvas = await html2canvas(element, {
-        scale: 1.5,
+        scale: 1.5, // Reduced scale for smaller file size
         useCORS: true,
         logging: false,
         backgroundColor: "#f8fafc",
@@ -197,7 +198,7 @@ export function ReportView({ report }: ReportViewProps) {
       
       element.style.height = originalStyle;
       
-      const imgData = canvas.toDataURL("image/jpeg", 0.7);
+      const imgData = canvas.toDataURL("image/jpeg", 0.7); // Use JPEG with 70% quality for significant size reduction
       const pdf = new jsPDF("p", "mm", "a4");
       
       const imgProps = pdf.getImageProperties(imgData);
@@ -232,6 +233,7 @@ export function ReportView({ report }: ReportViewProps) {
         variant: "destructive"
       });
     } finally {
+      setIsDownloading(null as any); // Reset to false
       setIsDownloading(false);
     }
   };
@@ -432,20 +434,20 @@ export function ReportView({ report }: ReportViewProps) {
             <tbody className="divide-y divide-slate-100">
               {(() => {
                 const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver & Others"];
+                const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver/Other"];
                 
+                // Group actual allocation by requested categories
                 const actualMap: Record<string, number> = {};
-                const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-
                 (analysis.mf_snapshot || []).forEach((mf: any) => {
                   const cat = (mf.fund_category || "").toLowerCase();
                   const valuation = mf.valuation || 0;
+                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
                   const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
 
                   if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
                   else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
                   else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                  else actualMap["Gold/Silver & Others"] = (actualMap["Gold/Silver & Others"] || 0) + percentage;
+                  else actualMap["Gold/Silver/Other"] = (actualMap["Gold/Silver/Other"] || 0) + percentage;
                 });
 
                 return categories.map((cat) => {
@@ -488,206 +490,530 @@ export function ReportView({ report }: ReportViewProps) {
               <BarChart
                 layout="vertical"
                 data={(() => {
-                  const dataMap: Record<string, number> = {};
+                  const data: any[] = [];
                   const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  
-                  (analysis.mf_snapshot || []).forEach((mf: any) => {
-                    const type = mf.fund_type || "Other";
-                    const val = mf.valuation || 0;
-                    const pct = totalValuation > 0 ? (val / totalValuation) * 100 : 0;
-                    dataMap[type] = (dataMap[type] || 0) + pct;
-                  });
+                  const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                  const typeMap: Record<string, Record<string, number>> = {};
+                  const mainMap: Record<string, number> = {};
 
-                  return Object.entries(dataMap)
-                    .map(([name, percentage]) => ({ name, percentage }))
-                    .sort((a, b) => b.percentage - a.percentage);
-                })()}
-                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
-              >
-                <XAxis type="number" unit="%" />
-                <YAxis type="category" dataKey="name" width={120} style={{ fontSize: '12px' }} />
-                <RechartsTooltip formatter={(value: number) => [`${value.toFixed(2)}%`, 'Allocation']} />
-                <Bar dataKey="percentage" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Allocation Comparison Bar Chart */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Allocation Comparison</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Current vs Targeted Allocation</p>
-        </div>
-        <div className="p-6">
-          <div className="h-[400px] w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={(() => {
-                  const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                  const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver & Others"];
-                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  
-                  const actualMap: Record<string, number> = {};
                   (analysis.mf_snapshot || []).forEach((mf: any) => {
                     const cat = (mf.fund_category || "").toLowerCase();
+                    const type = mf.fund_type || "Other";
                     const valuation = mf.valuation || 0;
                     const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
 
-                    if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                    else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                    else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                    else actualMap["Gold/Silver & Others"] = (actualMap["Gold/Silver & Others"] || 0) + percentage;
+                    let mainCat = "Gold/Silver";
+                    if (cat.includes("equity")) mainCat = "Equity";
+                    else if (cat.includes("debt")) mainCat = "Debt";
+                    else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                    mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                    if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                    typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
                   });
 
-                  return categories.map(cat => ({
-                    name: cat,
-                    current: parseFloat((actualMap[cat] || 0).toFixed(2)),
-                    target: parseFloat((ideal[cat] || "0%").replace('%', ''))
-                  }));
+                  mainCategories.forEach(mainCat => {
+                    if (mainMap[mainCat] > 0) {
+                      data.push({
+                        name: mainCat,
+                        value: mainMap[mainCat],
+                        isMain: true,
+                        category: mainCat
+                      });
+
+                      const subTypes = Object.entries(typeMap[mainCat] || {})
+                        .sort((a, b) => b[1] - a[1]);
+                      
+                      subTypes.forEach(([type, val]) => {
+                        data.push({
+                          name: `  • ${type}`,
+                          value: val,
+                          isMain: false,
+                          category: mainCat
+                        });
+                      });
+                    }
+                  });
+                  return data;
                 })()}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                margin={{ left: 140, right: 60, top: 10, bottom: 10 }}
               >
-                <XAxis dataKey="name" />
-                <YAxis unit="%" />
-                <RechartsTooltip />
-                <Legend />
-                <Bar dataKey="current" fill="#3b82f6" name="Current Allocation" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="target" fill="#94a3b8" name="Target Allocation" radius={[4, 4, 0, 0]} />
+                <XAxis type="number" hide domain={[0, 100]} />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={130} 
+                  tick={(props) => {
+                    const { x, y, payload } = props;
+                    const isMain = !payload.value.includes("•");
+                    return (
+                      <text 
+                        x={x} 
+                        y={y} 
+                        dy={4} 
+                        textAnchor="end" 
+                        fill={isMain ? "#0f172a" : "#64748b"} 
+                        style={{ 
+                          fontSize: isMain ? '12px' : '10px', 
+                          fontWeight: isMain ? 700 : 400,
+                          fontFamily: 'Inter, sans-serif'
+                        }}
+                      >
+                        {payload.value}
+                      </text>
+                    );
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsTooltip
+                  cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl">
+                          <p className="text-xs font-bold text-slate-900 mb-1">{data.name.replace('  • ', '')}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].color }} />
+                            <p className="text-xs text-blue-600 font-bold">{data.value.toFixed(2)}%</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="value" 
+                  radius={[0, 6, 6, 0]}
+                  barSize={20}
+                >
+                  {(() => {
+                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                    const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+                    const typeMap: Record<string, Record<string, number>> = {};
+                    const mainMap: Record<string, number> = {};
+
+                    (analysis.mf_snapshot || []).forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      const type = mf.fund_type || "Other";
+                      const valuation = mf.valuation || 0;
+                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+
+                      let mainCat = "Gold/Silver";
+                      if (cat.includes("equity")) mainCat = "Equity";
+                      else if (cat.includes("debt")) mainCat = "Debt";
+                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                      mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
+                      if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                      typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+                    });
+
+                    const cellData: any[] = [];
+                    mainCategories.forEach((mainCat, idx) => {
+                      if (mainMap[mainCat] > 0) {
+                        cellData.push({ color: COLORS[idx % COLORS.length], opacity: 1 });
+                        const subTypesCount = Object.keys(typeMap[mainCat] || {}).length;
+                        for(let i=0; i<subTypesCount; i++) {
+                          cellData.push({ color: COLORS[idx % COLORS.length], opacity: 0.5 });
+                        }
+                      }
+                    });
+                    return cellData.map((d, i) => (
+                      <Cell key={`cell-${i}`} fill={d.color} fillOpacity={d.opacity} />
+                    ));
+                  })()}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </motion.div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+            {(() => {
+              const actualMap: Record<string, number> = {};
+              const typeMap: Record<string, Record<string, number>> = {};
+              const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+              const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
+              
+              (analysis.mf_snapshot || []).forEach((mf: any) => {
+                const cat = (mf.fund_category || "").toLowerCase();
+                const type = mf.fund_type || "Other";
+                const valuation = mf.valuation || 0;
+                const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
 
-      {/* Portfolio Insights */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-amber-500 p-4 text-white flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
-            <h3 className="text-lg font-bold">Key Observations</h3>
-          </div>
-          <div className="p-6">
-            <ul className="space-y-4">
-              {(() => {
-                const observations = [];
-                const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                let mainCat = "Gold/Silver";
+                if (cat.includes("equity")) mainCat = "Equity";
+                else if (cat.includes("debt")) mainCat = "Debt";
+                else if (cat.includes("hybrid")) mainCat = "Hybrid";
+
+                actualMap[mainCat] = (actualMap[mainCat] || 0) + percentage;
                 
-                const actualMap: Record<string, number> = {};
-                (analysis.mf_snapshot || []).forEach((mf: any) => {
-                  const cat = (mf.fund_category || "").toLowerCase();
-                  const valuation = mf.valuation || 0;
-                  const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
-                  if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                  else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                });
+                if (!typeMap[mainCat]) typeMap[mainCat] = {};
+                typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
+              });
 
-                const actualEquity = actualMap["Equity"] || 0;
-                const targetEquity = parseFloat((ideal["Equity"] || "0%").replace('%', ''));
-
-                if (actualEquity > targetEquity + 10) {
-                  observations.push(`Your Equity allocation (${actualEquity.toFixed(1)}%) is significantly higher than the target of ${targetEquity}%. Consider rebalancing.`);
-                } else if (actualEquity < targetEquity - 10) {
-                  observations.push(`Your Equity allocation (${actualEquity.toFixed(1)}%) is lower than the target of ${targetEquity}%. You might be missing growth opportunities.`);
-                }
-
-                if ((analysis.mf_snapshot || []).length > 15) {
-                  observations.push(`Your portfolio has ${analysis.mf_snapshot.length} schemes. This might lead to over-diversification and overlap.`);
-                }
-
-                const lossCount = (analysis.mf_snapshot || []).filter((mf: any) => (mf.unrealised_profit_loss || 0) < 0).length;
-                if (lossCount > (analysis.mf_snapshot || []).length / 2) {
-                  observations.push("More than half of your schemes are currently in negative territory.");
-                }
-
-                if (observations.length === 0) observations.push("Your portfolio allocation is generally in line with your risk profile.");
-                
-                return observations.map((obs, i) => (
-                  <li key={i} className="flex gap-3 text-slate-700">
-                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                    <span className="text-sm leading-relaxed">{obs}</span>
-                  </li>
-                ));
-              })()}
-            </ul>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-emerald-500 p-4 text-white flex items-center gap-2">
-            <Lightbulb className="w-5 h-5" />
-            <h3 className="text-lg font-bold">Suggested Actions</h3>
-          </div>
-          <div className="p-6">
-            <ul className="space-y-4">
-              {(() => {
-                const actions = [];
-                const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                
-                const actualMap: Record<string, number> = {};
-                (analysis.mf_snapshot || []).forEach((mf: any) => {
-                  const cat = (mf.fund_category || "").toLowerCase();
-                  const valuation = mf.valuation || 0;
-                  const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
-                  if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                });
-
-                const actualEquity = actualMap["Equity"] || 0;
-                const targetEquity = parseFloat((ideal["Equity"] || "0%").replace('%', ''));
-
-                if (actualEquity > targetEquity + 5) {
-                  actions.push("Review underperforming equity schemes for potential exit.");
-                  actions.push("Consider increasing your Debt or Hybrid allocation to reduce risk.");
-                } else if (actualEquity < targetEquity - 5) {
-                  actions.push("Gradually increase equity exposure through SIPs in quality schemes.");
-                }
-
-                actions.push("Check for portfolio overlap across similar fund types.");
-                actions.push("Ensure your ELSS investments are optimized for tax saving.");
-
-                return actions.map((act, i) => (
-                  <li key={i} className="flex gap-3 text-slate-700">
-                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span className="text-sm leading-relaxed">{act}</span>
-                  </li>
-                ));
-              })()}
-            </ul>
+              return mainCategories.map((cat, idx) => (
+                <div key={cat} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                  <div className="text-center pb-2 border-b border-slate-200/50">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">{cat}</p>
+                    <p className="text-xl font-bold text-slate-900">{(actualMap[cat] || 0).toFixed(2)}%</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    {typeMap[cat] && Object.entries(typeMap[cat]).length > 0 ? (
+                      Object.entries(typeMap[cat])
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([type, pct]) => (
+                          <div key={type} className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-600 truncate mr-2" title={type}>{type}</span>
+                            <span className="font-bold text-slate-900 shrink-0">{pct.toFixed(2)}%</span>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-[10px] text-slate-400 text-center italic">No data</p>
+                    )}
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </motion.div>
 
-      {/* MF Snapshot Table */}
+      {/* Scheme Level Performance Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
-          <h3 className="text-lg font-bold">Mutual Fund Portfolio Snapshot</h3>
-          <span className="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300 font-mono">
-            {analysis.mf_snapshot?.length || 0} SCHEMES
-          </span>
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Scheme Level Performance</h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Benchmark Comparison & Historical Returns</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4">Scheme Name</th>
-                <th className="px-6 py-4 text-right">Balance Units</th>
-                <th className="px-6 py-4 text-right">Invested (₹)</th>
-                <th className="px-6 py-4 text-right">Valuation (₹)</th>
-                <th className="px-6 py-4 text-right">Gain/Loss</th>
+                <th className="px-6 py-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
-                <PerformanceRow key={i} scheme={mf} reportId={report.id} />
+              {(analysis.mf_snapshot || []).map((scheme: any, i: number) => (
+                <PerformanceRow key={i} scheme={scheme} reportId={report.id} />
               ))}
             </tbody>
           </table>
         </div>
       </motion.div>
+
+      {/* Risk Metrics Check Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Risk Metrics Check </h3>
+          <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
+        </div>
+        <div className="p-6 space-y-4">
+          {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+            <div key={i} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-slate-900">{mf.scheme_name}</h4>
+                  <div className="flex flex-wrap gap-2 text-[10px] uppercase font-bold text-slate-500">
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">ISIN: {mf.isin || 'N/A'}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_category}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_type}</span>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => analyzePerformance(mf.isin)}
+                  disabled={analyzingIsin === mf.isin || !mf.isin}
+                  className="hover-elevate"
+                >
+                  {analyzingIsin === mf.isin ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Activity className="w-4 h-4 mr-2" />
+                  )}
+                  Analyze Performance
+                </Button>
+              </div>
+
+              {performances[mf.isin] && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-6 pt-4 border-t border-slate-200"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Returns & Basic Stats */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
+                        <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">1-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">3-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <p className="text-[10px] text-slate-500">5-Year</p>
+                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">AUM (Cr)</p>
+                          <p className="text-xs font-bold text-slate-700">₹{performances[mf.isin].stats?.aum_crores}</p>
+                        </div>
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">Exp. Ratio</p>
+                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.expense_ratio}</p>
+                        </div>
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
+                          <p className="text-[10px] text-slate-500">Turnover</p>
+                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.turnover}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Risk Ratios */}
+                    <div className="space-y-4">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Metrics (Fund vs Cat Avg)</h5>
+                      <div className="grid grid-cols-4 gap-2">
+                        {['std_dev', 'sharpe', 'beta', 'alpha'].map((ratio) => (
+                          <div key={ratio} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[10px] text-slate-500 capitalize">{ratio.replace('_', ' ')}</p>
+                            <p className="font-bold text-slate-900 text-xs">{(performances[mf.isin].risk_ratios as any)[ratio]?.fund}</p>
+                            <p className="text-[8px] text-slate-400">Avg: {(performances[mf.isin].risk_ratios as any)[ratio]?.category_avg}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Portfolio Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{h.name}</span>
+                            <span className="font-bold text-slate-900">{h.weight}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
+                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
+                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
+                          <div key={idx} className="flex justify-between p-2 text-[10px]">
+                            <span className="text-slate-700 truncate mr-2">{s.name}</span>
+                            <span className="font-bold text-slate-900">{s.weight}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          ))}
+        </div>
       </motion.div>
-    </div>
-  );
+
+      {/* Mutual Fund Portfolio Snapshot Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+          <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+              <tr>
+                <th className="px-4 py-3">Scheme Name</th>
+                <th className="px-4 py-3">Category / Type</th>
+                <th className="px-4 py-3">Folio No.</th>
+                <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
+                <th className="px-4 py-3 text-right">NAV (₹)</th>
+                <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
+                <th className="px-4 py-3 text-right">Valuation (₹)</th>
+                <th className="px-4 py-3 text-right">Unrealised P/L (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-900">{mf.fund_category || 'N/A'}</span>
+                      <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
+                  <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {mf.unrealised_profit_loss?.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-slate-800 text-white font-bold">
+                <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
+                <td className="px-4 py-3 text-right">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right text-sm">
+                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 text-right">
+                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Historical Performance Chart */}
+      {analysis.historical_valuations && analysis.historical_valuations.length > 0 && (
+        <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-600" />
+              Historical Portfolio Trend
+            </h3>
+            <div className="flex items-center gap-4 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+              <span className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-500 rounded-sm"></div> Portfolio Value</span>
+            </div>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analysis.historical_valuations}>
+                <XAxis 
+                  dataKey="month_year" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tickFormatter={(val) => `₹${(val / 100000).toFixed(0)}L`}
+                />
+                <RechartsTooltip 
+                  cursor={{ fill: '#f1f5f9' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-800">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{payload[0].payload.month_year}</p>
+                          <p className="text-sm font-bold">₹{payload[0].value?.toLocaleString()}</p>
+                          {payload[0].payload.change_percentage && (
+                            <p className={`text-[10px] font-bold ${payload[0].payload.change_percentage >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {payload[0].payload.change_percentage >= 0 ? '↑' : '↓'} {Math.abs(payload[0].payload.change_percentage)}%
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="valuation" 
+                  fill="#3b82f6" 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Risk-Based Allocation Analysis Section */}
+      {(analysis.category_comparison || analysis.type_comparison) && (
+        <motion.div variants={item} className="space-y-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+              <h3 className="text-lg font-bold">Risk-Based Allocation Analysis</h3>
+              <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+              {/* Category Table */}
+              <div className="p-4">
+                <h4 className="text-sm font-bold text-slate-900 mb-4 px-2 uppercase tracking-tight">Category Allocation</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-medium">
+                      <tr>
+                        <th className="px-4 py-3">Category</th>
+                        <th className="px-4 py-3 text-right">Current %</th>
+                        <th className="px-4 py-3 text-right">Target %</th>
+                        <th className="px-4 py-3 text-right">Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {(analysis.category_comparison || []).map((c: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-700">{c.category}</td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900">{(c.current_pct || 0).toFixed(2)}%</td>
+                          <td className="px-4 py-3 text-right text-slate-500">{(c.target_pct || 0).toFixed(2)}%</td>
+                          <td className={`px-4 py-3 text-right font-mono font-bold ${((c.current_pct || 0) - (c.target_pct || 0)) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {((c.current_pct || 0) - (c.target_pct || 0)) > 0 ? '+' : ''}{((c.current_pct || 0) - (c.target_pct || 0)).toFixed(2)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Type Table */}
+              <div className="p-4">
+                <h4 className="text-sm font-bold text-slate-900 mb-4 px-2 uppercase tracking-tight">Fund Type Allocation</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-medium">
+                      <tr>
+                        <th className="px-4 py-3">Type</th>
+                        <th className="px-4 py-3 text-right">Current %</th>
+                        <th className="px-4 py-3 text-right">Target %</th>
+                        <th className="px-4 py-3 text-right">Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {(analysis.type_comparison || []).map((t: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-700">{t.type}</td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900">{(t.current_pct || 0).toFixed(2)}%</td>
+                          <td className="px-4 py-3 text-right text-slate-500">{(t.target_pct || 0).toFixed(2)}%</td>
+                          <td className={`px-4 py-3 text-right font-mono font-bold ${((t.current_pct || 0) - (t.target_pct || 0)) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {((t.current_pct || 0) - (t.target_pct || 0)) > 0 ? '+' : ''}{((t.current_pct || 0) - (t.target_pct || 0)).toFixed(2)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+    </motion.div>
+  </div>
+);
 }
