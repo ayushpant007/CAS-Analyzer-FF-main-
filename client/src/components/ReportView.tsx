@@ -423,10 +423,10 @@ export function ReportView({ report }: ReportViewProps) {
           <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4">Fund Category</th>
+                <th className="px-6 py-4">Fund Category / Type</th>
                 <th className="px-6 py-4 text-right">Actual</th>
                 <th className="px-6 py-4 text-right">Ideal</th>
               </tr>
@@ -436,42 +436,105 @@ export function ReportView({ report }: ReportViewProps) {
                 const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
                 const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
                 
-                // Group actual allocation by requested categories
+                // Detailed breakdown from CSV (Moderate 20-35 as fallback)
+                const detailedIdeal: Record<string, Record<string, string>> = {
+                  "Equity": {
+                    "Multi Cap": "9.00%", "Large Cap": "12.00%", "Large & Mid": "9.00%", "Mid Cap": "3.00%", 
+                    "Small Cap": "3.00%", "Value Fund": "3.00%", "ELSS": "6.00%", "Flexi Cap": "12.00%", "Dividend Yield": "3.00%"
+                  },
+                  "Debt": {
+                    "Liquid": "2.00%", "Money Market": "3.00%", "Short Duration": "5.00%", "Corporate Bond": "4.00%", 
+                    "Banking & PSU": "4.00%", "Gilt Fund": "2.00%"
+                  },
+                  "Hybrid": {
+                    "Aggressive Hybrid": "3.00%", "Multi Asset Allocation": "5.00%", "Equity Savings Fund": "2.00%"
+                  },
+                  "Gold/Silver": {
+                    "Gold ETF/Fund": "4.00%", "Silver ETF/Fund": "1.00%"
+                  },
+                  "Others": {
+                    "Index Funds": "2.50%", "REITs/InvITs": "1.00%", "International": "1.00%", "Other Assets": "0.50%"
+                  }
+                };
+
+                // Actual allocation grouping
                 const actualMap: Record<string, number> = {};
+                const actualSubMap: Record<string, number> = {};
+                
                 (analysis.mf_snapshot || []).forEach((mf: any) => {
                   const cat = (mf.fund_category || "").toLowerCase();
+                  const type = (mf.fund_type || "").toLowerCase();
                   const valuation = mf.valuation || 0;
                   const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
                   const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
 
-                  if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                  else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                  else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                  else if (cat.includes("gold") || cat.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + percentage;
-                  else actualMap["Others"] = (actualMap["Others"] || 0) + percentage;
+                  if (cat.includes("equity")) {
+                    actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
+                    // Attempt to map sub-types
+                    Object.keys(detailedIdeal["Equity"]).forEach(t => {
+                      if (type.includes(t.toLowerCase())) actualSubMap[t] = (actualSubMap[t] || 0) + percentage;
+                    });
+                  }
+                  else if (cat.includes("debt")) {
+                    actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
+                    Object.keys(detailedIdeal["Debt"]).forEach(t => {
+                      if (type.includes(t.toLowerCase())) actualSubMap[t] = (actualSubMap[t] || 0) + percentage;
+                    });
+                  }
+                  else if (cat.includes("hybrid")) {
+                    actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
+                    Object.keys(detailedIdeal["Hybrid"]).forEach(t => {
+                      if (type.includes(t.toLowerCase())) actualSubMap[t] = (actualSubMap[t] || 0) + percentage;
+                    });
+                  }
+                  else if (cat.includes("gold") || cat.includes("silver")) {
+                    actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + percentage;
+                    if (type.includes("gold")) actualSubMap["Gold ETF/Fund"] = (actualSubMap["Gold ETF/Fund"] || 0) + percentage;
+                    if (type.includes("silver")) actualSubMap["Silver ETF/Fund"] = (actualSubMap["Silver ETF/Fund"] || 0) + percentage;
+                  }
+                  else {
+                    actualMap["Others"] = (actualMap["Others"] || 0) + percentage;
+                  }
                 });
 
-                return categories.map((cat) => {
+                return categories.flatMap((cat) => {
                   const actual = actualMap[cat] || 0;
                   const idealStr = ideal[cat] || "0%";
                   const idealVal = parseFloat(idealStr.replace('%', ''));
                   
-                  let statusColor = "text-slate-900";
-                  if (actual < idealVal) statusColor = "text-rose-600";
-                  else if (actual > idealVal) statusColor = "text-amber-500";
-                  else if (actual === idealVal && actual > 0) statusColor = "text-emerald-600";
-
-                  return (
-                    <tr key={cat} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-slate-700">{cat}</td>
-                      <td className={`px-6 py-4 text-right font-bold ${statusColor}`}>
+                  const rows = [];
+                  
+                  // Parent Row
+                  rows.push(
+                    <tr key={cat} className="bg-slate-50/50 transition-colors border-t border-slate-200">
+                      <td className="px-6 py-3 font-bold text-slate-900">{cat}</td>
+                      <td className={`px-6 py-3 text-right font-bold ${actual < idealVal ? 'text-rose-600' : actual > (idealVal + 5) ? 'text-amber-500' : 'text-emerald-600'}`}>
                         {actual.toFixed(2)}%
                       </td>
-                      <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                      <td className="px-6 py-3 text-right text-slate-700 font-bold">
                         {idealStr}
                       </td>
                     </tr>
                   );
+
+                  // Child Rows
+                  const subCategories = detailedIdeal[cat] || {};
+                  Object.entries(subCategories).forEach(([subCat, subIdeal]) => {
+                    const subActual = actualSubMap[subCat] || 0;
+                    rows.push(
+                      <tr key={`${cat}-${subCat}`} className="hover:bg-slate-50/30 transition-colors">
+                        <td className="px-10 py-2 text-slate-600 italic">{subCat}</td>
+                        <td className="px-6 py-2 text-right text-slate-500">
+                          {subActual > 0 ? `${subActual.toFixed(2)}%` : '0.00%'}
+                        </td>
+                        <td className="px-6 py-2 text-right text-slate-400">
+                          {subIdeal}
+                        </td>
+                      </tr>
+                    );
+                  });
+
+                  return rows;
                 });
               })()}
             </tbody>
