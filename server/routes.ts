@@ -17,11 +17,39 @@ import Groq from "groq-sdk";
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_1 || process.env.GEMINI_API_KEY_4 || "");
+// Initialize Gemini client with multi-key fallback support
+const GEMINI_KEYS = [
+  process.env.GEMINI_API_KEY_1,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
+  process.env.GEMINI_API_KEY_4
+].filter(Boolean) as string[];
 
-// Initialize Groq client
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
+async function generateWithFallback(prompt: string, options: { model?: string, responseMimeType?: string } = {}) {
+  const modelName = (options.model || process.env.GEMINI_MODEL || "gemini-2.5-flash-lite").toLowerCase().replace(/\s+/g, '-');
+  let lastError: any;
+
+  for (const key of GEMINI_KEYS) {
+    try {
+      const client = new GoogleGenerativeAI(key);
+      const model = client.getGenerativeModel({ 
+        model: modelName,
+        generationConfig: options.responseMimeType ? { responseMimeType: options.responseMimeType } : undefined
+      });
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (err: any) {
+      console.error(`Gemini call failed with key starting with ${key.substring(0, 8)}:`, err.message);
+      lastError = err;
+      // If it's a 429 (rate limit), try next key. Otherwise, maybe it's a persistent error
+      if (err.status !== 429 && !err.message?.includes("429")) {
+        // Break early if it's not a rate limit? 
+        // Actually the user wants fallbacks "so it wont show usage issues", implying rate limits.
+      }
+    }
+  }
+  throw lastError || new Error("All Gemini API keys failed");
+}
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
@@ -75,54 +103,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Analyze with Gemini
-      const rawModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-      const sanitizedModel = rawModel.toLowerCase().replace(/\s+/g, '-');
-      
-      const model = genAI.getGenerativeModel({ 
-        model: sanitizedModel,
-        generationConfig: { responseMimeType: "application/json" }
-      });
-
-      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. 
-Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
-
-Reference Ratios CSV:
-${csvContent}
-
-Extract:
-1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
-2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
-3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
-4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
-5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
-6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
-   - Current Category Allocation (Equity, Debt, Hybrid, Others)
-   - Comparison with Category Ratio (Current % vs Target % from CSV)
-   - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
-   - Comparison with Type Ratio (Current % vs Target % from CSV)
-
-Return ONLY valid JSON with this exact structure: {
-  "summary": {"net_asset_value": number, "total_cost": number}, 
-  "account_summaries": [...], 
-  "historical_valuations": [...], 
-  "asset_allocation": [...], 
-  "mf_snapshot": [...],
-  "category_comparison": [{"category": string, "current_pct": number, "target_pct": number}],
-  "type_comparison": [{"type": string, "current_pct": number, "target_pct": number}]
-}. 
-
-For mf_snapshot, ensure you accurately identify:
-- fund_category: e.g. Equity, Debt, Hybrid, etc.
-- fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, etc.
-- isin: The 12-character International Securities Identification Number for the fund.
-
-Ensure ALL funds and folios are extracted comprehensively without omission. Ensure all numerical values are numbers.
-
-Text content:
-${text}`;
-
-      const result = await model.generateContent(prompt);
-      const analysisRaw = result.response.text() || "{}";
+      const analysisRaw = await generateWithFallback(prompt, { responseMimeType: "application/json" });
       const analysis = JSON.parse(analysisRaw);
 
       const report = await storage.createReport({
@@ -202,17 +183,10 @@ ${text}`;
       If you cannot find specific data for this ISIN, return: {"error": "Data Unavailable"}.
       Return ONLY the JSON object, no markdown or extra text.`;
 
-      console.log(`Analyzing fund with Groq: ${fundName} (${isin})`);
+      console.log(`Analyzing fund with Gemini: ${fundName} (${isin})`);
       let performance;
       try {
-        const result = await groq.chat.completions.create({
-          messages: [{ role: "user", content: prompt }],
-          model: "llama-3.1-8b-instant",
-          temperature: 0.1,
-          max_tokens: 2048,
-        });
-        
-        const responseText = result.choices[0]?.message?.content || "{}";
+        const responseText = await generateWithFallback(prompt);
         
         // Extract JSON from markdown code block if present
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -221,13 +195,13 @@ ${text}`;
         if (performance.error) {
           return res.status(404).json({ message: performance.error });
         }
-      } catch (groqError: any) {
-        console.error("Groq Content Generation Error:", groqError);
+      } catch (geminiError: any) {
+        console.error("Gemini Content Generation Error:", geminiError);
         // Check for rate limit error
-        if (groqError.status === 429 || (groqError.message && groqError.message.includes("429"))) {
+        if (geminiError.status === 429 || (geminiError.message && geminiError.message.includes("429"))) {
           return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
         }
-        throw groqError;
+        throw geminiError;
       }
 
       res.json(performance);
@@ -265,22 +239,15 @@ ${text}`;
       Ensure returns are strings like "15.5%". If data is unavailable, use "N/A".
       Return ONLY the JSON object, no additional text or markdown.`;
 
-      console.log(`Fetching scheme performance with Groq: ${fundName} (${isin})`);
+      console.log(`Fetching scheme performance with Gemini: ${fundName} (${isin})`);
       
-      const result = await groq.chat.completions.create({
-        messages: [{ role: "user", content: prompt }],
-        model: "llama-3.1-8b-instant",
-        temperature: 0.1,
-        max_tokens: 1024,
-      });
-      
-      const responseText = result.choices[0]?.message?.content || "{}";
+      const responseText = await generateWithFallback(prompt);
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
 
       return res.json(performance);
     } catch (err: any) {
-      console.error(`Groq scheme performance error:`, err.message);
+      console.error(`Gemini scheme performance error:`, err.message);
       if (err.status === 429 || (err.message && err.message.includes("429"))) {
         return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
       }
