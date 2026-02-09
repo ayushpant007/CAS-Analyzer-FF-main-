@@ -104,7 +104,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       // Analyze with Gemini
       const analysisRaw = await generateWithFallback(prompt, { responseMimeType: "application/json" });
-      const analysis = JSON.parse(analysisRaw);
+      const analysis = JSON.parse(analysisRaw || "{}");
 
       const report = await storage.createReport({
         filename: req.file.originalname,
@@ -189,8 +189,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         const responseText = await generateWithFallback(prompt);
         
         // Extract JSON from markdown code block if present
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+        const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
+        performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText || "{}");
 
         if (performance.error) {
           return res.status(404).json({ message: performance.error });
@@ -242,8 +242,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       console.log(`Fetching scheme performance with Gemini: ${fundName} (${isin})`);
       
       const responseText = await generateWithFallback(prompt);
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
+      const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
+      const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText || "{}");
 
       return res.json(performance);
     } catch (err: any) {
