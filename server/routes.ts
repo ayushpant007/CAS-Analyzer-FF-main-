@@ -103,8 +103,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Analyze with Gemini
-      const analysisRaw = await generateWithFallback(prompt, { responseMimeType: "application/json" });
-      const analysis = JSON.parse(analysisRaw || "{}");
+      const analysisRawResult = await generateWithFallback(prompt, { responseMimeType: "application/json" });
+      const analysisRawStr = typeof analysisRawResult === 'string' ? analysisRawResult : "";
+      const analysis = JSON.parse(analysisRawStr || "{}");
 
       const report = await storage.createReport({
         filename: req.file.originalname,
