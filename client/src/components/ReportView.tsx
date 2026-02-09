@@ -41,10 +41,11 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
   };
 
   const compare = (s: string, b: string) => {
+    if (!s || !b || s === "N/A" || b === "N/A") return null;
     const sv = parseFloat(s.replace('%', ''));
     const bv = parseFloat(b.replace('%', ''));
     if (isNaN(sv) || isNaN(bv)) return null;
-    return sv > bv ? "green" : "red";
+    return sv >= bv ? "green" : "red";
   };
 
   return (
