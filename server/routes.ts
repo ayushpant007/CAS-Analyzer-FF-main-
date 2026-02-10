@@ -103,8 +103,46 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Analyze with Gemini
-      const analysisRawResult: unknown = await generateWithFallback(prompt, { responseMimeType: "application/json" });
-      const analysisRawStr: string = typeof analysisRawResult === 'string' ? analysisRawResult : "";
+      const analysisPrompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. 
+Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
+
+Reference Ratios CSV:
+${csvContent}
+
+Extract:
+1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
+2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
+3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
+4. Asset Class Allocation for the month: [{"asset_class": string, "value": number, "percentage": number}]
+5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "closing_balance": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
+6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
+   - Current Category Allocation (Equity, Debt, Hybrid, Others)
+   - Comparison with Category Ratio (Current % vs Target % from CSV)
+   - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
+   - Comparison with Type Ratio (Current % vs Target % from CSV)
+
+Return ONLY valid JSON with this exact structure: {
+  "summary": {"net_asset_value": number, "total_cost": number}, 
+  "account_summaries": [...], 
+  "historical_valuations": [...], 
+  "asset_allocation": [...], 
+  "mf_snapshot": [...],
+  "category_comparison": [{"category": string, "current_pct": number, "target_pct": number}],
+  "type_comparison": [{"type": string, "current_pct": number, "target_pct": number}]
+}. 
+
+For mf_snapshot, ensure you accurately identify:
+- fund_category: e.g. Equity, Debt, Hybrid, etc.
+- fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, etc.
+- isin: The 12-character International Securities Identification Number for the fund.
+
+Ensure ALL funds and folios are extracted comprehensively without omission. Ensure all numerical values are numbers.
+
+Text content:
+${text}`;
+
+      const analysisRawResult = await generateWithFallback(analysisPrompt, { responseMimeType: "application/json" });
+      const analysisRawStr = typeof analysisRawResult === 'string' ? analysisRawResult : "";
       const analysis = JSON.parse(analysisRawStr || "{}");
 
       const report = await storage.createReport({
@@ -207,7 +245,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       res.json(performance);
     } catch (error: any) {
-      console.error("Groq analysis error:", error);
+      console.error("Gemini analysis error:", error);
       res.status(404).json({ message: "Data Unavailable" });
     }
   });
