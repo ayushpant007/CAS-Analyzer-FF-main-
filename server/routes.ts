@@ -104,7 +104,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       // Analyze with Gemini
       const analysisRawResult: unknown = await generateWithFallback(prompt, { responseMimeType: "application/json" });
-      const analysisRawStr = typeof analysisRawResult === 'string' ? analysisRawResult : "";
+      const analysisRawStr: string = typeof analysisRawResult === 'string' ? analysisRawResult : "";
       const analysis = JSON.parse(analysisRawStr || "{}");
 
       const report = await storage.createReport({
