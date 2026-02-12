@@ -124,10 +124,10 @@ Extract:
    
    IMPORTANT: For transactions, carefully identify the type based on transaction keywords in the text:
    - "SIP" or "Systematic Investment" or "Purchase" -> type: "SIP"
-   - "STP", "Systematic Transfer", "Switch Out" -> type: "STP"
+   - "STP", "Systematic Transfer", "Switch In", "Switch Out", "Switch" -> type: "STP"
    - "SWP", "Systematic Withdrawal", "Redemption" -> type: "SWP"
    - Extract the correct date (e.g., DD-MMM-YYYY or DD/MM/YYYY), scheme name, and amount.
-   - For STP, ONLY extract "Switch Out" or "Transfer Out" transactions. Do NOT extract "Switch In" or "Transfer In" as STP.
+   - If a transaction is a "Switch Out" or "Switch In", map it to "STP".
    - Be comprehensive: extract ALL systematic transactions found in the text.
    - For amount, use the numerical value (e.g., if it says ₹1,000, extract 1000).
 
