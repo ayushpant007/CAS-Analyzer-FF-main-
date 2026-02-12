@@ -292,7 +292,6 @@ export function ReportView({ report }: ReportViewProps) {
           {isDownloading ? "Generating PDF..." : "Download Full Report"}
         </Button>
       </div>
-
       <motion.div 
         ref={reportRef}
         variants={container}
@@ -1007,7 +1006,7 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Date Wise Investment Amount Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-900 p-4 text-white">
+        <div className="p-4 text-white bg-[#1457f5]">
           <h3 className="text-lg font-bold">Date Wise Investment Amount</h3>
         </div>
         
@@ -1078,6 +1077,6 @@ export function ReportView({ report }: ReportViewProps) {
       </motion.div>
 
     </motion.div>
-  </div>
-);
+    </div>
+  );
 }
