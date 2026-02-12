@@ -1043,12 +1043,28 @@ export function ReportView({ report }: ReportViewProps) {
 
             return Object.entries(sections).map(([title, items]) => {
               const isSTP = title.startsWith("STP");
-              const filteredItems = isSTP 
-                ? items.filter((tx: any) => {
-                    const t = (tx.type || "").toLowerCase();
-                    return t.includes("out") || (!t.includes("in") && !t.includes("transfer to"));
-                  })
-                : items;
+              let filteredItems: any[] = [];
+              
+              if (isSTP) {
+                // Step 1: Filter for Step Out only
+                const stepOutItems = items.filter((tx: any) => {
+                  const t = (tx.type || "").toLowerCase();
+                  return t.includes("out") || (!t.includes("in") && !t.includes("transfer to"));
+                });
+
+                // Step 2: Ensure only one Step Out entry per scheme is counted
+                const seenSchemes = new Set();
+                filteredItems = stepOutItems.filter((tx: any) => {
+                  const schemeName = (tx.scheme_name || "").trim().toLowerCase();
+                  if (!seenSchemes.has(schemeName)) {
+                    seenSchemes.add(schemeName);
+                    return true;
+                  }
+                  return false;
+                });
+              } else {
+                filteredItems = items;
+              }
 
               const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
 
@@ -1072,7 +1088,14 @@ export function ReportView({ report }: ReportViewProps) {
                               <tr key={idx} className={`hover:bg-slate-50/50 ${isExcludedSTP ? 'opacity-40 grayscale' : ''}`}>
                                 <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">
                                   {item.date || "N/A"}
-                                  {isExcludedSTP && <span className="ml-2 text-[10px] bg-slate-100 px-1 rounded text-slate-400">EXCLUDED</span>}
+                                  {isSTP && !filteredItems.includes(item) && (
+                                    <span className="ml-2 text-[10px] bg-slate-100 px-1 rounded text-slate-400">
+                                      {items.filter((tx: any) => (tx.scheme_name || "").trim().toLowerCase() === (item.scheme_name || "").trim().toLowerCase()).indexOf(item) > 0 && 
+                                       (item.type || "").toLowerCase().includes("out") 
+                                       ? "DUPLICATE" 
+                                       : "EXCLUDED"}
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
                                 <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
