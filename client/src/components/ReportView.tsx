@@ -1072,6 +1072,18 @@ export function ReportView({ report }: ReportViewProps) {
                         </tr>
                       )}
                     </tbody>
+                    {items.length > 0 && (
+                      <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
+                        <tr>
+                          <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
+                            Total {title.split(' ')[0]} Amount
+                          </td>
+                          <td className="px-6 py-3 text-right font-mono text-slate-900">
+                            ₹{items.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
