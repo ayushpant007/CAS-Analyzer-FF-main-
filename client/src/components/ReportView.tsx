@@ -276,9 +276,40 @@ export function ReportView({ report }: ReportViewProps) {
     show: { opacity: 1, y: 0 }
   };
 
+  const [isRefreshingNav, setIsRefreshingNav] = useState(false);
+
+  const refreshNAV = async () => {
+    setIsRefreshingNav(true);
+    try {
+      const res = await apiRequest("GET", `/api/reports/${report.id}/refresh-nav`);
+      const data = await res.json();
+      if (data.success) {
+        // We might need to reload or update local state if the parent report object isn't automatically updated by react-query
+        window.location.reload(); // Simplest way to ensure all components see the updated report
+      }
+    } catch (err: any) {
+      toast({
+        title: "Refresh Failed",
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshingNav(false);
+    }
+  };
+
   return (
     <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
-      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
+      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm gap-2">
+        <Button 
+          onClick={refreshNAV}
+          disabled={isRefreshingNav}
+          variant="outline"
+          className="hover-elevate"
+        >
+          {isRefreshingNav ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Activity className="w-4 h-4 mr-2" />}
+          Refresh NAV
+        </Button>
         <Button 
           onClick={downloadPDF} 
           disabled={isDownloading}
@@ -921,7 +952,14 @@ export function ReportView({ report }: ReportViewProps) {
                   </td>
                   <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
                   <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
-                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex flex-col items-end">
+                      <span>{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</span>
+                      {mf.last_updated && (
+                        <span className="text-[8px] text-slate-400 uppercase font-bold">As of {mf.last_updated}</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
                   <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>

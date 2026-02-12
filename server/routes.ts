@@ -51,6 +51,37 @@ async function generateWithFallback(prompt: string, options: { model?: string, r
   throw lastError || new Error("All Gemini API keys failed");
 }
 
+// Indian Mutual Fund API (MFAPI.in) helper
+async function fetchLatestNAV(isin: string, schemeName: string) {
+  try {
+    // First try searching by ISIN
+    const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(isin || schemeName)}`;
+    const searchRes = await fetch(searchUrl);
+    const searchData = await searchRes.json();
+    
+    let schemeCode = "";
+    if (Array.isArray(searchData) && searchData.length > 0) {
+      schemeCode = searchData[0].schemeCode;
+    }
+
+    if (schemeCode) {
+      const navRes = await fetch(`https://api.mfapi.in/mf/${schemeCode}`);
+      const navData = await navRes.json();
+      if (navData.data && navData.data.length > 0) {
+        return {
+          value: parseFloat(navData.data[0].nav),
+          date: navData.data[0].date,
+          schemeName: navData.meta.scheme_name
+        };
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error fetching NAV for ${isin}:`, error);
+    return null;
+  }
+}
+
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // Register integration routes
   registerChatRoutes(app);
@@ -303,6 +334,61 @@ ${text}`;
       }
       res.status(err?.status || 500).json({ message: err?.message || "Failed to fetch scheme performance" });
     }
+  });
+
+  app.get("/api/realtime-nav/:isin", async (req, res) => {
+    const isin = req.params.isin;
+    const schemeName = req.query.schemeName as string;
+    
+    const navData = await fetchLatestNAV(isin, schemeName);
+    if (navData) {
+      res.json(navData);
+    } else {
+      res.status(404).json({ message: "NAV not found" });
+    }
+  });
+
+  app.get("/api/reports/:id/refresh-nav", async (req, res) => {
+    const reportId = Number(req.params.id);
+    const report = await storage.getReport(reportId);
+    if (!report) return res.status(404).json({ message: "Report not found" });
+
+    const analysis = report.analysis as any;
+    const snapshot = analysis.mf_snapshot || [];
+
+    const updatedSnapshot = await Promise.all(snapshot.map(async (fund: any) => {
+      const navData = await fetchLatestNAV(fund.isin, fund.scheme_name);
+      if (navData) {
+        const newNav = navData.value;
+        const valuation = fund.closing_balance * newNav;
+        const unrealised_profit_loss = valuation - fund.invested_amount;
+        return {
+          ...fund,
+          nav: newNav,
+          valuation,
+          unrealised_profit_loss,
+          last_updated: navData.date
+        };
+      }
+      return fund;
+    }));
+
+    // Recalculate summary net_asset_value
+    const totalValuation = updatedSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+    const totalCost = updatedSnapshot.reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
+
+    const updatedAnalysis = {
+      ...analysis,
+      summary: {
+        ...analysis.summary,
+        net_asset_value: totalValuation,
+        total_cost: totalCost
+      },
+      mf_snapshot: updatedSnapshot
+    };
+
+    await storage.updateReport(reportId, { analysis: updatedAnalysis });
+    res.json({ success: true, analysis: updatedAnalysis });
   });
 
   return httpServer;

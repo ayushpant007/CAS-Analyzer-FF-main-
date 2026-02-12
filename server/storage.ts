@@ -6,6 +6,7 @@ export interface IStorage {
   createReport(report: InsertReport): Promise<Report>;
   getReport(id: number): Promise<Report | undefined>;
   getAllReports(): Promise<Report[]>;
+  updateReport(id: number, report: Partial<InsertReport>): Promise<Report | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -19,6 +20,13 @@ export class DatabaseStorage implements IStorage {
   }
   async getAllReports(): Promise<Report[]> {
     return await db.select().from(reports).orderBy(desc(reports.createdAt));
+  }
+  async updateReport(id: number, update: Partial<InsertReport>): Promise<Report | undefined> {
+    const [updatedReport] = await db.update(reports)
+      .set(update)
+      .where(eq(reports.id, id))
+      .returning();
+    return updatedReport;
   }
 }
 
