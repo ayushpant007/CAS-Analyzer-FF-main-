@@ -1013,16 +1013,17 @@ export function ReportView({ report }: ReportViewProps) {
         <div className="p-6 space-y-8">
           {(() => {
             const transactions = analysis.transactions || [];
+            console.log("All transactions read from analysis:", transactions);
             
-            const stpKeywords = ["switch out", "switch in", "systematic switch out", "systematic transfer plan"];
-            const sipKeywords = ["purchase", "purchase bse"];
-            const swpKeywords = ["withdrawn"];
-
             const categorize = (type: string) => {
               const t = type.toLowerCase();
-              if (stpKeywords.some(k => t.includes(k))) return "STP";
-              if (sipKeywords.some(k => t.includes(k))) return "SIP";
-              if (swpKeywords.some(k => t.includes(k))) return "SWP";
+              if (["stp", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
+              if (["sip", "systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
+              if (["swp", "systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
+              
+              // Fallback to what Gemini might have directly returned as "type"
+              if (t === "stp" || t === "sip" || t === "swp") return t.toUpperCase();
+              
               return null;
             };
 
@@ -1034,6 +1035,7 @@ export function ReportView({ report }: ReportViewProps) {
 
             transactions.forEach((tx: any) => {
               const category = categorize(tx.type || "");
+              console.log(`Transaction: ${tx.scheme_name}, Type: ${tx.type}, Assigned Category: ${category}`);
               if (category === "STP") sections["STP (Systematic Transfer Plan)"].push(tx);
               else if (category === "SIP") sections["SIP (Systematic Investment Plan)"].push(tx);
               else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);

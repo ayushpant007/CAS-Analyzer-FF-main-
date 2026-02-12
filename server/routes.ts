@@ -121,6 +121,15 @@ Extract:
    - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
    - Comparison with Type Ratio (Current % vs Target % from CSV)
    - Transactions (STP/SIP/SWP extraction): [{"date": string, "scheme_name": string, "type": string, "amount": number}]
+   
+   IMPORTANT: For transactions, carefully identify the type based on transaction keywords in the text:
+   - "SIP" or "Systematic Investment" or "Purchase" -> type: "SIP"
+   - "STP", "Systematic Transfer", "Switch In", "Switch Out", "Switch" -> type: "STP"
+   - "SWP", "Systematic Withdrawal", "Redemption" -> type: "SWP"
+   - Extract the correct date (e.g., DD-MMM-YYYY or DD/MM/YYYY), scheme name, and amount.
+   - If a transaction is a "Switch Out" or "Switch In", map it to "STP".
+   - Be comprehensive: extract ALL systematic transactions found in the text.
+   - For amount, use the numerical value (e.g., if it says ₹1,000, extract 1000).
 
 Return ONLY valid JSON with this exact structure: {
   "summary": {"net_asset_value": number, "total_cost": number}, 
