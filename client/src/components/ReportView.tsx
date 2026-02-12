@@ -1046,6 +1046,7 @@ export function ReportView({ report }: ReportViewProps) {
                   <table className="w-full text-sm text-left">
                     <thead className="bg-slate-50 text-slate-500 font-medium">
                       <tr>
+                        <th className="px-6 py-3">Date</th>
                         <th className="px-6 py-3">Scheme Name</th>
                         <th className="px-6 py-3 text-right">Amount in ₹</th>
                       </tr>
@@ -1054,6 +1055,7 @@ export function ReportView({ report }: ReportViewProps) {
                       {items.length > 0 ? (
                         items.map((item: any, idx: number) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">{item.date || "N/A"}</td>
                             <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
                             <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
                               ₹{item.amount?.toLocaleString() || "0.00"}
@@ -1062,7 +1064,7 @@ export function ReportView({ report }: ReportViewProps) {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={2} className="px-6 py-8 text-center text-slate-400 italic">
+                          <td colSpan={3} className="px-6 py-8 text-center text-slate-400 italic">
                             No entries found for this category
                           </td>
                         </tr>

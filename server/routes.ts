@@ -120,6 +120,7 @@ Extract:
    - Comparison with Category Ratio (Current % vs Target % from CSV)
    - Category-Fund Type Comparison (Large Cap, Mid Cap, Small Cap, etc. for Equity portion)
    - Comparison with Type Ratio (Current % vs Target % from CSV)
+   - Transactions (STP/SIP/SWP extraction): [{"date": string, "scheme_name": string, "type": string, "amount": number}]
 
 Return ONLY valid JSON with this exact structure: {
   "summary": {"net_asset_value": number, "total_cost": number}, 
@@ -128,7 +129,8 @@ Return ONLY valid JSON with this exact structure: {
   "asset_allocation": [...], 
   "mf_snapshot": [...],
   "category_comparison": [{"category": string, "current_pct": number, "target_pct": number}],
-  "type_comparison": [{"type": string, "current_pct": number, "target_pct": number}]
+  "type_comparison": [{"type": string, "current_pct": number, "target_pct": number}],
+  "transactions": [{"date": string, "scheme_name": string, "type": string, "amount": number}]
 }. 
 
 For mf_snapshot, ensure you accurately identify:
