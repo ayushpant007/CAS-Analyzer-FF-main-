@@ -1041,53 +1041,81 @@ export function ReportView({ report }: ReportViewProps) {
               else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);
             });
 
-            return Object.entries(sections).map(([title, items]) => (
-              <div key={title} className="space-y-4">
-                <h4 className="text-md font-bold text-slate-800 border-l-4 border-primary pl-3">{title}</h4>
-                <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-slate-500 font-medium">
-                      <tr>
-                        <th className="px-6 py-3">Date</th>
-                        <th className="px-6 py-3">Scheme Name</th>
-                        <th className="px-6 py-3 text-right">Amount in ₹</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {items.length > 0 ? (
-                        items.map((item: any, idx: number) => (
-                          <tr key={idx} className="hover:bg-slate-50/50">
-                            <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">{item.date || "N/A"}</td>
-                            <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
-                            <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
-                              ₹{item.amount?.toLocaleString() || "0.00"}
+            return Object.entries(sections).map(([title, items]) => {
+              const isSTP = title.startsWith("STP");
+              const filteredItems = isSTP 
+                ? items.filter((tx: any) => {
+                    const t = (tx.type || "").toLowerCase();
+                    return t.includes("out") || (!t.includes("in") && !t.includes("transfer to"));
+                  })
+                : items;
+
+              const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
+
+              return (
+                <div key={title} className="space-y-4">
+                  <h4 className="text-md font-bold text-slate-800 border-l-4 border-primary pl-3">{title}</h4>
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 text-slate-500 font-medium">
+                        <tr>
+                          <th className="px-6 py-3">Date</th>
+                          <th className="px-6 py-3">Scheme Name</th>
+                          <th className="px-6 py-3 text-right">Amount in ₹</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {items.length > 0 ? (
+                          items.map((item: any, idx: number) => {
+                            const isExcludedSTP = isSTP && !filteredItems.includes(item);
+                            return (
+                              <tr key={idx} className={`hover:bg-slate-50/50 ${isExcludedSTP ? 'opacity-40 grayscale' : ''}`}>
+                                <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">
+                                  {item.date || "N/A"}
+                                  {isExcludedSTP && <span className="ml-2 text-[10px] bg-slate-100 px-1 rounded text-slate-400">EXCLUDED</span>}
+                                </td>
+                                <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
+                                <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
+                                  ₹{item.amount?.toLocaleString() || "0.00"}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="px-6 py-8 text-center text-slate-400 italic">
+                              No entries found for this category
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={3} className="px-6 py-8 text-center text-slate-400 italic">
-                            No entries found for this category
-                          </td>
-                        </tr>
+                        )}
+                      </tbody>
+                      {items.length > 0 && (
+                        <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
+                          <tr>
+                            <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
+                              {isSTP ? "Corrected Outflow Total" : `Total ${title.split(' ')[0]} Amount`}
+                            </td>
+                            <td className="px-6 py-3 text-right font-mono text-slate-900">
+                              ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                        </tfoot>
                       )}
-                    </tbody>
-                    {items.length > 0 && (
-                      <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
-                        <tr>
-                          <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
-                            Total {title.split(' ')[0]} Amount
-                          </td>
-                          <td className="px-6 py-3 text-right font-mono text-slate-900">
-                            ₹{items.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table>
+                    </table>
+                  </div>
+                  {isSTP && items.length > 0 && (
+                    <div className="p-3 bg-blue-50/50 rounded-lg border border-blue-100 flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                        <Lightbulb className="w-4 h-4" />
+                      </div>
+                      <p className="text-xs text-blue-700">
+                        <strong>STP Adjustment:</strong> Only Step Out (Transfer Out) amounts are counted in the total to prevent double-counting internal transfers. Step In amounts are displayed but excluded from the calculation.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ));
+              );
+            });
           })()}
         </div>
       </motion.div>
