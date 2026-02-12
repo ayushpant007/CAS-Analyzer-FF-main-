@@ -1017,9 +1017,9 @@ export function ReportView({ report }: ReportViewProps) {
             
             const categorize = (type: string) => {
               const t = type.toLowerCase();
-              if (["stp", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
               if (["sip", "systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
               if (["swp", "systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
+              if (t.includes("stp") || t.includes("switch out") || t.includes("transfer out")) return "STP";
               
               // Fallback to what Gemini might have directly returned as "type"
               if (t === "stp" || t === "sip" || t === "swp") return t.toUpperCase();
