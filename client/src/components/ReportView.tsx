@@ -1005,6 +1005,78 @@ export function ReportView({ report }: ReportViewProps) {
         </motion.div>
       )}
 
+      {/* Date Wise Investment Amount Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-900 p-4 text-white">
+          <h3 className="text-lg font-bold">Date Wise Investment Amount</h3>
+        </div>
+        
+        <div className="p-6 space-y-8">
+          {(() => {
+            const transactions = analysis.transactions || [];
+            
+            const stpKeywords = ["switch out", "switch in", "systematic switch out", "systematic transfer plan"];
+            const sipKeywords = ["purchase", "purchase bse"];
+            const swpKeywords = ["withdrawn"];
+
+            const categorize = (type: string) => {
+              const t = type.toLowerCase();
+              if (stpKeywords.some(k => t.includes(k))) return "STP";
+              if (sipKeywords.some(k => t.includes(k))) return "SIP";
+              if (swpKeywords.some(k => t.includes(k))) return "SWP";
+              return null;
+            };
+
+            const sections = {
+              "STP (Systematic Transfer Plan)": [] as any[],
+              "SIP (Systematic Investment Plan)": [] as any[],
+              "SWP (Systematic Withdrawal Plan)": [] as any[]
+            };
+
+            transactions.forEach((tx: any) => {
+              const category = categorize(tx.type || "");
+              if (category === "STP") sections["STP (Systematic Transfer Plan)"].push(tx);
+              else if (category === "SIP") sections["SIP (Systematic Investment Plan)"].push(tx);
+              else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);
+            });
+
+            return Object.entries(sections).map(([title, items]) => (
+              <div key={title} className="space-y-4">
+                <h4 className="text-md font-bold text-slate-800 border-l-4 border-primary pl-3">{title}</h4>
+                <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-medium">
+                      <tr>
+                        <th className="px-6 py-3">Scheme Name</th>
+                        <th className="px-6 py-3 text-right">Amount in ₹</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.length > 0 ? (
+                        items.map((item: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
+                            <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
+                              ₹{item.amount?.toLocaleString() || "0.00"}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={2} className="px-6 py-8 text-center text-slate-400 italic">
+                            No entries found for this category
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+      </motion.div>
+
     </motion.div>
   </div>
 );
