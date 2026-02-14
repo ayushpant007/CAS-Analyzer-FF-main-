@@ -1,8 +1,8 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
-import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag } from "lucide-react";
+import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,59 @@ interface SchemePerformanceData {
   scheme_returns: { "1y": string; "3y": string; "5y": string };
   benchmark_name: string;
   benchmark_returns: { "1y": string; "3y": string; "5y": string };
+}
+
+function AssetCategoryRow({ 
+  category, 
+  actual, 
+  ideal, 
+  subCategories, 
+  actualSubMap 
+}: { 
+  category: string; 
+  actual: number; 
+  ideal: string; 
+  subCategories: Record<string, string>;
+  actualSubMap: Record<string, number>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <tr 
+        className="hover:bg-slate-50/50 transition-colors cursor-pointer group"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <td className="px-6 py-4 font-bold text-slate-900 flex items-center gap-2">
+          {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          {category}
+        </td>
+        <td className="px-6 py-4 text-right font-bold text-blue-600">
+          {actual.toFixed(2)}%
+        </td>
+        <td className="px-6 py-4 text-right font-bold text-slate-900">
+          {ideal}
+        </td>
+      </tr>
+      {isOpen && (
+        <>
+          {Object.entries(subCategories).map(([type, targetPct]) => (
+            <tr key={type} className="bg-slate-50/30">
+              <td className="px-6 py-3 pl-12 text-slate-600 italic">
+                {type}
+              </td>
+              <td className="px-6 py-3 text-right text-slate-600">
+                {(actualSubMap[type] || 0).toFixed(2)}%
+              </td>
+              <td className="px-6 py-3 text-right text-slate-400">
+                {targetPct}
+              </td>
+            </tr>
+          ))}
+        </>
+      )}
+    </>
+  );
 }
 
 function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number }) {
@@ -496,45 +549,16 @@ export function ReportView({ report }: ReportViewProps) {
                   }
                 });
 
-                return categories.flatMap((cat) => {
-                  const actual = actualMap[cat] || 0;
-                  const idealStr = ideal[cat] || "0%";
-                  const idealVal = parseFloat(idealStr.replace('%', ''));
-                  
-                  const rows = [];
-                  
-                  // Parent Row
-                  rows.push(
-                    <tr key={cat} className="bg-slate-50/50 transition-colors border-t border-slate-200">
-                      <td className="px-6 py-3 font-bold text-slate-900">{cat}</td>
-                      <td className={`px-6 py-3 text-right font-bold ${actual < idealVal ? 'text-rose-600' : actual > (idealVal + 5) ? 'text-amber-500' : 'text-emerald-600'}`}>
-                        {actual.toFixed(2)}%
-                      </td>
-                      <td className="px-6 py-3 text-right text-slate-700 font-bold">
-                        {idealStr}
-                      </td>
-                    </tr>
-                  );
-
-                  // Child Rows
-                  const subCategories = detailedIdeal[cat] || {};
-                  Object.entries(subCategories).forEach(([subCat, subIdeal]) => {
-                    const subActual = actualSubMap[subCat] || 0;
-                    rows.push(
-                      <tr key={`${cat}-${subCat}`} className="hover:bg-slate-50/30 transition-colors">
-                        <td className="px-10 py-2 text-slate-600 italic">{subCat}</td>
-                        <td className="px-6 py-2 text-right text-slate-500">
-                          {subActual > 0 ? `${subActual.toFixed(2)}%` : '0.00%'}
-                        </td>
-                        <td className="px-6 py-2 text-right text-slate-400">
-                          {subIdeal}
-                        </td>
-                      </tr>
-                    );
-                  });
-
-                  return rows;
-                });
+                return categories.map(cat => (
+                  <AssetCategoryRow 
+                    key={cat}
+                    category={cat}
+                    actual={actualMap[cat] || 0}
+                    ideal={ideal[cat] || "0%"}
+                    subCategories={detailedIdeal[cat]}
+                    actualSubMap={actualSubMap}
+                  />
+                ));
               })()}
             </tbody>
           </table>
