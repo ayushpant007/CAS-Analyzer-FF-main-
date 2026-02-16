@@ -9,15 +9,14 @@ import path from "path";
 import os from "os";
 import { promisify } from "util";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import * as cheerio from "cheerio";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
-import Groq from "groq-sdk";
+import { fetchNavForScheme, findSchemeCode, searchSchemeCodes } from "./mfapi";
+import { extractMetricsFromFactsheet } from "./factsheet";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Gemini client with multi-key fallback support
 const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_1,
   process.env.GEMINI_API_KEY_2,
@@ -41,18 +40,12 @@ async function generateWithFallback(prompt: string, options: { model?: string, r
     } catch (err: any) {
       console.error(`Gemini call failed with key starting with ${key.substring(0, 8)}:`, err.message);
       lastError = err;
-      // If it's a 429 (rate limit), try next key. Otherwise, maybe it's a persistent error
-      if (err.status !== 429 && !err.message?.includes("429")) {
-        // Break early if it's not a rate limit? 
-        // Actually the user wants fallbacks "so it wont show usage issues", implying rate limits.
-      }
     }
   }
   throw lastError || new Error("All Gemini API keys failed");
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
-  // Register integration routes
   registerChatRoutes(app);
   registerImageRoutes(app);
 
@@ -72,7 +65,6 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       await fs.writeFile(tempPath, req.file.buffer);
 
-      // Parse PDF
       let text = "";
       try {
         const { stdout } = await execAsync(`pdftotext -upw "${password}" "${tempPath}" -`);
@@ -82,9 +74,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         if (e.message.includes("Incorrect password") || (e.stderr && e.stderr.includes("Incorrect password"))) {
             return res.status(401).json({ message: "Incorrect password" });
         }
-        // Fallback: sometimes generic error code 3 means bad password in poppler
-        // But for now let's assume if it fails it's likely password or corrupt file
-        if (e.code === 3 || e.code === 1) { // 3 is "Permissions error", 1 can be generic
+        if (e.code === 3 || e.code === 1) {
              return res.status(401).json({ message: "Incorrect password or file permission error" });
         }
         throw e;
@@ -94,7 +84,6 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Could not extract text from PDF. It might be empty or scanned." });
       }
 
-      // Read CSV ratios
       let csvContent = "";
       try {
         csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8");
@@ -102,7 +91,6 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         console.error("Error reading ratios CSV:", e);
       }
 
-      // Analyze with Gemini
       const analysisPrompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text. 
 Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
 
@@ -187,6 +175,34 @@ ${text}`;
     res.json(report);
   });
 
+  app.get("/api/nav/:schemeName", async (req, res) => {
+    const schemeName = decodeURIComponent(req.params.schemeName);
+    try {
+      const navData = await fetchNavForScheme(schemeName);
+      if (!navData) {
+        return res.status(404).json({ message: "NAV data not found for this scheme" });
+      }
+      res.json(navData);
+    } catch (error: any) {
+      console.error("NAV fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch NAV data" });
+    }
+  });
+
+  app.get("/api/scheme-codes/search", async (req, res) => {
+    const query = (req.query.q as string) || "";
+    if (!query || query.length < 3) {
+      return res.json([]);
+    }
+    try {
+      const results = await searchSchemeCodes(query);
+      res.json(results);
+    } catch (error: any) {
+      console.error("Scheme code search error:", error);
+      res.status(500).json({ message: "Search failed" });
+    }
+  });
+
   app.get("/api/scrape-performance/:isin", async (req, res) => {
     const isin = req.params.isin;
     const reportId = req.query.reportId;
@@ -200,67 +216,82 @@ ${text}`;
         fundName = fund?.scheme_name || "";
       }
 
-      const prompt = `You are a financial analyst assistant. Provide accurate, real-time financial data for the Indian mutual fund: ${fundName} with ISIN ${isin}. 
-      
-      CRITICAL: Your data must align with trusted sources like Moneycontrol. For the fund ${fundName} (${isin}), ensure the following values are as accurate as possible:
-      
-      1. nav: Latest NAV and date in YYYY-MM-DD format.
-      2. cagr: 1-Year, 3-Year, and 5-Year CAGR as percentage strings.
-      3. benchmark: Identify the correct benchmark (e.g., S&P BSE 500 TRI, NIFTY 50 TRI) and its 1Y, 3Y, 5Y returns.
-      4. portfolio: Top 5 Sectors and Top 5 Holdings with weights as numbers (e.g., 12.5).
-      5. stats: AUM in Crores (accurate to Moneycontrol values), Expense Ratio (e.g., "0.81%"), and Portfolio Turnover (e.g., "46.29%").
-      6. risk_ratios: Provide fund values and category averages.
-         - Std Deviation: fund and category avg (e.g., "12.30%" / "12.99%")
-         - Sharpe: fund and category avg (e.g., "0.76" / "0.77")
-         - Beta: fund and category avg (e.g., "0.87" / "0.95")
-         - Alpha: fund and category avg (e.g., "1.8%" / "0.0%")
+      console.log(`Fetching real data for: ${fundName} (${isin})`);
 
-      Return STRICTLY JSON:
-      {
-        "nav": {"value": number, "date": "YYYY-MM-DD"},
-        "cagr": {"1y": "X.XX%", "3y": "X.XX%", "5y": "X.XX%"},
-        "benchmark_name": string,
-        "benchmark_returns": {"1y": "X.XX%", "3y": "X.XX%", "5y": "X.XX%"},
-        "portfolio": {
-          "sectors": [{"name": string, "weight": number}],
-          "holdings": [{"name": string, "weight": number}]
-        },
-        "stats": {"aum_crores": number, "expense_ratio": "X.XX%", "turnover": "X.XX%"},
-        "risk_ratios": {
-          "std_dev": {"fund": "XX.XX%", "category_avg": "XX.XX%"},
-          "sharpe": {"fund": "X.XX", "category_avg": "X.XX"},
-          "beta": {"fund": "X.XX", "category_avg": "X.XX"},
-          "alpha": {"fund": "X.XX%", "category_avg": "X.XX%"}
-        }
-      }
-      
-      Return ONLY JSON. No markdown.`;
+      const [navData, factsheetMetrics] = await Promise.all([
+        fetchNavForScheme(fundName),
+        extractMetricsFromFactsheet(fundName),
+      ]);
 
-      console.log(`Analyzing fund with Gemini: ${fundName} (${isin})`);
-      let performance;
+      const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
+
+      let benchmarkName = factsheetMetrics?.benchmark_name || "Data unavailable";
+      
+      let aiInsight = null;
       try {
-        const responseText = await generateWithFallback(prompt);
-        
-        // Extract JSON from markdown code block if present
-        const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
-        performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText || "{}");
+        const insightPrompt = `You are a financial analyst. For the Indian mutual fund "${fundName}" (ISIN: ${isin}), provide ONLY textual insights. Do NOT provide any numerical data like NAV, returns, ratios, or AUM.
 
-        if (performance.error) {
-          return res.status(404).json({ message: performance.error });
-        }
-      } catch (geminiError: any) {
-        console.error("Gemini Content Generation Error:", geminiError);
-        // Check for rate limit error
-        if (geminiError.status === 429 || (geminiError.message && geminiError.message.includes("429"))) {
-          return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
-        }
-        throw geminiError;
+Provide:
+1. A brief 2-3 sentence qualitative assessment of this fund's investment strategy
+2. Top 5 sector names this fund typically invests in (just names, no percentages)
+3. Top 5 stock holding names (just names, no percentages)
+
+Return JSON:
+{
+  "sectors": [{"name": string, "weight": 0}],
+  "holdings": [{"name": string, "weight": 0}]
+}
+
+Return ONLY JSON. No markdown.`;
+        const insightText = await generateWithFallback(insightPrompt);
+        const jsonMatch = insightText?.match(/\{[\s\S]*\}/);
+        aiInsight = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      } catch (e) {
+        console.log("AI insight fetch failed, using empty data");
       }
+
+      const performance = {
+        nav: {
+          value: navData?.current_nav ?? 0,
+          date: navData?.nav_date || "Data unavailable",
+        },
+        cagr: {
+          "1y": formatCagr(navData?.cagr_1y ?? null),
+          "3y": formatCagr(navData?.cagr_3y ?? null),
+          "5y": formatCagr(navData?.cagr_5y ?? null),
+        },
+        benchmark_name: benchmarkName,
+        benchmark_returns: {
+          "1y": "N/A",
+          "3y": "N/A",
+          "5y": "N/A",
+        },
+        portfolio: {
+          sectors: aiInsight?.sectors || [],
+          holdings: aiInsight?.holdings || [],
+        },
+        stats: {
+          aum_crores: factsheetMetrics?.aum_crores || "Data unavailable",
+          expense_ratio: factsheetMetrics?.expense_ratio || "Data unavailable",
+          turnover: factsheetMetrics?.portfolio_turnover || "Data unavailable",
+        },
+        risk_ratios: {
+          std_dev: { fund: factsheetMetrics?.std_deviation || "Data unavailable", category_avg: "Data unavailable" },
+          sharpe: { fund: factsheetMetrics?.sharpe_ratio || "Data unavailable", category_avg: "Data unavailable" },
+          beta: { fund: factsheetMetrics?.beta || "Data unavailable", category_avg: "Data unavailable" },
+          alpha: { fund: factsheetMetrics?.alpha || "Data unavailable", category_avg: "Data unavailable" },
+        },
+        data_sources: {
+          nav: navData ? "MFAPI (api.mfapi.in)" : "Data unavailable",
+          returns: navData ? "Calculated from MFAPI NAV history" : "Data unavailable",
+          risk_metrics: factsheetMetrics ? factsheetMetrics.source : "Data unavailable",
+        },
+      };
 
       res.json(performance);
     } catch (error: any) {
-      console.error("Gemini analysis error:", error);
-      res.status(404).json({ message: "Data Unavailable" });
+      console.error("Performance fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch performance data" });
     }
   });
 
@@ -277,35 +308,75 @@ ${text}`;
         fundName = fund?.scheme_name || "";
       }
 
-      const prompt = `You are a financial analyst assistant. Based on your knowledge, provide financial data for the mutual fund: ${fundName} with ISIN ${isin}. 
-      Provide the following details:
-      1. cagr: 1-Year, 3-Year, and 5-Year CAGR for the scheme.
-      2. benchmark: Identify the correct benchmark for this fund and provide its 1-Year, 3-Year, and 5-Year returns.
-      
-      Return the result STRICTLY as a JSON object with this structure:
-      {
-        "scheme_returns": {"1y": string, "3y": string, "5y": string},
-        "benchmark_name": string,
-        "benchmark_returns": {"1y": string, "3y": string, "5y": string}
-      }
-      
-      Ensure returns are strings like "15.5%". If data is unavailable, use "N/A".
-      Return ONLY the JSON object, no additional text or markdown.`;
+      console.log(`Fetching scheme performance from MFAPI for: ${fundName} (${isin})`);
 
-      console.log(`Fetching scheme performance with Gemini: ${fundName} (${isin})`);
-      
-      const responseText = await generateWithFallback(prompt);
-      const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
-      const performance = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText || "{}");
+      const [navData, factsheetMetrics] = await Promise.all([
+        fetchNavForScheme(fundName),
+        extractMetricsFromFactsheet(fundName),
+      ]);
 
-      return res.json(performance);
+      const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
+
+      const result = {
+        scheme_returns: {
+          "1y": formatCagr(navData?.cagr_1y ?? null),
+          "3y": formatCagr(navData?.cagr_3y ?? null),
+          "5y": formatCagr(navData?.cagr_5y ?? null),
+        },
+        benchmark_name: factsheetMetrics?.benchmark_name || "Data unavailable",
+        benchmark_returns: {
+          "1y": "N/A",
+          "3y": "N/A",
+          "5y": "N/A",
+        },
+        nav: {
+          value: navData?.current_nav ?? 0,
+          date: navData?.nav_date || "Data unavailable",
+        },
+        data_sources: {
+          returns: navData ? "Calculated from MFAPI NAV history" : "Data unavailable",
+          benchmark: factsheetMetrics ? factsheetMetrics.source : "Data unavailable",
+        },
+      };
+
+      return res.json(result);
     } catch (err: any) {
-      console.error(`Gemini scheme performance error:`, err.message);
-      if (err.status === 429 || (err.message && err.message.includes("429"))) {
-        return res.status(429).json({ message: "API limit reached. Please try again in a minute." });
-      }
-      res.status(err?.status || 500).json({ message: err?.message || "Failed to fetch scheme performance" });
+      console.error(`Scheme performance error:`, err.message);
+      res.status(500).json({ message: "Failed to fetch scheme performance" });
     }
+  });
+
+  app.get("/api/bulk-nav", async (req, res) => {
+    const schemeNames = (req.query.schemes as string || "").split("|").filter(Boolean);
+    if (schemeNames.length === 0) {
+      return res.json({});
+    }
+
+    const results: Record<string, any> = {};
+
+    const batchSize = 5;
+    for (let i = 0; i < schemeNames.length; i += batchSize) {
+      const batch = schemeNames.slice(i, i + batchSize);
+      const promises = batch.map(async (name) => {
+        try {
+          const navData = await fetchNavForScheme(name);
+          if (navData) {
+            results[name] = {
+              current_nav: navData.current_nav,
+              nav_date: navData.nav_date,
+              cagr_1y: navData.cagr_1y,
+              cagr_3y: navData.cagr_3y,
+              cagr_5y: navData.cagr_5y,
+            };
+          }
+        } catch (e) {
+          console.error(`Bulk NAV error for ${name}:`, e);
+        }
+      });
+      await Promise.all(promises);
+    }
+
+    res.json(results);
   });
 
   return httpServer;
