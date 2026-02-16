@@ -177,6 +177,8 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
 interface PerformanceData {
   nav: { value: number; date: string };
   cagr: { "1y": string; "3y": string; "5y": string };
+  benchmark_name?: string;
+  benchmark_returns?: { "1y": string; "3y": string; "5y": string };
   portfolio: {
     sectors: Array<{ name: string; weight: number }>;
     holdings: Array<{ name: string; weight: number }>;
@@ -828,22 +830,31 @@ export function ReportView({ report }: ReportViewProps) {
                     {/* Returns & Basic Stats */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-end">
-                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
+                        <div className="flex flex-col gap-1">
+                          <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
+                          {performances[mf.isin].benchmark_name && (
+                            <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 self-start">
+                              {performances[mf.isin].benchmark_name}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                          <p className="text-[10px] text-slate-500">1-Year</p>
-                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["1y"]}</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                          <p className="text-[10px] text-slate-500">3-Year</p>
-                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["3y"]}</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                          <p className="text-[10px] text-slate-500">5-Year</p>
-                          <p className="font-bold text-slate-900">{performances[mf.isin].cagr["5y"]}</p>
-                        </div>
+                        {['1y', '3y', '5y'].map((period) => (
+                          <div key={period} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[10px] text-slate-500 uppercase">{period === '1y' ? '1-Year' : period === '3y' ? '3-Year' : '5-Year'}</p>
+                            <p className="font-bold text-slate-900">{performances[mf.isin].cagr[period as keyof typeof performances[typeof mf.isin].cagr]}</p>
+                            {performances[mf.isin].benchmark_returns && (
+                              <div className="mt-1 pt-1 border-t border-slate-50">
+                                <p className="text-[8px] text-slate-400 font-medium">Benchmark</p>
+                                <p className="text-[9px] font-bold text-blue-600">
+                                  {performances[mf.isin].benchmark_returns[period as keyof typeof performances[typeof mf.isin].benchmark_returns]}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="bg-slate-100/50 p-2 rounded-lg text-center">

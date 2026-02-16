@@ -207,14 +207,17 @@ ${text}`;
       Provide the following details:
       1. nav: Latest NAV (typical range 10-2000 for Indian MFs) and date in YYYY-MM-DD format.
       2. cagr: 1-Year, 3-Year, and 5-Year CAGR as percentage strings like "15.5%".
-      3. portfolio: Top 5 Sectors and Top 5 Holdings with percentage weights as numbers (e.g., 12.5 for 12.5%, NOT 0.125).
-      4. stats: AUM in Crores (number), Expense Ratio as string like "1.5%", Portfolio Turnover as string like "45%".
-      5. risk_ratios: Std Deviation, Sharpe Ratio, Beta, and Alpha. Each with fund value and category average as strings.
+      3. benchmark: Identify the correct benchmark for this fund (e.g., NIFTY 50 TRI, NIFTY Midcap 150 TRI, etc.) and provide its 1-Year, 3-Year, and 5-Year returns.
+      4. portfolio: Top 5 Sectors and Top 5 Holdings with percentage weights as numbers (e.g., 12.5 for 12.5%, NOT 0.125).
+      5. stats: AUM in Crores (number), Expense Ratio as string like "1.5%", Portfolio Turnover as string like "45%".
+      6. risk_ratios: Std Deviation, Sharpe Ratio, Beta, and Alpha. Each with fund value and category average as strings.
 
       Return the result STRICTLY as a JSON object with this structure:
       {
         "nav": {"value": number, "date": "YYYY-MM-DD"},
         "cagr": {"1y": "X.XX%", "3y": "X.XX%", "5y": "X.XX%"},
+        "benchmark_name": string,
+        "benchmark_returns": {"1y": "X.XX%", "3y": "X.XX%", "5y": "X.XX%"},
         "portfolio": {
           "sectors": [{"name": string, "weight": number}],
           "holdings": [{"name": string, "weight": number}]
