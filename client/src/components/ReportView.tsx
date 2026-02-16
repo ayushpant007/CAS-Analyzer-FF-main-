@@ -844,12 +844,12 @@ export function ReportView({ report }: ReportViewProps) {
                         {['1y', '3y', '5y'].map((period) => (
                           <div key={period} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[10px] text-slate-500 uppercase">{period === '1y' ? '1-Year' : period === '3y' ? '3-Year' : '5-Year'}</p>
-                            <p className="font-bold text-slate-900">{performances[mf.isin].cagr[period as keyof typeof performances[typeof mf.isin].cagr]}</p>
+                            <p className="font-bold text-slate-900">{performances[mf.isin].cagr[period as "1y" | "3y" | "5y"]}</p>
                             {performances[mf.isin].benchmark_returns && (
                               <div className="mt-1 pt-1 border-t border-slate-50">
                                 <p className="text-[8px] text-slate-400 font-medium">Benchmark</p>
                                 <p className="text-[9px] font-bold text-blue-600">
-                                  {performances[mf.isin].benchmark_returns[period as keyof typeof performances[typeof mf.isin].benchmark_returns]}
+                                  {performances[mf.isin].benchmark_returns![period as "1y" | "3y" | "5y"]}
                                 </p>
                               </div>
                             )}
