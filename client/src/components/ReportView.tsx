@@ -3,9 +3,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, L
 import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import html2canvas from "html2canvas";
@@ -226,9 +227,27 @@ export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
+  const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
-  const reportRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+
+  const mfSnapshot = useMemo(() => {
+    return (analysis.mf_snapshot || []).map((mf: any) => {
+      const units = mf.units || mf.closing_balance || 0;
+      const nav = manualNavs[mf.scheme_name] ?? mf.nav ?? 0;
+      const valuation = units * nav;
+      const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
+      return {
+        ...mf,
+        nav,
+        valuation,
+        unrealised_profit_loss
+      };
+    });
+  }, [analysis.mf_snapshot, manualNavs]);
+
+  const totalInvested = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0), [mfSnapshot]);
+  const totalValuation = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0), [mfSnapshot]);
+  const totalUnrealised = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0), [mfSnapshot]);
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
@@ -419,21 +438,19 @@ export function ReportView({ report }: ReportViewProps) {
               <div className="p-5 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Invested Amount</p>
                 <p className="text-2xl font-bold text-slate-900">
-                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                  ₹{totalInvested.toLocaleString()}
                 </p>
               </div>
               <div className="p-5 bg-blue-50 rounded-xl border border-blue-100">
                 <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider mb-1">Current Valuation</p>
                 <p className="text-2xl font-bold text-blue-900">
-                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                  ₹{totalValuation.toLocaleString()}
                 </p>
               </div>
               <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-100">
                 <p className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider mb-1">Total Absolute Return</p>
                 {(() => {
-                  const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
-                  const currentValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  const absoluteReturn = currentValuation - totalInvested;
+                  const absoluteReturn = totalValuation - totalInvested;
                   const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
                   return (
                     <div>
@@ -450,9 +467,7 @@ export function ReportView({ report }: ReportViewProps) {
               <div className="p-5 bg-indigo-50 rounded-xl border border-indigo-100">
                 <p className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider mb-1">Approx. CAGR (Portfolio)</p>
                 {(() => {
-                  const totalInvested = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0);
-                  const currentValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  const absoluteReturnPct = totalInvested > 0 ? (currentValuation / totalInvested) - 1 : 0;
+                  const absoluteReturnPct = totalInvested > 0 ? (totalValuation / totalInvested) - 1 : 0;
                   return (
                     <div>
                       <p className="text-2xl font-bold text-indigo-900">
@@ -911,7 +926,7 @@ export function ReportView({ report }: ReportViewProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
+              {mfSnapshot.map((mf: any, i: number) => (
                 <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
                   <td className="px-4 py-3">
@@ -922,24 +937,38 @@ export function ReportView({ report }: ReportViewProps) {
                   </td>
                   <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
                   <td className="px-4 py-3 text-right">{ (mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3}) }</td>
-                  <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      className="h-8 text-right w-24 ml-auto text-xs font-mono"
+                      value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setManualNavs(prev => ({
+                          ...prev,
+                          [mf.scheme_name]: isNaN(val) ? 0 : val
+                        }));
+                      }}
+                    />
+                  </td>
                   <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {mf.unrealised_profit_loss?.toLocaleString()}
+                    {mf.unrealised_profit_loss?.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </td>
                 </tr>
               ))}
               <tr className="bg-slate-800 text-white font-bold">
                 <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
                 <td className="px-4 py-3 text-right">
-                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0).toLocaleString()}
+                  ₹{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </td>
                 <td className="px-4 py-3 text-right text-sm">
-                  ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0).toLocaleString()}
+                  ₹{totalValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </td>
                 <td className="px-4 py-3 text-right">
-                   ₹{(analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0).toLocaleString()}
+                   ₹{totalUnrealised.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </td>
               </tr>
             </tbody>
