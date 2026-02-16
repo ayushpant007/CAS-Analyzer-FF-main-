@@ -68,6 +68,7 @@ export interface FactsheetMetrics {
 }
 
 const factsheetTextCache: Record<string, string> = {};
+const metricsCache: Record<string, FactsheetMetrics> = {};
 
 function identifyFundHouse(schemeName: string): string | null {
   const lower = schemeName.toLowerCase();
@@ -137,7 +138,90 @@ async function callGeminiForExtraction(prompt: string): Promise<string> {
   throw lastError || new Error("All Gemini API keys failed");
 }
 
+function extractMetricsViaRegex(textChunk: string): Partial<FactsheetMetrics> {
+  const result: Partial<FactsheetMetrics> = {};
+
+  const stdDevMatch = textChunk.match(/Standard\s+Deviation\s*[-–:]*\s*([\d.]+%?)/i);
+  if (stdDevMatch) result.std_deviation = stdDevMatch[1].includes('%') ? stdDevMatch[1] : stdDevMatch[1] + '%';
+
+  const betaMatch = textChunk.match(/\bBeta\s*[-–:]*\s*([\d.]+)/i);
+  if (betaMatch) result.beta = betaMatch[1];
+
+  const sharpeMatch = textChunk.match(/Sharpe\s+Ratio\s*\**\s*[-–:]?\s*(-?[\d.]+)/i);
+  if (sharpeMatch) {
+    let val = sharpeMatch[1];
+    const fullMatch = sharpeMatch[0];
+    if (!val.startsWith('-') && fullMatch.match(/\*+-/)) {
+      val = '-' + val;
+    }
+    result.sharpe_ratio = val;
+  }
+
+  const alphaMatch = textChunk.match(/\bAlpha\s*[-–:]*\s*(-?[\d.]+)/i);
+  if (alphaMatch && !alphaMatch[0].toLowerCase().includes('alphabet')) result.alpha = alphaMatch[1];
+
+  const aumLines = textChunk.match(/(?:MONTHLY\s+AVERAGE\s*\n?\s*)?(?:AUM|AAUM)\s*\n?\s*([\d,]+\.?\d*)\s*Cr/i);
+  if (aumLines) {
+    result.aum_crores = aumLines[1];
+  }
+  if (!result.aum_crores) {
+    const aumMatch2 = textChunk.match(/([\d,]+\.?\d*)\s*Cr\.?\s*\n/i);
+    if (aumMatch2) result.aum_crores = aumMatch2[1];
+  }
+
+  const benchmarkPatterns = [
+    /BENCHMARK\s*\n+\s*([^\n]+(?:TRI|Index))/i,
+    /Sharpe\s+Ratio\s*\**\s*-?[\d.]+\s*\n+\s*([^\n]+(?:TRI|Index))/i,
+    /BENCHMARK[:\s]+([^\n]+(?:TRI|Index))/i,
+    /BENCHMARK\s*\n+\s*([^\n]{5,40})/i,
+  ];
+  for (const pat of benchmarkPatterns) {
+    const m = textChunk.match(pat);
+    if (m) {
+      result.benchmark_name = m[1].trim();
+      break;
+    }
+  }
+
+  const turnoverPatterns = [
+    /(?:PORTFOLIO\s+TURNOVER|Equity\s+Turnover)\s*(?:\([^)]*\))?\s*\n+\s*([\d.]+\s*times)/i,
+    /(?:PORTFOLIO\s+TURNOVER|Equity\s+Turnover)[^]*?([\d.]+\s*times)/i,
+  ];
+  for (const pat of turnoverPatterns) {
+    const m = textChunk.match(pat);
+    if (m) {
+      result.portfolio_turnover = m[1];
+      break;
+    }
+  }
+
+  const expensePatterns = [
+    /(?:Total\s+)?Expense\s+Ratio\s*[-–:]*\s*([\d.]+%)/i,
+    /TER\s*[-–:]*\s*([\d.]+%)/i,
+    /Regular\s*(?:Plan)?\s*[-–:]*\s*([\d.]+%)\s*[\s\S]*?Direct\s*(?:Plan)?\s*[-–:]*\s*([\d.]+%)/i,
+  ];
+  for (const pat of expensePatterns) {
+    const m = textChunk.match(pat);
+    if (m) {
+      if (m[2]) {
+        result.expense_ratio = `Regular: ${m[1]}, Direct: ${m[2]}`;
+      } else {
+        result.expense_ratio = m[1];
+      }
+      break;
+    }
+  }
+
+  return result;
+}
+
 export async function extractMetricsFromFactsheet(schemeName: string): Promise<FactsheetMetrics | null> {
+  const cacheKey = schemeName.toLowerCase().trim();
+  if (metricsCache[cacheKey]) {
+    console.log(`Using cached metrics for: ${schemeName}`);
+    return metricsCache[cacheKey];
+  }
+
   const fundHouseKey = identifyFundHouse(schemeName);
   if (!fundHouseKey) {
     console.log(`Could not identify fund house for: ${schemeName}`);
@@ -150,9 +234,29 @@ export async function extractMetricsFromFactsheet(schemeName: string): Promise<F
     return null;
   }
 
-  const textChunks = splitTextAroundScheme(factsheetText, schemeName);
+  const textChunk = splitTextAroundScheme(factsheetText, schemeName);
+  const regexMetrics = extractMetricsViaRegex(textChunk);
 
-  const prompt = `You are a data extraction assistant. You are given text extracted from a mutual fund factsheet PDF.
+  const hasEnoughRegexData = regexMetrics.std_deviation && regexMetrics.beta && regexMetrics.sharpe_ratio;
+
+  let finalMetrics: FactsheetMetrics;
+
+  if (hasEnoughRegexData) {
+    console.log(`Extracted metrics via regex for: ${schemeName}`);
+    finalMetrics = {
+      alpha: regexMetrics.alpha || "Data unavailable",
+      beta: regexMetrics.beta || "Data unavailable",
+      sharpe_ratio: regexMetrics.sharpe_ratio || "Data unavailable",
+      std_deviation: regexMetrics.std_deviation || "Data unavailable",
+      expense_ratio: regexMetrics.expense_ratio || "Data unavailable",
+      aum_crores: regexMetrics.aum_crores || "Data unavailable",
+      benchmark_name: regexMetrics.benchmark_name || "Data unavailable",
+      portfolio_turnover: regexMetrics.portfolio_turnover || "Data unavailable",
+      source: `${FUND_HOUSE_FILE_MAP[fundHouseKey]} factsheet`,
+    };
+  } else {
+    try {
+      const prompt = `You are a data extraction assistant. You are given text extracted from a mutual fund factsheet PDF.
 
 TASK: Find and extract the EXACT numerical values for the scheme "${schemeName}" from the factsheet text below. 
 
@@ -185,36 +289,54 @@ Return ONLY this JSON:
 }
 
 FACTSHEET TEXT (relevant sections):
-${textChunks}`;
+${textChunk}`;
 
-  try {
-    const responseText = await callGeminiForExtraction(prompt);
-    const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText || "{}");
+      const responseText = await callGeminiForExtraction(prompt);
+      const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText || "{}");
 
-    return {
-      alpha: parsed.alpha || "Data unavailable",
-      beta: parsed.beta || "Data unavailable",
-      sharpe_ratio: parsed.sharpe_ratio || "Data unavailable",
-      std_deviation: parsed.std_deviation || "Data unavailable",
-      expense_ratio: parsed.expense_ratio || "Data unavailable",
-      aum_crores: parsed.aum_crores || "Data unavailable",
-      benchmark_name: parsed.benchmark_name || "Data unavailable",
-      portfolio_turnover: parsed.portfolio_turnover || "Data unavailable",
-      source: `${FUND_HOUSE_FILE_MAP[fundHouseKey]} factsheet`,
-    };
-  } catch (error) {
-    console.error(`Error extracting metrics for ${schemeName}:`, error);
-    return null;
+      finalMetrics = {
+        alpha: parsed.alpha || regexMetrics.alpha || "Data unavailable",
+        beta: parsed.beta || regexMetrics.beta || "Data unavailable",
+        sharpe_ratio: parsed.sharpe_ratio || regexMetrics.sharpe_ratio || "Data unavailable",
+        std_deviation: parsed.std_deviation || regexMetrics.std_deviation || "Data unavailable",
+        expense_ratio: parsed.expense_ratio || regexMetrics.expense_ratio || "Data unavailable",
+        aum_crores: parsed.aum_crores || regexMetrics.aum_crores || "Data unavailable",
+        benchmark_name: parsed.benchmark_name || regexMetrics.benchmark_name || "Data unavailable",
+        portfolio_turnover: parsed.portfolio_turnover || regexMetrics.portfolio_turnover || "Data unavailable",
+        source: `${FUND_HOUSE_FILE_MAP[fundHouseKey]} factsheet`,
+      };
+    } catch (error) {
+      console.error(`Gemini extraction failed for ${schemeName}, using regex results:`, error instanceof Error ? error.message : error);
+      finalMetrics = {
+        alpha: regexMetrics.alpha || "Data unavailable",
+        beta: regexMetrics.beta || "Data unavailable",
+        sharpe_ratio: regexMetrics.sharpe_ratio || "Data unavailable",
+        std_deviation: regexMetrics.std_deviation || "Data unavailable",
+        expense_ratio: regexMetrics.expense_ratio || "Data unavailable",
+        aum_crores: regexMetrics.aum_crores || "Data unavailable",
+        benchmark_name: regexMetrics.benchmark_name || "Data unavailable",
+        portfolio_turnover: regexMetrics.portfolio_turnover || "Data unavailable",
+        source: `${FUND_HOUSE_FILE_MAP[fundHouseKey]} factsheet`,
+      };
+    }
   }
+
+  metricsCache[cacheKey] = finalMetrics;
+  return finalMetrics;
 }
 
 function splitTextAroundScheme(fullText: string, schemeName: string): string {
   const lines = fullText.split("\n");
-  const schemeWords = schemeName.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+  const nameNorm = schemeName.toLowerCase()
+    .replace(/\(erstwhile[^)]*\)/gi, "")
+    .replace(/\(formerly[^)]*\)/gi, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const schemeWords = nameNorm.split(/\s+/).filter(w => w.length > 3 && !["fund", "plan", "growth", "regular", "direct", "option"].includes(w));
 
-  let bestLineIdx = -1;
-  let bestScore = 0;
+  const candidates: { idx: number; score: number; isHeader: boolean }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const lineLower = lines[i].toLowerCase();
@@ -222,20 +344,30 @@ function splitTextAroundScheme(fullText: string, schemeName: string): string {
     for (const word of schemeWords) {
       if (lineLower.includes(word)) score++;
     }
-    if (score > bestScore) {
-      bestScore = score;
-      bestLineIdx = i;
+    if (score >= 2) {
+      const isHeader = lines[i] === lines[i].toUpperCase() && lines[i].trim().length > 5;
+      const nextFewLines = lines.slice(i, Math.min(i + 5, lines.length)).join(" ").toLowerCase();
+      const hasFactsheet = nextFewLines.includes("factsheet");
+      candidates.push({ idx: i, score: score + (isHeader ? 5 : 0) + (hasFactsheet ? 3 : 0), isHeader });
     }
   }
 
-  if (bestLineIdx === -1 || bestScore < 2) {
+  if (candidates.length === 0) {
     return fullText.substring(0, 15000);
   }
 
-  const contextBefore = 50;
-  const contextAfter = 200;
-  const startIdx = Math.max(0, bestLineIdx - contextBefore);
-  const endIdx = Math.min(lines.length, bestLineIdx + contextAfter);
+  candidates.sort((a, b) => b.score - a.score);
+  const bestLine = candidates[0];
 
-  return lines.slice(startIdx, endIdx).join("\n");
+  const contextBefore = 10;
+  const contextAfter = 250;
+  const startIdx = Math.max(0, bestLine.idx - contextBefore);
+  const endIdx = Math.min(lines.length, bestLine.idx + contextAfter);
+
+  const chunk = lines.slice(startIdx, endIdx).join("\n");
+
+  if (chunk.length > 20000) {
+    return chunk.substring(0, 20000);
+  }
+  return chunk;
 }
