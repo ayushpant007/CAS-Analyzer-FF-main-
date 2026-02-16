@@ -16,6 +16,8 @@ interface SchemePerformanceData {
   scheme_returns: { "1y": string; "3y": string; "5y": string };
   benchmark_name: string;
   benchmark_returns: { "1y": string; "3y": string; "5y": string };
+  nav?: { value: number; date: string };
+  data_sources?: { returns: string; benchmark: string };
 }
 
 function AssetCategoryRow({ 
@@ -124,7 +126,14 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
           <td colSpan={2} className="px-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Scheme CAGR</h4>
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Scheme CAGR</h4>
+                  {data.data_sources?.returns && data.data_sources.returns !== "Data unavailable" && (
+                    <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
+                      {data.data_sources.returns}
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-4">
                   <div className="bg-slate-50 px-3 py-2 rounded-lg">
                     <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
@@ -183,12 +192,17 @@ interface PerformanceData {
     sectors: Array<{ name: string; weight: number }>;
     holdings: Array<{ name: string; weight: number }>;
   };
-  stats: { aum_crores: number; expense_ratio: string; turnover: string };
+  stats: { aum_crores: number | string; expense_ratio: string; turnover: string };
   risk_ratios: {
     std_dev: { fund: string; category_avg: string };
     sharpe: { fund: string; category_avg: string };
     beta: { fund: string; category_avg: string };
     alpha: { fund: string; category_avg: string };
+  };
+  data_sources?: {
+    nav: string;
+    returns: string;
+    risk_metrics: string;
   };
 }
 
@@ -231,8 +245,48 @@ export function ReportView({ report }: ReportViewProps) {
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
   const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isFetchingNav, setIsFetchingNav] = useState(false);
+  const [navFetchStatus, setNavFetchStatus] = useState<Record<string, string>>({});
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const fetchAllNavs = async () => {
+    const schemes = analysis.mf_snapshot || [];
+    if (schemes.length === 0) return;
+
+    setIsFetchingNav(true);
+    const schemeNames = schemes.map((s: any) => s.scheme_name).filter(Boolean);
+    const statusMap: Record<string, string> = {};
+    schemeNames.forEach((n: string) => { statusMap[n] = "loading"; });
+    setNavFetchStatus(statusMap);
+
+    try {
+      const batchSize = 5;
+      for (let i = 0; i < schemeNames.length; i += batchSize) {
+        const batch = schemeNames.slice(i, i + batchSize);
+        const promises = batch.map(async (name: string) => {
+          try {
+            const res = await fetch(`/api/nav/${encodeURIComponent(name)}`);
+            if (res.ok) {
+              const data = await res.json();
+              setManualNavs(prev => ({ ...prev, [name]: data.current_nav }));
+              setNavFetchStatus(prev => ({ ...prev, [name]: "done" }));
+            } else {
+              setNavFetchStatus(prev => ({ ...prev, [name]: "not_found" }));
+            }
+          } catch {
+            setNavFetchStatus(prev => ({ ...prev, [name]: "error" }));
+          }
+        });
+        await Promise.all(promises);
+      }
+      toast({ title: "NAV Updated", description: "Real-time NAV data fetched from MFAPI" });
+    } catch (err: any) {
+      toast({ title: "NAV Fetch Error", description: err.message, variant: "destructive" });
+    } finally {
+      setIsFetchingNav(false);
+    }
+  };
 
   const mfSnapshot = useMemo(() => {
     return (analysis.mf_snapshot || []).map((mf: any) => {
@@ -832,11 +886,23 @@ export function ReportView({ report }: ReportViewProps) {
                       <div className="flex justify-between items-end">
                         <div className="flex flex-col gap-1">
                           <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
-                          {performances[mf.isin].benchmark_name && (
-                            <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 self-start">
-                              {performances[mf.isin].benchmark_name}
-                            </span>
-                          )}
+                          <div className="flex flex-wrap gap-1">
+                            {performances[mf.isin].benchmark_name && performances[mf.isin].benchmark_name !== "Data unavailable" && (
+                              <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                                {performances[mf.isin].benchmark_name}
+                              </span>
+                            )}
+                            {performances[mf.isin].data_sources?.nav && performances[mf.isin].data_sources.nav !== "Data unavailable" && (
+                              <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                {performances[mf.isin].data_sources!.nav}
+                              </span>
+                            )}
+                            {performances[mf.isin].data_sources?.risk_metrics && performances[mf.isin].data_sources.risk_metrics !== "Data unavailable" && (
+                              <span className="text-[8px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100">
+                                {performances[mf.isin].data_sources!.risk_metrics}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
                       </div>
@@ -921,8 +987,23 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Mutual Fund Portfolio Snapshot Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center gap-4 flex-wrap">
           <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchAllNavs}
+            disabled={isFetchingNav}
+            className="bg-white/10 border-white/30 text-white"
+            data-testid="button-fetch-all-nav"
+          >
+            {isFetchingNav ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : (
+              <TrendingUp className="w-4 h-4 mr-2" />
+            )}
+            {isFetchingNav ? "Fetching NAV..." : "Fetch Real-Time NAV"}
+          </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
@@ -951,19 +1032,30 @@ export function ReportView({ report }: ReportViewProps) {
                   <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
                   <td className="px-4 py-3 text-right">{ (mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3}) }</td>
                   <td className="px-4 py-3 text-right">
-                    <Input
-                      type="number"
-                      step="0.0001"
-                      className="h-8 text-right w-24 ml-auto text-xs font-mono"
-                      value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        setManualNavs(prev => ({
-                          ...prev,
-                          [mf.scheme_name]: isNaN(val) ? 0 : val
-                        }));
-                      }}
-                    />
+                    <div className="flex items-center justify-end gap-1">
+                      {navFetchStatus[mf.scheme_name] === "loading" && (
+                        <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
+                      )}
+                      {navFetchStatus[mf.scheme_name] === "done" && (
+                        <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">LIVE</span>
+                      )}
+                      {navFetchStatus[mf.scheme_name] === "not_found" && (
+                        <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 py-0.5 rounded">N/A</span>
+                      )}
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        className="h-8 text-right w-24 ml-auto text-xs font-mono"
+                        value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          setManualNavs(prev => ({
+                            ...prev,
+                            [mf.scheme_name]: isNaN(val) ? 0 : val
+                          }));
+                        }}
+                      />
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
