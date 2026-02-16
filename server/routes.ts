@@ -200,23 +200,22 @@ ${text}`;
         fundName = fund?.scheme_name || "";
       }
 
-      const prompt = `You are a financial analyst assistant. Based on your knowledge, provide accurate financial data for the Indian mutual fund: ${fundName} with ISIN ${isin}. 
+      const prompt = `You are a financial analyst assistant. Provide accurate, real-time financial data for the Indian mutual fund: ${fundName} with ISIN ${isin}. 
       
-      IMPORTANT: Only provide data you are confident about. Use realistic values typical for Indian mutual funds.
+      CRITICAL: Your data must align with trusted sources like Moneycontrol. For the fund ${fundName} (${isin}), ensure the following values are as accurate as possible:
       
-      Provide the following details:
-      1. nav: Latest NAV (typical range 10-2000 for Indian MFs) and date in YYYY-MM-DD format.
-      2. cagr: 1-Year, 3-Year, and 5-Year CAGR as percentage strings like "15.5%".
-      3. benchmark: Identify the correct benchmark for this fund (e.g., NIFTY 50 TRI, NIFTY Midcap 150 TRI, etc.) and provide its 1-Year, 3-Year, and 5-Year returns.
-      4. portfolio: Top 5 Sectors and Top 5 Holdings with percentage weights as numbers (e.g., 12.5 for 12.5%, NOT 0.125).
-      5. stats: AUM in Crores (number), Expense Ratio as string like "1.5%", Portfolio Turnover as string like "45%".
-      6. risk_ratios: Std Deviation, Sharpe Ratio, Beta, and Alpha. Each with fund value and category average as strings.
-         - For Std Deviation: provide percentage (e.g. "15.2%")
-         - For Sharpe: provide numerical value (e.g. "1.85")
-         - For Beta: provide numerical value (e.g. "0.92")
-         - For Alpha: provide percentage (e.g. "2.5%")
+      1. nav: Latest NAV and date in YYYY-MM-DD format.
+      2. cagr: 1-Year, 3-Year, and 5-Year CAGR as percentage strings.
+      3. benchmark: Identify the correct benchmark (e.g., S&P BSE 500 TRI, NIFTY 50 TRI) and its 1Y, 3Y, 5Y returns.
+      4. portfolio: Top 5 Sectors and Top 5 Holdings with weights as numbers (e.g., 12.5).
+      5. stats: AUM in Crores (accurate to Moneycontrol values), Expense Ratio (e.g., "0.81%"), and Portfolio Turnover (e.g., "46.29%").
+      6. risk_ratios: Provide fund values and category averages.
+         - Std Deviation: fund and category avg (e.g., "12.30%" / "12.99%")
+         - Sharpe: fund and category avg (e.g., "0.76" / "0.77")
+         - Beta: fund and category avg (e.g., "0.87" / "0.95")
+         - Alpha: fund and category avg (e.g., "1.8%" / "0.0%")
 
-      Return the result STRICTLY as a JSON object with this structure:
+      Return STRICTLY JSON:
       {
         "nav": {"value": number, "date": "YYYY-MM-DD"},
         "cagr": {"1y": "X.XX%", "3y": "X.XX%", "5y": "X.XX%"},
@@ -226,7 +225,7 @@ ${text}`;
           "sectors": [{"name": string, "weight": number}],
           "holdings": [{"name": string, "weight": number}]
         },
-        "stats": {"aum_crores": number, "expense_ratio": "X.XX%", "turnover": "XX%"},
+        "stats": {"aum_crores": number, "expense_ratio": "X.XX%", "turnover": "X.XX%"},
         "risk_ratios": {
           "std_dev": {"fund": "XX.XX%", "category_avg": "XX.XX%"},
           "sharpe": {"fund": "X.XX", "category_avg": "X.XX"},
@@ -235,11 +234,7 @@ ${text}`;
         }
       }
       
-      CRITICAL: Weight values must be percentage numbers (12.5 means 12.5%), NOT decimals (0.125).
-      Example: {"name": "HDFC Bank", "weight": 8.5} means 8.5% weight.
-      
-      If you cannot find specific data for this ISIN, return: {"error": "Data Unavailable"}.
-      Return ONLY the JSON object, no markdown or extra text.`;
+      Return ONLY JSON. No markdown.`;
 
       console.log(`Analyzing fund with Gemini: ${fundName} (${isin})`);
       let performance;
