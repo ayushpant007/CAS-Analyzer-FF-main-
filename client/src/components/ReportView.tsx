@@ -903,7 +903,7 @@ export function ReportView({ report }: ReportViewProps) {
                 <th className="px-4 py-3">Scheme Name</th>
                 <th className="px-4 py-3">Category / Type</th>
                 <th className="px-4 py-3">Folio No.</th>
-                <th className="px-4 py-3 text-right">Closing Bal (Units)</th>
+                <th className="px-4 py-3 text-right">No. of Units</th>
                 <th className="px-4 py-3 text-right">NAV (₹)</th>
                 <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
                 <th className="px-4 py-3 text-right">Valuation (₹)</th>
