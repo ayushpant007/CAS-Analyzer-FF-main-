@@ -1075,29 +1075,8 @@ export function ReportView({ report }: ReportViewProps) {
 
             return Object.entries(sections).map(([title, items]) => {
               const isSTP = title.startsWith("STP");
-              let filteredItems: any[] = [];
+              let filteredItems = items;
               
-              if (isSTP) {
-                // Step 1: Filter for Step Out only
-                const stepOutItems = items.filter((tx: any) => {
-                  const t = (tx.type || "").toLowerCase();
-                  return t.includes("out") || (!t.includes("in") && !t.includes("transfer to"));
-                });
-
-                // Step 2: Ensure only one Step Out entry per scheme is counted
-                const seenSchemes = new Set();
-                filteredItems = stepOutItems.filter((tx: any) => {
-                  const schemeName = (tx.scheme_name || "").trim().toLowerCase();
-                  if (!seenSchemes.has(schemeName)) {
-                    seenSchemes.add(schemeName);
-                    return true;
-                  }
-                  return false;
-                });
-              } else {
-                filteredItems = items;
-              }
-
               const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
 
               return (
@@ -1115,19 +1094,10 @@ export function ReportView({ report }: ReportViewProps) {
                       <tbody className="divide-y divide-slate-100">
                         {items.length > 0 ? (
                           items.map((item: any, idx: number) => {
-                            const isExcludedSTP = isSTP && !filteredItems.includes(item);
                             return (
-                              <tr key={idx} className={`hover:bg-slate-50/50 ${isExcludedSTP ? 'opacity-40 grayscale' : ''}`}>
+                              <tr key={idx} className="hover:bg-slate-50/50">
                                 <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">
                                   {item.date || "N/A"}
-                                  {isSTP && !filteredItems.includes(item) && (
-                                    <span className="ml-2 text-[10px] bg-slate-100 px-1 rounded text-slate-400">
-                                      {items.filter((tx: any) => (tx.scheme_name || "").trim().toLowerCase() === (item.scheme_name || "").trim().toLowerCase()).indexOf(item) > 0 && 
-                                       (item.type || "").toLowerCase().includes("out") 
-                                       ? "DUPLICATE" 
-                                       : "EXCLUDED"}
-                                    </span>
-                                  )}
                                 </td>
                                 <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
                                 <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
@@ -1148,7 +1118,7 @@ export function ReportView({ report }: ReportViewProps) {
                         <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
                           <tr>
                             <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
-                              {isSTP ? "Corrected Outflow Total" : `Total ${title.split(' ')[0]} Amount`}
+                              {isSTP ? "STP Total" : `Total ${title.split(' ')[0]} Amount`}
                             </td>
                             <td className="px-6 py-3 text-right font-mono text-slate-900">
                               ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1158,16 +1128,6 @@ export function ReportView({ report }: ReportViewProps) {
                       )}
                     </table>
                   </div>
-                  {isSTP && items.length > 0 && (
-                    <div className="p-3 bg-blue-50/50 rounded-lg border border-blue-100 flex items-center gap-3">
-                      <div className="bg-blue-100 p-2 rounded-full text-blue-600">
-                        <Lightbulb className="w-4 h-4" />
-                      </div>
-                      <p className="text-xs text-blue-700">
-                        <strong>STP Adjustment:</strong> Only Step Out (Transfer Out) amounts are counted in the total to prevent double-counting internal transfers. Step In amounts are displayed but excluded from the calculation.
-                      </p>
-                    </div>
-                  )}
                 </div>
               );
             });
