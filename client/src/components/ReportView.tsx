@@ -229,6 +229,8 @@ export function ReportView({ report }: ReportViewProps) {
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
   const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const mfSnapshot = useMemo(() => {
     return (analysis.mf_snapshot || []).map((mf: any) => {
