@@ -921,7 +921,7 @@ export function ReportView({ report }: ReportViewProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
-                  <td className="px-4 py-3 text-right">{mf.closing_balance?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                  <td className="px-4 py-3 text-right">{ (mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3}) }</td>
                   <td className="px-4 py-3 text-right">{mf.nav?.toLocaleString(undefined, {minimumFractionDigits: 4})}</td>
                   <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString()}</td>
