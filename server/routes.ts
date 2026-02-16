@@ -211,6 +211,10 @@ ${text}`;
       4. portfolio: Top 5 Sectors and Top 5 Holdings with percentage weights as numbers (e.g., 12.5 for 12.5%, NOT 0.125).
       5. stats: AUM in Crores (number), Expense Ratio as string like "1.5%", Portfolio Turnover as string like "45%".
       6. risk_ratios: Std Deviation, Sharpe Ratio, Beta, and Alpha. Each with fund value and category average as strings.
+         - For Std Deviation: provide percentage (e.g. "15.2%")
+         - For Sharpe: provide numerical value (e.g. "1.85")
+         - For Beta: provide numerical value (e.g. "0.92")
+         - For Alpha: provide percentage (e.g. "2.5%")
 
       Return the result STRICTLY as a JSON object with this structure:
       {
