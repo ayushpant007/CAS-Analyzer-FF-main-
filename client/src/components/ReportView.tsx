@@ -1023,7 +1023,7 @@ export function ReportView({ report }: ReportViewProps) {
                           <div className="flex flex-wrap gap-1">
                             {performances[mf.isin].benchmark_name && performances[mf.isin].benchmark_name !== "Data unavailable" && (
                               <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                                {performances[mf.isin].benchmark_name}
+                                {performances[mf.isin].benchmark_name!}
                               </span>
                             )}
                             {performances[mf.isin].data_sources?.nav && (
