@@ -96,6 +96,31 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
     }
   };
 
+  const classifyPerformance = (schemeReturns: any, benchmarkReturns: any) => {
+    if (!schemeReturns || !benchmarkReturns) return null;
+    const s1 = parseFloat(schemeReturns["1y"]?.replace("%", "") || "0");
+    const b1 = parseFloat(benchmarkReturns["1y"]?.replace("%", "") || "0");
+    const s3 = parseFloat(schemeReturns["3y"]?.replace("%", "") || "0");
+    const b3 = parseFloat(benchmarkReturns["3y"]?.replace("%", "") || "0");
+    const s5 = parseFloat(schemeReturns["5y"]?.replace("%", "") || "0");
+    const b5 = parseFloat(benchmarkReturns["5y"]?.replace("%", "") || "0");
+
+    let greenCount = 0;
+    let totalValid = 0;
+
+    if (!isNaN(s1) && !isNaN(b1)) { totalValid++; if (s1 > b1) greenCount++; }
+    if (!isNaN(s3) && !isNaN(b3)) { totalValid++; if (s3 > b3) greenCount++; }
+    if (!isNaN(s5) && !isNaN(b5)) { totalValid++; if (s5 > b5) greenCount++; }
+
+    if (totalValid === 0) return null;
+    const ratio = greenCount / totalValid;
+    if (ratio >= 0.66) return "green";
+    if (ratio >= 0.33) return "yellow";
+    return "red";
+  };
+
+  const performanceColor = classifyPerformance(data?.scheme_returns, data?.benchmark_returns);
+
   const compare = (s: string, b: string) => {
     if (!s || !b || s === "N/A" || b === "N/A") return null;
     const sv = parseFloat(s.replace('%', ''));
@@ -389,6 +414,55 @@ export function ReportView({ report }: ReportViewProps) {
     } finally {
       setAnalyzingIsin(null);
     }
+  };
+
+  const performanceClassification = useMemo(() => {
+    const counts = { green: 0, yellow: 0, red: 0 };
+    Object.values(performances).forEach((p: any) => {
+      const s1 = parseFloat(p.cagr?.["1y"]?.replace("%", "") || "0");
+      const b1 = parseFloat(p.benchmark_returns?.["1y"]?.replace("%", "") || "0");
+      const s3 = parseFloat(p.cagr?.["3y"]?.replace("%", "") || "0");
+      const b3 = parseFloat(p.benchmark_returns?.["3y"]?.replace("%", "") || "0");
+      const s5 = parseFloat(p.cagr?.["5y"]?.replace("%", "") || "0");
+      const b5 = parseFloat(p.benchmark_returns?.["5y"]?.replace("%", "") || "0");
+
+      let greenCount = 0;
+      let totalValid = 0;
+
+      if (!isNaN(s1) && !isNaN(b1)) { totalValid++; if (s1 > b1) greenCount++; }
+      if (!isNaN(s3) && !isNaN(b3)) { totalValid++; if (s3 > b3) greenCount++; }
+      if (!isNaN(s5) && !isNaN(b5)) { totalValid++; if (s5 > b5) greenCount++; }
+
+      if (totalValid === 0) return;
+      const ratio = greenCount / totalValid;
+
+      if (ratio >= 0.66) counts.green++;
+      else if (ratio >= 0.33) counts.yellow++;
+      else counts.red++;
+    });
+    return counts;
+  }, [performances]);
+
+  const getClassifiedColor = (p: any) => {
+    const s1 = parseFloat(p.cagr?.["1y"]?.replace("%", "") || "0");
+    const b1 = parseFloat(p.benchmark_returns?.["1y"]?.replace("%", "") || "0");
+    const s3 = parseFloat(p.cagr?.["3y"]?.replace("%", "") || "0");
+    const b3 = parseFloat(p.benchmark_returns?.["3y"]?.replace("%", "") || "0");
+    const s5 = parseFloat(p.cagr?.["5y"]?.replace("%", "") || "0");
+    const b5 = parseFloat(p.benchmark_returns?.["5y"]?.replace("%", "") || "0");
+
+    let greenCount = 0;
+    let totalValid = 0;
+
+    if (!isNaN(s1) && !isNaN(b1)) { totalValid++; if (s1 > b1) greenCount++; }
+    if (!isNaN(s3) && !isNaN(b3)) { totalValid++; if (s3 > b3) greenCount++; }
+    if (!isNaN(s5) && !isNaN(b5)) { totalValid++; if (s5 > b5) greenCount++; }
+
+    if (totalValid === 0) return "slate";
+    const ratio = greenCount / totalValid;
+    if (ratio >= 0.66) return "emerald";
+    if (ratio >= 0.33) return "amber";
+    return "rose";
   };
   
   const container = {
@@ -843,8 +917,28 @@ export function ReportView({ report }: ReportViewProps) {
       {/* Risk Metrics Check Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Risk Metrics Check </h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold">Risk Metrics Check </h3>
+              <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
+            </div>
+            {Object.values(performanceClassification).some(count => count > 0) && (
+              <div className="flex gap-2">
+                <div className="bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 rounded-lg flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-bold">{performanceClassification.green} Good</span>
+                </div>
+                <div className="bg-amber-500/20 border border-amber-500/30 px-3 py-1 rounded-lg flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-xs font-bold">{performanceClassification.yellow} Average</span>
+                </div>
+                <div className="bg-rose-500/20 border border-rose-500/30 px-3 py-1 rounded-lg flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                  <span className="text-xs font-bold">{performanceClassification.red} Poor</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <div className="p-6 space-y-4">
           {(analysis.mf_snapshot || []).map((mf: any, i: number) => (
@@ -878,8 +972,20 @@ export function ReportView({ report }: ReportViewProps) {
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="space-y-6 pt-4 border-t border-slate-200"
+                  className={`space-y-6 pt-4 border-t-4 border-${getClassifiedColor(performances[mf.isin])}-500 transition-all duration-500`}
                 >
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full bg-${getClassifiedColor(performances[mf.isin])}-500 shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
+                      <p className={`text-sm font-bold text-${getClassifiedColor(performances[mf.isin])}-700 uppercase tracking-wider`}>
+                        Performance Status: {
+                          getClassifiedColor(performances[mf.isin]) === "emerald" ? "Good (Outperforming Benchmark)" :
+                          getClassifiedColor(performances[mf.isin]) === "amber" ? "Average (Matching Benchmark)" :
+                          "Poor (Underperforming Benchmark)"
+                        }
+                      </p>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 gap-6">
                     {/* Returns & Basic Stats */}
                     <div className="space-y-4">
