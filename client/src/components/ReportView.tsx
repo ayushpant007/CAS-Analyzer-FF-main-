@@ -939,9 +939,9 @@ export function ReportView({ report }: ReportViewProps) {
 
                                 const parseVal = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, '') || "0");
                                 
-                                const val1y = parseVal(perf.cagr["1y"]) - parseVal(perf.benchmark_returns["1y"]);
-                                const val3y = parseVal(perf.cagr["3y"]) - parseVal(perf.benchmark_returns["3y"]);
-                                const val5y = parseVal(perf.cagr["5y"]) - parseVal(perf.benchmark_returns["5y"]);
+                                const val1y = parseVal(perf.benchmark_returns["1y"]) - parseVal(perf.cagr["1y"]);
+                                const val3y = parseVal(perf.benchmark_returns["3y"]) - parseVal(perf.cagr["3y"]);
+                                const val5y = parseVal(perf.benchmark_returns["5y"]) - parseVal(perf.cagr["5y"]);
                                 
                                 const avgAlpha = (val1y + val3y + val5y) / 3;
 
