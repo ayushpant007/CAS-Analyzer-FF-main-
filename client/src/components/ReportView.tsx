@@ -917,18 +917,10 @@ export function ReportView({ report }: ReportViewProps) {
                           </div>
                         ))}
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
-                          <p className="text-[10px] text-slate-500">AUM (Cr)</p>
-                          <p className="text-xs font-bold text-slate-700">₹{performances[mf.isin].stats?.aum_crores}</p>
-                        </div>
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
-                          <p className="text-[10px] text-slate-500">Exp. Ratio</p>
-                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.expense_ratio}</p>
-                        </div>
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center">
-                          <p className="text-[10px] text-slate-500">Turnover</p>
-                          <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.turnover}</p>
+                      <div className="grid grid-cols-1">
+                        <div className="bg-slate-100/50 p-2 rounded-lg text-center border border-slate-200">
+                          <p className="text-[10px] text-slate-500 uppercase font-bold">NAV</p>
+                          <p className="text-sm font-bold text-slate-900">₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
                         </div>
                       </div>
                     </div>
