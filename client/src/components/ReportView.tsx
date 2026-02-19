@@ -880,7 +880,7 @@ export function ReportView({ report }: ReportViewProps) {
                   animate={{ opacity: 1, height: "auto" }}
                   className="space-y-6 pt-4 border-t border-slate-200"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     {/* Returns & Basic Stats */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-end">
@@ -895,11 +895,6 @@ export function ReportView({ report }: ReportViewProps) {
                             {performances[mf.isin].data_sources?.nav && performances[mf.isin].data_sources.nav !== "Data unavailable" && (
                               <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                                 {performances[mf.isin].data_sources!.nav}
-                              </span>
-                            )}
-                            {performances[mf.isin].data_sources?.risk_metrics && performances[mf.isin].data_sources.risk_metrics !== "Data unavailable" && (
-                              <span className="text-[8px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100">
-                                {performances[mf.isin].data_sources!.risk_metrics}
                               </span>
                             )}
                           </div>
@@ -935,46 +930,6 @@ export function ReportView({ report }: ReportViewProps) {
                           <p className="text-[10px] text-slate-500">Turnover</p>
                           <p className="text-xs font-bold text-slate-700">{performances[mf.isin].stats?.turnover}</p>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Risk Ratios */}
-                    <div className="space-y-4">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Metrics (Fund vs Cat Avg)</h5>
-                      <div className="grid grid-cols-4 gap-2">
-                        {['std_dev', 'sharpe', 'beta', 'alpha'].map((ratio) => (
-                          <div key={ratio} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[10px] text-slate-500 capitalize">{ratio.replace('_', ' ')}</p>
-                            <p className="font-bold text-slate-900 text-xs">{(performances[mf.isin].risk_ratios as any)[ratio]?.fund}</p>
-                            <p className="text-[8px] text-slate-400">Avg: {(performances[mf.isin].risk_ratios as any)[ratio]?.category_avg}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Portfolio Breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Holdings</h5>
-                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
-                        {performances[mf.isin].portfolio?.holdings?.slice(0, 5).map((h, idx) => (
-                          <div key={idx} className="flex justify-between p-2 text-[10px]">
-                            <span className="text-slate-700 truncate mr-2">{h.name}</span>
-                            <span className="font-bold text-slate-900">{h.weight}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Top Sectors</h5>
-                      <div className="bg-white rounded-lg border border-slate-100 divide-y divide-slate-50">
-                        {performances[mf.isin].portfolio?.sectors?.slice(0, 5).map((s, idx) => (
-                          <div key={idx} className="flex justify-between p-2 text-[10px]">
-                            <span className="text-slate-700 truncate mr-2">{s.name}</span>
-                            <span className="font-bold text-slate-900">{s.weight}%</span>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
