@@ -268,6 +268,7 @@ export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
+  const [manualRemarks, setManualRemarks] = useState<Record<string, string>>({});
   const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFetchingNav, setIsFetchingNav] = useState(false);
@@ -974,19 +975,46 @@ export function ReportView({ report }: ReportViewProps) {
                   animate={{ opacity: 1, height: "auto" }}
                   className={`space-y-6 pt-4 border-t-4 border-${getClassifiedColor(performances[mf.isin])}-500 transition-all duration-500`}
                 >
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full bg-${getClassifiedColor(performances[mf.isin])}-500 shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
-                      <p className={`text-sm font-bold text-${getClassifiedColor(performances[mf.isin])}-700 uppercase tracking-wider`}>
-                        Performance Status: {
-                          getClassifiedColor(performances[mf.isin]) === "emerald" ? "Good (Outperforming Benchmark)" :
-                          getClassifiedColor(performances[mf.isin]) === "amber" ? "Average (Matching Benchmark)" :
-                          "Poor (Underperforming Benchmark)"
-                        }
-                      </p>
+                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full bg-${getClassifiedColor(performances[mf.isin])}-500 shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
+                        <p className={`text-sm font-bold text-${getClassifiedColor(performances[mf.isin])}-700 uppercase tracking-wider`}>
+                          Performance Status: {
+                            getClassifiedColor(performances[mf.isin]) === "emerald" ? "Good (Outperforming Benchmark)" :
+                            getClassifiedColor(performances[mf.isin]) === "amber" ? "Average (Matching Benchmark)" :
+                            "Poor (Underperforming Benchmark)"
+                          }
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <h5 className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">AI Reason</h5>
+                        <p className="text-xs text-slate-700 leading-relaxed">
+                          {performances[mf.isin].risk_ratios?.alpha?.fund && parseFloat(performances[mf.isin].risk_ratios.alpha.fund) > 0 
+                            ? `This fund is generating a positive alpha of ${performances[mf.isin].risk_ratios.alpha.fund}, indicating superior stock selection and management performance relative to its benchmark. `
+                            : ""}
+                          {getClassifiedColor(performances[mf.isin]) === "emerald" 
+                            ? "Consistent outperformance across multiple time horizons suggests strong fund management and a robust investment strategy."
+                            : getClassifiedColor(performances[mf.isin]) === "amber"
+                            ? "Performance is closely tracking the benchmark, providing market-representative returns with standard risk levels."
+                            : "Underperformance relative to the benchmark may be due to high expense ratios or defensive positioning in a bullish market."
+                          }
+                        </p>
+                      </div>
+                      <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+                        <h5 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2">My Remarks</h5>
+                        <textarea
+                          className="w-full bg-white/50 border border-amber-200 rounded-lg p-2 text-xs focus:ring-1 focus:ring-amber-400 outline-none min-h-[60px] resize-none"
+                          placeholder="Add your own observations here..."
+                          value={manualRemarks[mf.isin] || ""}
+                          onChange={(e) => setManualRemarks(prev => ({ ...prev, [mf.isin]: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6">
                     {/* Returns & Basic Stats */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-end">
@@ -998,7 +1026,7 @@ export function ReportView({ report }: ReportViewProps) {
                                 {performances[mf.isin].benchmark_name}
                               </span>
                             )}
-                            {performances[mf.isin].data_sources?.nav && performances[mf.isin].data_sources.nav !== "Data unavailable" && (
+                            {performances[mf.isin].data_sources?.nav && (
                               <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                                 {performances[mf.isin].data_sources.nav}
                               </span>
