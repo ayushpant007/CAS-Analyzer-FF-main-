@@ -228,7 +228,7 @@ ${text}`;
 
       const mergedMetrics = jsonMetrics || factsheetMetrics;
       const benchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
-      const benchmarkReturns = await getBenchmarkReturns(benchmarkName);
+      const benchmarkReturns = await getBenchmarkReturns(fundName, benchmarkName);
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
       
@@ -324,7 +324,7 @@ Return ONLY JSON. No markdown.`;
       ]);
 
       const benchmarkName = factsheetMetrics?.benchmark_name || "Data unavailable";
-      const benchmarkReturns = await getBenchmarkReturns(benchmarkName);
+      const benchmarkReturns = await getBenchmarkReturns(fundName, benchmarkName);
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
 
