@@ -141,14 +141,14 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
 
     const latest = data[data.length - 1];
     const latestDate = latest.date;
-    
+
     const getReturns = (years: number) => {
       const targetDate = new Date(latestDate);
       targetDate.setFullYear(latestDate.getFullYear() - years);
-      
+
       let closest = data[0];
       let minDiff = Math.abs(data[0].date.getTime() - targetDate.getTime());
-      
+
       for (const entry of data) {
         const diff = Math.abs(entry.date.getTime() - targetDate.getTime());
         if (diff < minDiff) {
@@ -157,10 +157,18 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
         }
       }
 
+      // 60 days diff is okay for historical data, but we need to ensure the price ratio makes sense
       if (minDiff > 60 * 24 * 60 * 60 * 1000) return "N/A";
 
-      const cagr = Math.pow(latest.price / closest.price, 1 / years) - 1;
-      return (cagr * 100).toFixed(2) + "%";
+      // Simple Point-to-Point CAGR calculation
+      // CAGR = (End Value / Start Value)^(1/Years) - 1
+      const ratio = latest.price / closest.price;
+      const cagr = Math.pow(ratio, 1 / years) - 1;
+      const result = (cagr * 100).toFixed(2) + "%";
+      
+      console.log(`[Benchmark] ${targetBenchmark} - ${years}Y: Start=${closest.price} (${closest.date.toDateString()}), End=${latest.price} (${latest.date.toDateString()}), Ratio=${ratio.toFixed(4)}, CAGR=${result}`);
+      
+      return result;
     };
 
     return {
