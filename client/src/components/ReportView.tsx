@@ -930,7 +930,37 @@ export function ReportView({ report }: ReportViewProps) {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[9px] text-slate-500 uppercase">Alpha</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).alpha?.fund}</p>
+                            <div className="space-y-1">
+                              {(() => {
+                                const perf = performances[mf.isin];
+                                if (!perf || !perf.cagr || !perf.benchmark_returns) {
+                                  return <p className="text-xs font-bold text-slate-900">{(perf?.risk_ratios as any)?.alpha?.fund || "N/A"}</p>;
+                                }
+
+                                const parseVal = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, '') || "0");
+                                
+                                const val1y = parseVal(perf.cagr["1y"]) - parseVal(perf.benchmark_returns["1y"]);
+                                const val3y = parseVal(perf.cagr["3y"]) - parseVal(perf.benchmark_returns["3y"]);
+                                const val5y = parseVal(perf.cagr["5y"]) - parseVal(perf.benchmark_returns["5y"]);
+                                
+                                const avgAlpha = (val1y + val3y + val5y) / 3;
+
+                                return (
+                                  <>
+                                    <p className={`text-xs font-bold ${avgAlpha >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                      {avgAlpha.toFixed(2)}%
+                                    </p>
+                                    <div className="flex flex-wrap justify-center gap-1 text-[8px] font-medium text-slate-400">
+                                      <span title="1Y Alpha">{val1y >= 0 ? '+' : ''}{val1y.toFixed(1)}</span>
+                                      <span>|</span>
+                                      <span title="3Y Alpha">{val3y >= 0 ? '+' : ''}{val3y.toFixed(1)}</span>
+                                      <span>|</span>
+                                      <span title="5Y Alpha">{val5y >= 0 ? '+' : ''}{val5y.toFixed(1)}</span>
+                                    </div>
+                                  </>
+                                );
+                              })()}
+                            </div>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[9px] text-slate-500 uppercase">Beta</p>
