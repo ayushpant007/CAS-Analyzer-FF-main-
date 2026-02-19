@@ -1000,7 +1000,7 @@ export function ReportView({ report }: ReportViewProps) {
                             )}
                             {performances[mf.isin].data_sources?.nav && performances[mf.isin].data_sources.nav !== "Data unavailable" && (
                               <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                                {performances[mf.isin].data_sources!.nav}
+                                {performances[mf.isin].data_sources.nav}
                               </span>
                             )}
                           </div>
