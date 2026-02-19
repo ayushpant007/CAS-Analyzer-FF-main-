@@ -1,0 +1,347 @@
+[
+  {
+    "benchmark": "Nifty 50 TRI",
+    "returns": {
+      "1Y": "12.21%",
+      "3Y": "14.59%",
+      "5Y": "12.76%"
+    }
+  },
+  {
+    "benchmark": "BSE Sensex TRI",
+    "returns": {
+      "1Y": "12.00%",
+      "3Y": "14.20%",
+      "5Y": "12.50%"
+    }
+  },
+  {
+    "benchmark": "Nifty Next 50 TRI",
+    "returns": {
+      "1Y": "12.90%",
+      "3Y": "22.59%",
+      "5Y": "16.22%"
+    }
+  },
+  {
+    "benchmark": "Nifty 100 TRI",
+    "returns": {
+      "1Y": "12.40%",
+      "3Y": "15.80%",
+      "5Y": "13.40%"
+    }
+  },
+  {
+    "benchmark": "Nifty 200 TRI",
+    "returns": {
+      "1Y": "13.10%",
+      "3Y": "16.90%",
+      "5Y": "14.20%"
+    }
+  },
+  {
+    "benchmark": "Nifty 500 TRI",
+    "returns": {
+      "1Y": "13.80%",
+      "3Y": "17.50%",
+      "5Y": "15.10%"
+    }
+  },
+  {
+    "benchmark": "BSE 100 TRI",
+    "returns": {
+      "1Y": "12.30%",
+      "3Y": "15.20%",
+      "5Y": "13.10%"
+    }
+  },
+  {
+    "benchmark": "BSE 200 TRI",
+    "returns": {
+      "1Y": "13.00%",
+      "3Y": "16.40%",
+      "5Y": "14.00%"
+    }
+  },
+  {
+    "benchmark": "BSE 500 TRI",
+    "returns": {
+      "1Y": "13.70%",
+      "3Y": "17.20%",
+      "5Y": "14.90%"
+    }
+  },
+  {
+    "benchmark": "Nifty Midcap 50 TRI",
+    "returns": {
+      "1Y": "15.20%",
+      "3Y": "26.80%",
+      "5Y": "20.10%"
+    }
+  },
+  {
+    "benchmark": "Nifty Midcap 100 TRI",
+    "returns": {
+      "1Y": "11.70%",
+      "3Y": "25.30%",
+      "5Y": "22.10%"
+    }
+  },
+  {
+    "benchmark": "Nifty Midcap 150 TRI",
+    "returns": {
+      "1Y": "13.10%",
+      "3Y": "24.90%",
+      "5Y": "21.40%"
+    }
+  },
+  {
+    "benchmark": "Nifty Smallcap 50 TRI",
+    "returns": {
+      "1Y": "9.80%",
+      "3Y": "28.40%",
+      "5Y": "23.90%"
+    }
+  },
+  {
+    "benchmark": "Nifty Smallcap 100 TRI",
+    "returns": {
+      "1Y": "10.50%",
+      "3Y": "27.80%",
+      "5Y": "24.20%"
+    }
+  },
+  {
+    "benchmark": "Nifty Smallcap 250 TRI",
+    "returns": {
+      "1Y": "11.20%",
+      "3Y": "26.50%",
+      "5Y": "23.10%"
+    }
+  },
+  {
+    "benchmark": "Nifty LargeMidcap 250 TRI",
+    "returns": {
+      "1Y": "12.80%",
+      "3Y": "18.60%",
+      "5Y": "15.20%"
+    }
+  },
+  {
+    "benchmark": "Nifty Microcap 250 TRI",
+    "returns": {
+      "1Y": "14.50%",
+      "3Y": "29.80%",
+      "5Y": "25.60%"
+    }
+  },
+  {
+    "benchmark": "Nifty Bank TRI",
+    "returns": {
+      "1Y": "21.17%",
+      "3Y": "14.56%",
+      "5Y": "15.14%"
+    }
+  },
+  {
+    "benchmark": "Nifty IT TRI",
+    "returns": {
+      "1Y": "-8.74%",
+      "3Y": "10.91%",
+      "5Y": "11.35%"
+    }
+  },
+  {
+    "benchmark": "Nifty Pharma TRI",
+    "returns": {
+      "1Y": "1.98%",
+      "3Y": "21.57%",
+      "5Y": "13.11%"
+    }
+  },
+  {
+    "benchmark": "Nifty FMCG TRI",
+    "returns": {
+      "1Y": "-7.87%",
+      "3Y": "6.66%",
+      "5Y": "11.20%"
+    }
+  },
+  {
+    "benchmark": "Nifty Auto TRI",
+    "returns": {
+      "1Y": "18.06%",
+      "3Y": "27.18%",
+      "5Y": "23.36%"
+    }
+  },
+  {
+    "benchmark": "Nifty Metal TRI",
+    "returns": {
+      "1Y": "41.68%",
+      "3Y": "23.00%",
+      "5Y": "32.71%"
+    }
+  },
+  {
+    "benchmark": "Nifty Realty TRI",
+    "returns": {
+      "1Y": "-14.73%",
+      "3Y": "24.32%",
+      "5Y": "21.08%"
+    }
+  },
+  {
+    "benchmark": "Nifty PSU Bank TRI",
+    "returns": {
+      "1Y": "43.80%",
+      "3Y": "32.01%",
+      "5Y": "39.15%"
+    }
+  },
+  {
+    "benchmark": "Nifty Financial Services TRI",
+    "returns": {
+      "1Y": "18.85%",
+      "3Y": "15.86%",
+      "5Y": "14.36%"
+    }
+  },
+  {
+    "benchmark": "Nifty Energy TRI",
+    "returns": {
+      "1Y": "12.50%",
+      "3Y": "15.20%",
+      "5Y": "17.80%"
+    }
+  },
+  {
+    "benchmark": "Nifty Infrastructure TRI",
+    "returns": {
+      "1Y": "14.20%",
+      "3Y": "18.40%",
+      "5Y": "16.90%"
+    }
+  },
+  {
+    "benchmark": "Nifty Consumer Durables TRI",
+    "returns": {
+      "1Y": "-8.18%",
+      "3Y": "12.97%",
+      "5Y": "11.75%"
+    }
+  },
+  {
+    "benchmark": "Nifty Oil & Gas TRI",
+    "returns": {
+      "1Y": "12.57%",
+      "3Y": "16.80%",
+      "5Y": "18.68%"
+    }
+  },
+  {
+    "benchmark": "Nifty Healthcare Index TRI",
+    "returns": {
+      "1Y": "1.34%",
+      "3Y": "21.79%",
+      "5Y": "14.92%"
+    }
+  },
+  {
+    "benchmark": "Nifty Alpha 50 TRI",
+    "returns": {
+      "1Y": "12.76%",
+      "3Y": "24.60%",
+      "5Y": "18.40%"
+    }
+  },
+  {
+    "benchmark": "Nifty Quality 30 TRI",
+    "returns": {
+      "1Y": "18.20%",
+      "3Y": "17.80%",
+      "5Y": "16.90%"
+    }
+  },
+  {
+    "benchmark": "Nifty Low Volatility 30 TRI",
+    "returns": {
+      "1Y": "9.40%",
+      "3Y": "13.20%",
+      "5Y": "13.80%"
+    }
+  },
+  {
+    "benchmark": "Nifty Dividend Opportunities 50 TRI",
+    "returns": {
+      "1Y": "16.75%",
+      "3Y": "18.60%",
+      "5Y": "17.10%"
+    }
+  },
+  {
+    "benchmark": "Nifty Growth Sectors 15 TRI",
+    "returns": {
+      "1Y": "14.10%",
+      "3Y": "16.40%",
+      "5Y": "15.30%"
+    }
+  },
+  {
+    "benchmark": "Nifty Value 20 TRI",
+    "returns": {
+      "1Y": "19.35%",
+      "3Y": "20.10%",
+      "5Y": "18.75%"
+    }
+  },
+  {
+    "benchmark": "Nifty India Consumption TRI",
+    "returns": {
+      "1Y": "4.21%",
+      "3Y": "17.10%",
+      "5Y": "15.77%"
+    }
+  },
+  {
+    "benchmark": "Nifty CPSE TRI",
+    "returns": {
+      "1Y": "13.70%",
+      "3Y": "37.18%",
+      "5Y": "38.55%"
+    }
+  },
+  {
+    "benchmark": "Nifty ESG 100 TRI",
+    "returns": {
+      "1Y": "9.54%",
+      "3Y": "15.20%",
+      "5Y": "14.80%"
+    }
+  },
+  {
+    "benchmark": "Nifty India Digital TRI",
+    "returns": {
+      "1Y": "22.40%",
+      "3Y": "18.60%",
+      "5Y": "17.30%"
+    }
+  },
+  {
+    "benchmark": "Nifty Mobility TRI",
+    "returns": {
+      "1Y": "24.44%",
+      "3Y": "19.80%",
+      "5Y": "18.10%"
+    }
+  },
+  {
+    "benchmark": "Nifty Commodities TRI",
+    "returns": {
+      "1Y": "26.50%",
+      "3Y": "28.20%",
+      "5Y": "24.50%"
+    }
+  }
+]
+
