@@ -104,19 +104,6 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
     return sv >= bv ? "green" : "red";
   };
 
-  const chartData = useMemo(() => {
-    if (!data) return [];
-    return [
-      { name: '1Y', Scheme: parseFloat(data.scheme_returns["1y"]), Benchmark: parseFloat(data.benchmark_returns["1y"]) },
-      { name: '3Y', Scheme: parseFloat(data.scheme_returns["3y"]), Benchmark: parseFloat(data.benchmark_returns["3y"]) },
-      { name: '5Y', Scheme: parseFloat(data.scheme_returns["5y"]), Benchmark: parseFloat(data.benchmark_returns["5y"]) },
-    ].map(item => ({
-      ...item,
-      Scheme: isNaN(item.Scheme) ? 0 : item.Scheme,
-      Benchmark: isNaN(item.Benchmark) ? 0 : item.Benchmark
-    }));
-  }, [data]);
-
   return (
     <>
       <tr className="hover:bg-slate-50/50 transition-colors">
@@ -137,75 +124,56 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
       {data && (
         <tr className="bg-slate-50/50">
           <td colSpan={2} className="px-6 py-4">
-            <div className="flex flex-col gap-6 p-6 bg-white rounded-xl border border-slate-100 shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Scheme CAGR</h4>
-                    {data.data_sources?.returns && data.data_sources.returns !== "Data unavailable" && (
-                      <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
-                        {data.data_sources.returns}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
-                      <p className="text-sm font-bold text-slate-900">{data.scheme_returns["1y"]}</p>
-                    </div>
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">3Y</p>
-                      <p className="text-sm font-bold text-slate-900">{data.scheme_returns["3y"]}</p>
-                    </div>
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">5Y</p>
-                      <p className="text-sm font-bold text-slate-900">{data.scheme_returns["5y"]}</p>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Scheme CAGR</h4>
+                  {data.data_sources?.returns && data.data_sources.returns !== "Data unavailable" && (
+                    <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
+                      {data.data_sources.returns}
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Benchmark: {data.benchmark_name}</h4>
-                  <div className="flex gap-4">
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
-                      <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
-                        {data.benchmark_returns["1y"]}
-                        <Flag className={`h-3 w-3 ${compare(data.scheme_returns["1y"], data.benchmark_returns["1y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
-                      </p>
-                    </div>
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">3Y</p>
-                      <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
-                        {data.benchmark_returns["3y"]}
-                        <Flag className={`h-3 w-3 ${compare(data.scheme_returns["3y"], data.benchmark_returns["3y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
-                      </p>
-                    </div>
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
-                      <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
-                        {data.benchmark_returns["5y"]}
-                        <Flag className={`h-3 w-3 ${compare(data.scheme_returns["5y"], data.benchmark_returns["5y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
-                      </p>
-                    </div>
+                <div className="flex gap-4">
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
+                    <p className="text-sm font-bold text-slate-900">{data.scheme_returns["1y"]}</p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">3Y</p>
+                    <p className="text-sm font-bold text-slate-900">{data.scheme_returns["3y"]}</p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">5Y</p>
+                    <p className="text-sm font-bold text-slate-900">{data.scheme_returns["5y"]}</p>
                   </div>
                 </div>
               </div>
-
-              <div className="h-[200px] w-full mt-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">CAGR vs Benchmark Comparison</h4>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} />
-                    <RechartsTooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
-                    />
-                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
-                    <Bar dataKey="Scheme" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={30} />
-                    <Bar dataKey="Benchmark" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={30} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Benchmark: {data.benchmark_name}</h4>
+                <div className="flex gap-4">
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">1Y</p>
+                    <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                      {data.benchmark_returns["1y"]}
+                      <Flag className={`h-3 w-3 ${compare(data.scheme_returns["1y"], data.benchmark_returns["1y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">3Y</p>
+                    <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                      {data.benchmark_returns["3y"]}
+                      <Flag className={`h-3 w-3 ${compare(data.scheme_returns["3y"], data.benchmark_returns["3y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 px-3 py-2 rounded-lg relative">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">5Y</p>
+                    <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                      {data.benchmark_returns["5y"]}
+                      <Flag className={`h-3 w-3 ${compare(data.scheme_returns["5y"], data.benchmark_returns["5y"]) === "green" ? "text-emerald-500 fill-emerald-500" : "text-rose-500 fill-rose-500"}`} />
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </td>
