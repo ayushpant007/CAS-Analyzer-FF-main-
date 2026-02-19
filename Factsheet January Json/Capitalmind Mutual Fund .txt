@@ -1,0 +1,28 @@
+[
+  {
+    "amc_name": "Capitalmind Mutual Fund",
+    "scheme_name": "Capitalmind Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.97,
+    "aum_cr": 311.30,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "Capitalmind Mutual Fund",
+    "scheme_name": "Capitalmind Liquid Fund",
+    "scheme_category": "Liquid Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.09,
+    "aum_cr": 49.54,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  }
+]

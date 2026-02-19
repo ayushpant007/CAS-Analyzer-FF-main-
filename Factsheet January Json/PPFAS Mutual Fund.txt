@@ -1,0 +1,80 @@
+[
+  {
+    "amc_name": "PPFAS Mutual Fund",
+    "scheme_name": "Parag Parikh Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": 0.55,
+    "sharpe_ratio": 1.85,
+    "standard_deviation": 12.84,
+    "expense_ratio_percent": 1.28,
+    "aum_cr": 131520.28,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "PPFAS Mutual Fund",
+    "scheme_name": "Parag Parikh ELSS Tax Saver Fund",
+    "scheme_category": "ELSS",
+    "alpha": null,
+    "beta": 0.65,
+    "sharpe_ratio": 1.19,
+    "standard_deviation": 14.52,
+    "expense_ratio_percent": 1.72,
+    "aum_cr": 5914.69,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "PPFAS Mutual Fund",
+    "scheme_name": "Parag Parikh Dynamic Asset Allocation Fund",
+    "scheme_category": "Dynamic Asset Allocation",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.63,
+    "aum_cr": 2723.63,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "PPFAS Mutual Fund",
+    "scheme_name": "Parag Parikh Conservative Hybrid Fund",
+    "scheme_category": "Conservative Hybrid Fund",
+    "alpha": null,
+    "beta": 0.28,
+    "sharpe_ratio": 1.42,
+    "standard_deviation": 3.62,
+    "expense_ratio_percent": 0.72,
+    "aum_cr": 1787.52,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "PPFAS Mutual Fund",
+    "scheme_name": "Parag Parikh Liquid Fund",
+    "scheme_category": "Liquid Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": 2.36,
+    "standard_deviation": 0.41,
+    "expense_ratio_percent": 0.23,
+    "aum_cr": 1046.84,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "PPFAS Mutual Fund",
+    "scheme_name": "Parag Parikh Arbitrage Fund",
+    "scheme_category": "Arbitrage Fund",
+    "alpha": null,
+    "beta": 0.07,
+    "sharpe_ratio": 1.68,
+    "standard_deviation": 0.94,
+    "expense_ratio_percent": 0.88,
+    "aum_cr": 2356.91,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  }
+]

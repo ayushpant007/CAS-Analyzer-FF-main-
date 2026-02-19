@@ -1,0 +1,41 @@
+[
+  {
+    "amc_name": "Unifi Mutual Fund",
+    "scheme_name": "Unifi Dynamic Asset Allocation Fund",
+    "scheme_category": "Dynamic Asset Allocation Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 1.52,
+    "aum_cr": 1111.01,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Unifi Mutual Fund",
+    "scheme_name": "Unifi Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.38,
+    "aum_cr": 174.42,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Unifi Mutual Fund",
+    "scheme_name": "Unifi Liquid Fund",
+    "scheme_category": "Liquid Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.20,
+    "aum_cr": 130.07,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  }
+]

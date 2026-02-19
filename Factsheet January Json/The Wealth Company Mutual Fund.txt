@@ -1,0 +1,54 @@
+[
+  {
+    "amc_name": "The Wealth Company Mutual Fund",
+    "scheme_name": "The Wealth Company Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.34,
+    "aum_cr": 228.36,
+    "factsheet_month": "October 2025",
+    "last_updated": "2025-10-31"
+  },
+  {
+    "amc_name": "The Wealth Company Mutual Fund",
+    "scheme_name": "The Wealth Company Ethical Fund",
+    "scheme_category": "Thematic Fund (Ethical)",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.25,
+    "aum_cr": 38.90,
+    "factsheet_month": "October 2025",
+    "last_updated": "2025-10-31"
+  },
+  {
+    "amc_name": "The Wealth Company Mutual Fund",
+    "scheme_name": "The Wealth Company Arbitrage Fund",
+    "scheme_category": "Arbitrage Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.92,
+    "aum_cr": 241.99,
+    "factsheet_month": "October 2025",
+    "last_updated": "2025-10-31"
+  },
+  {
+    "amc_name": "The Wealth Company Mutual Fund",
+    "scheme_name": "The Wealth Company Liquid Fund",
+    "scheme_category": "Liquid Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.23,
+    "aum_cr": 1188.48,
+    "factsheet_month": "October 2025",
+    "last_updated": "2025-10-31"
+  }
+]

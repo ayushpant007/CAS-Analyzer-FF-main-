@@ -1,0 +1,80 @@
+[
+  {
+    "amc_name": "Helios Mutual Fund",
+    "scheme_name": "Helios Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 1.79,
+    "aum_cr": 5939.87,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Helios Mutual Fund",
+    "scheme_name": "Helios Financial Services Fund",
+    "scheme_category": "Sectoral - Financial Services",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.42,
+    "aum_cr": 207.00,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Helios Mutual Fund",
+    "scheme_name": "Helios Large & Mid Cap Fund",
+    "scheme_category": "Large & Mid Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.33,
+    "aum_cr": 681.24,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Helios Mutual Fund",
+    "scheme_name": "Helios Mid Cap Fund",
+    "scheme_category": "Mid Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.14,
+    "aum_cr": 1169.54,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Helios Mutual Fund",
+    "scheme_name": "Helios Small Cap Fund",
+    "scheme_category": "Small Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.34,
+    "aum_cr": 652.62,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Helios Mutual Fund",
+    "scheme_name": "Helios Balanced Advantage Fund",
+    "scheme_category": "Balanced Advantage Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.42,
+    "aum_cr": 312.32,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  }
+]

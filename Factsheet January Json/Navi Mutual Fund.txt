@@ -1,0 +1,67 @@
+[
+  {
+    "amc_name": "Navi Mutual Fund",
+    "scheme_name": "Navi Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": 0.90,
+    "sharpe_ratio": 0.74,
+    "standard_deviation": 12.56,
+    "expense_ratio_percent": 0.53,
+    "aum_cr": 263.18,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "Navi Mutual Fund",
+    "scheme_name": "Navi Large & Midcap Fund",
+    "scheme_category": "Large & Mid Cap Fund",
+    "alpha": null,
+    "beta": 0.94,
+    "sharpe_ratio": 0.70,
+    "standard_deviation": 13.71,
+    "expense_ratio_percent": 0.51,
+    "aum_cr": 315.12,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "Navi Mutual Fund",
+    "scheme_name": "Navi Aggressive Hybrid Fund",
+    "scheme_category": "Aggressive Hybrid Fund",
+    "alpha": null,
+    "beta": 1.04,
+    "sharpe_ratio": 0.98,
+    "standard_deviation": 9.07,
+    "expense_ratio_percent": 0.52,
+    "aum_cr": 118.53,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "Navi Mutual Fund",
+    "scheme_name": "Navi ELSS Tax Saver Fund",
+    "scheme_category": "ELSS Fund",
+    "alpha": null,
+    "beta": 0.92,
+    "sharpe_ratio": 0.74,
+    "standard_deviation": 12.70,
+    "expense_ratio_percent": 0.37,
+    "aum_cr": 53.14,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "Navi Mutual Fund",
+    "scheme_name": "Navi Liquid Fund",
+    "scheme_category": "Liquid Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.15,
+    "aum_cr": 69.29,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  }
+]

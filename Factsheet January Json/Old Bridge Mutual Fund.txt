@@ -1,0 +1,28 @@
+[
+  {
+    "amc_name": "Old Bridge Mutual Fund",
+    "scheme_name": "Old Bridge Focused Fund",
+    "scheme_category": "Focused Fund (Multi Cap)",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.02,
+    "aum_cr": 2395.26,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "Old Bridge Mutual Fund",
+    "scheme_name": "Old Bridge Arbitrage Fund",
+    "scheme_category": "Arbitrage Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 0.99,
+    "aum_cr": 109.32,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  }
+]

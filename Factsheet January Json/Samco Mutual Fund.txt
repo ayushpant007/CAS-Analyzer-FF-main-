@@ -1,0 +1,81 @@
+[
+  {
+    "amc_name": "Samco Mutual Fund",
+    "scheme_name": "Samco Active Momentum Fund",
+    "scheme_category": "Momentum Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.35,
+    "aum_cr": 662.80,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Samco Mutual Fund",
+    "scheme_name": "Samco Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": 1.12,
+    "sharpe_ratio": -0.19,
+    "standard_deviation": 17.70,
+    "expense_ratio_percent": 2.41,
+    "aum_cr": 303.69,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Samco Mutual Fund",
+    "scheme_name": "Samco Multi Cap Fund",
+    "scheme_category": "Multi Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.40,
+    "aum_cr": 268.85,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Samco Mutual Fund",
+    "scheme_name": "Samco Special Opportunities Fund",
+    "scheme_category": "Special Situations Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.32,
+    "aum_cr": 182.14,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Samco Mutual Fund",
+    "scheme_name": "Samco Dynamic Asset Allocation Fund",
+    "scheme_category": "Dynamic Asset Allocation Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.41,
+    "aum_cr": 233.32,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  },
+  {
+    "amc_name": "Samco Mutual Fund",
+    "scheme_name": "Samco Multi Asset Allocation Fund",
+    "scheme_category": "Multi Asset Allocation Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.16,
+    "aum_cr": 411.37,
+    "factsheet_month": "January 2026",
+    "last_updated": "2026-01-31"
+  }
+]
+

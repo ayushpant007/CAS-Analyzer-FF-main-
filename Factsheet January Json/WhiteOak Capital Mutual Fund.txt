@@ -1,0 +1,80 @@
+[
+  {
+    "amc_name": "WhiteOak Capital Mutual Fund",
+    "scheme_name": "WhiteOak Capital Flexi Cap Fund",
+    "scheme_category": "Flexi Cap Fund",
+    "alpha": null,
+    "beta": 0.92,
+    "sharpe_ratio": 1.04,
+    "standard_deviation": 12.31,
+    "expense_ratio_percent": 1.77,
+    "aum_cr": 7099.46,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "WhiteOak Capital Mutual Fund",
+    "scheme_name": "WhiteOak Capital Mid Cap Fund",
+    "scheme_category": "Mid Cap Fund",
+    "alpha": null,
+    "beta": 0.93,
+    "sharpe_ratio": 1.22,
+    "standard_deviation": 15.25,
+    "expense_ratio_percent": 1.85,
+    "aum_cr": 4443.40,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "WhiteOak Capital Mutual Fund",
+    "scheme_name": "WhiteOak Capital ELSS Tax Saver Fund",
+    "scheme_category": "ELSS",
+    "alpha": null,
+    "beta": 0.92,
+    "sharpe_ratio": 1.11,
+    "standard_deviation": 12.56,
+    "expense_ratio_percent": 2.33,
+    "aum_cr": 448.35,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "WhiteOak Capital Mutual Fund",
+    "scheme_name": "WhiteOak Capital Large Cap Fund",
+    "scheme_category": "Large Cap Fund",
+    "alpha": null,
+    "beta": 0.95,
+    "sharpe_ratio": 0.94,
+    "standard_deviation": 11.56,
+    "expense_ratio_percent": 2.14,
+    "aum_cr": 1143.94,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "WhiteOak Capital Mutual Fund",
+    "scheme_name": "WhiteOak Capital Large & Mid Cap Fund",
+    "scheme_category": "Large & Mid Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 2.02,
+    "aum_cr": 2073.17,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  },
+  {
+    "amc_name": "WhiteOak Capital Mutual Fund",
+    "scheme_name": "WhiteOak Capital Multi Cap Fund",
+    "scheme_category": "Multi Cap Fund",
+    "alpha": null,
+    "beta": null,
+    "sharpe_ratio": null,
+    "standard_deviation": null,
+    "expense_ratio_percent": 1.92,
+    "aum_cr": 2961.83,
+    "factsheet_month": "December 2025",
+    "last_updated": "2025-12-31"
+  }
+]
