@@ -35,29 +35,29 @@ async function loadMapping() {
 
 function getCategoryBenchmark(schemeName: string): string | null {
   const lower = schemeName.toLowerCase();
-  if (lower.includes("small cap")) return "NIFTY Smallcap 250 TRI";
-  if (lower.includes("mid cap")) return "NIFTY Midcap 150 TRI";
-  if (lower.includes("large cap")) return "Nifty 100 TRI";
-  if (lower.includes("large & mid cap") || lower.includes("largemidcap")) return "NIFTY LargeMidcap 250 TRI";
-  if (lower.includes("flexi cap")) return "NIFTY 500 TRI";
-  if (lower.includes("multi cap")) return "NIFTY 500 Multicap 50:25:25 TRI";
-  if (lower.includes("focused")) return "NIFTY 500 TRI";
-  if (lower.includes("value") || lower.includes("contra")) return "NIFTY 500 TRI";
-  if (lower.includes("elss") || lower.includes("tax saver")) return "NIFTY 500 TRI";
-  if (lower.includes("banking") || lower.includes("financial")) return "NIFTY Financial Services TRI";
-  if (lower.includes("it ") || lower.includes("technology")) return "NIFTY IT TRI";
-  if (lower.includes("pharma") || lower.includes("healthcare")) return "NIFTY Pharma TRI";
-  if (lower.includes("consumption")) return "NIFTY India Consumption TRI";
-  if (lower.includes("infrastructure")) return "NIFTY Infrastructure TRI";
-  if (lower.includes("manufacturing")) return "NIFTY India Manufacturing TRI";
-  if (lower.includes("mnc")) return "NIFTY MNC TRI";
-  if (lower.includes("psu")) return "S&P BSE PSU TRI";
-  if (lower.includes("liquid")) return "NIFTY Liquid Index";
-  if (lower.includes("overnight")) return "NIFTY 1D Rate Index";
-  if (lower.includes("money market")) return "NIFTY Money Market Index (A-I / B-I)";
-  if (lower.includes("ultra short")) return "NIFTY Ultra Short Duration Debt Index";
-  if (lower.includes("low duration")) return "NIFTY Low Duration Debt Index";
-  if (lower.includes("short duration")) return "NIFTY Short Duration Debt Index";
+  if (lower.includes("small cap")) return "Nifty Benchmark - NIFTY Smallcap 250 TRI.csv";
+  if (lower.includes("mid cap")) return "Nifty Benchmark - NIFTY Midcap 150 TRI.csv";
+  if (lower.includes("large cap")) return "Nifty Benchmark - Nifty 100 TRI.csv";
+  if (lower.includes("large & mid cap") || lower.includes("largemidcap")) return "Nifty Benchmark - NIFTY LARGEMIDCAP 250.csv";
+  if (lower.includes("flexi cap")) return "Nifty Benchmark - Nifty 500 TRI.csv";
+  if (lower.includes("multi cap")) return "Nifty Benchmark - NIFTY500 MULTICAP 50_25_25.csv";
+  if (lower.includes("focused")) return "Nifty Benchmark - Nifty 500 TRI.csv";
+  if (lower.includes("value") || lower.includes("contra")) return "Nifty Benchmark - Nifty 500 TRI.csv";
+  if (lower.includes("elss") || lower.includes("tax saver")) return "Nifty Benchmark - Nifty 500 TRI.csv";
+  if (lower.includes("banking") || lower.includes("financial")) return "Nifty Benchmark - NIFTY Financial Services TRI.csv";
+  if (lower.includes("it ") || lower.includes("technology")) return "Nifty Benchmark - NIFTY IT TRI.csv";
+  if (lower.includes("pharma") || lower.includes("healthcare")) return "Nifty Benchmark - NIFTY Pharma TRI.csv";
+  if (lower.includes("consumption")) return "Nifty Benchmark - NIFTY India Consumption TRI.csv";
+  if (lower.includes("infrastructure")) return "Nifty Benchmark - NIFTY Infrastructure TRI.csv";
+  if (lower.includes("manufacturing")) return "Nifty Benchmark - NIFTY India Manufacturing TRI.csv";
+  if (lower.includes("mnc")) return "Nifty Benchmark - NIFTY MNC TRI.csv";
+  if (lower.includes("psu")) return "Nifty Benchmark - S&P BSE PSU TRI.csv";
+  if (lower.includes("liquid")) return "Benchmark Debt - NIFTY Liquid Index.csv";
+  if (lower.includes("overnight")) return "Benchmark Debt - NIFTY 1D Rate Index.csv";
+  if (lower.includes("money market")) return "Benchmark Debt - NIFTY Money Market Index (A-I _ B-I).csv";
+  if (lower.includes("ultra short")) return "Benchmark Debt - NIFTY Ultra Short Duration Debt Index.csv";
+  if (lower.includes("low duration")) return "Benchmark Debt - NIFTY Low Duration Debt Index.csv";
+  if (lower.includes("short duration")) return "Benchmark Debt - NIFTY Short Duration Debt Index.csv";
   
   return null;
 }
@@ -177,6 +177,11 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
       const result = (cagr * 100).toFixed(2) + "%";
       
       console.log(`[Benchmark] ${targetBenchmark} - ${years}Y: Start=${closest.price} (${closest.date.toDateString()}), End=${latest.price} (${latest.date.toDateString()}), Ratio=${ratio.toFixed(4)}, CAGR=${result}`);
+
+      // If the 1Y return is suspiciously low (like 1.01%), check if we're using TRI
+      if (years === 1 && ratio < 1.05 && !targetBenchmark.toLowerCase().includes("tri")) {
+        console.warn(`[Benchmark] Warning: 1Y return for ${targetBenchmark} is very low (${result}). Ensure TRI data is used.`);
+      }
       
       return result;
     };
