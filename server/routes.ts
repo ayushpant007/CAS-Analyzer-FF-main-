@@ -14,6 +14,7 @@ import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { fetchNavForScheme, findSchemeCode, searchSchemeCodes } from "./mfapi";
 import { extractMetricsFromFactsheet } from "./factsheet";
 import { getMetricsFromJson } from "./json_factsheet";
+import { getBenchmarkReturns } from "./benchmarks";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -226,10 +227,10 @@ ${text}`;
       ]);
 
       const mergedMetrics = jsonMetrics || factsheetMetrics;
+      const benchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
+      const benchmarkReturns = await getBenchmarkReturns(benchmarkName);
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
-
-      let benchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
       
       let aiInsight = null;
       try {
@@ -265,7 +266,7 @@ Return ONLY JSON. No markdown.`;
           "5y": formatCagr(navData?.cagr_5y ?? null),
         },
         benchmark_name: benchmarkName,
-        benchmark_returns: {
+        benchmark_returns: benchmarkReturns || {
           "1y": "N/A",
           "3y": "N/A",
           "5y": "N/A",
@@ -322,6 +323,9 @@ Return ONLY JSON. No markdown.`;
         extractMetricsFromFactsheet(fundName),
       ]);
 
+      const benchmarkName = factsheetMetrics?.benchmark_name || "Data unavailable";
+      const benchmarkReturns = await getBenchmarkReturns(benchmarkName);
+
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
 
       const result = {
@@ -330,8 +334,8 @@ Return ONLY JSON. No markdown.`;
           "3y": formatCagr(navData?.cagr_3y ?? null),
           "5y": formatCagr(navData?.cagr_5y ?? null),
         },
-        benchmark_name: factsheetMetrics?.benchmark_name || "Data unavailable",
-        benchmark_returns: {
+        benchmark_name: benchmarkName,
+        benchmark_returns: benchmarkReturns || {
           "1y": "N/A",
           "3y": "N/A",
           "5y": "N/A",
