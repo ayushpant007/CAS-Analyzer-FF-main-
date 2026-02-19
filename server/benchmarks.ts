@@ -121,11 +121,20 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
       if (parts.length < 2) continue;
 
       let dateStr = parts[0];
-      let priceStr = parts[1].replace(/,/g, "");
+      let priceStr = (parts[4] || parts[1]).replace(/,/g, ""); // Prefer 'Close' price if available at index 4
       
       let date: Date;
       if (dateStr.includes("-")) {
-        date = parse(dateStr, "dd-MM-yyyy", new Date());
+        // Handle various dash formats: dd-MM-yyyy or yyyy-MM-dd or dd-MMM-yy
+        if (dateStr.split("-")[0].length === 4) {
+          date = parse(dateStr, "yyyy-MM-dd", new Date());
+        } else if (dateStr.match(/[a-zA-Z]/)) {
+          date = parse(dateStr, "dd-MMM-yy", new Date());
+        } else {
+          date = parse(dateStr, "dd-MM-yyyy", new Date());
+        }
+      } else if (dateStr.includes("/")) {
+        date = parse(dateStr, "dd/MM/yyyy", new Date());
       } else {
         date = new Date(dateStr);
       }
@@ -137,6 +146,7 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
     }
 
     if (data.length < 2) return null;
+    // Sort ascending (oldest first) to ensure correct latest/closest points
     data.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     const latest = data[data.length - 1];
@@ -146,6 +156,7 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
       const targetDate = new Date(latestDate);
       targetDate.setFullYear(latestDate.getFullYear() - years);
 
+      // Find the closest date to the target date (X years ago)
       let closest = data[0];
       let minDiff = Math.abs(data[0].date.getTime() - targetDate.getTime());
 
@@ -157,10 +168,9 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
         }
       }
 
-      // 60 days diff is okay for historical data, but we need to ensure the price ratio makes sense
-      if (minDiff > 60 * 24 * 60 * 60 * 1000) return "N/A";
+      // If the closest data point is more than 90 days away from target, we don't have enough history
+      if (minDiff > 90 * 24 * 60 * 60 * 1000) return "N/A";
 
-      // Simple Point-to-Point CAGR calculation
       // CAGR = (End Value / Start Value)^(1/Years) - 1
       const ratio = latest.price / closest.price;
       const cagr = Math.pow(ratio, 1 / years) - 1;
