@@ -13,6 +13,7 @@ import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { fetchNavForScheme, findSchemeCode, searchSchemeCodes } from "./mfapi";
 import { extractMetricsFromFactsheet } from "./factsheet";
+import { getMetricsFromJson } from "./json_factsheet";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -218,14 +219,17 @@ ${text}`;
 
       console.log(`Fetching real data for: ${fundName} (${isin})`);
 
-      const [navData, factsheetMetrics] = await Promise.all([
+      const [navData, factsheetMetrics, jsonMetrics] = await Promise.all([
         fetchNavForScheme(fundName),
         extractMetricsFromFactsheet(fundName),
+        getMetricsFromJson(fundName)
       ]);
+
+      const mergedMetrics = jsonMetrics || factsheetMetrics;
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
 
-      let benchmarkName = factsheetMetrics?.benchmark_name || "Data unavailable";
+      let benchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
       
       let aiInsight = null;
       try {
@@ -271,20 +275,23 @@ Return ONLY JSON. No markdown.`;
           holdings: aiInsight?.holdings || [],
         },
         stats: {
-          aum_crores: factsheetMetrics?.aum_crores || "Data unavailable",
-          expense_ratio: factsheetMetrics?.expense_ratio || "Data unavailable",
-          turnover: factsheetMetrics?.portfolio_turnover || "Data unavailable",
+          aum_crores: mergedMetrics?.aum_crores || "Data unavailable",
+          expense_ratio: mergedMetrics?.expense_ratio || "Data unavailable",
+          turnover: mergedMetrics?.portfolio_turnover || "Data unavailable",
+          factsheet_month: (mergedMetrics as any)?.factsheet_month || "Data unavailable",
+          last_updated: (mergedMetrics as any)?.last_updated || "Data unavailable",
+          scheme_category: (mergedMetrics as any)?.scheme_category || "Data unavailable",
         },
         risk_ratios: {
-          std_dev: { fund: factsheetMetrics?.std_deviation || "Data unavailable", category_avg: "Data unavailable" },
-          sharpe: { fund: factsheetMetrics?.sharpe_ratio || "Data unavailable", category_avg: "Data unavailable" },
-          beta: { fund: factsheetMetrics?.beta || "Data unavailable", category_avg: "Data unavailable" },
-          alpha: { fund: factsheetMetrics?.alpha || "Data unavailable", category_avg: "Data unavailable" },
+          std_dev: { fund: mergedMetrics?.std_deviation || "Data unavailable", category_avg: "Data unavailable" },
+          sharpe: { fund: mergedMetrics?.sharpe_ratio || "Data unavailable", category_avg: "Data unavailable" },
+          beta: { fund: mergedMetrics?.beta || "Data unavailable", category_avg: "Data unavailable" },
+          alpha: { fund: mergedMetrics?.alpha || "Data unavailable", category_avg: "Data unavailable" },
         },
         data_sources: {
           nav: navData ? "MFAPI (api.mfapi.in)" : "Data unavailable",
           returns: navData ? "Calculated from MFAPI NAV history" : "Data unavailable",
-          risk_metrics: factsheetMetrics ? factsheetMetrics.source : "Data unavailable",
+          risk_metrics: mergedMetrics ? mergedMetrics.source : "Data unavailable",
         },
       };
 

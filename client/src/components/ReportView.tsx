@@ -923,6 +923,45 @@ export function ReportView({ report }: ReportViewProps) {
                           <p className="text-sm font-bold text-slate-900">₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
                         </div>
                       </div>
+
+                      {/* Financial Metrics Section */}
+                      <div className="space-y-3 pt-4 border-t border-slate-100">
+                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Financial Metrics (Factsheet)</h5>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Alpha</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).alpha?.fund}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Beta</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).beta?.fund}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Sharpe</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).sharpe?.fund}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Std Dev</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).std_dev?.fund}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Exp. Ratio</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).expense_ratio}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">AUM (Cr)</p>
+                            <p className="text-xs font-bold text-slate-900">₹{(performances[mf.isin].stats as any).aum_crores}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Month</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).factsheet_month}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                            <p className="text-[9px] text-slate-500 uppercase">Updated</p>
+                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).last_updated}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
