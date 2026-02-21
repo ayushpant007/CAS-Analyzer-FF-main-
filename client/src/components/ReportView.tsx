@@ -444,26 +444,13 @@ export function ReportView({ report }: ReportViewProps) {
     return counts;
   }, [performances]);
 
-  const getClassifiedColor = (p: any) => {
-    const s1 = parseFloat(p.cagr?.["1y"]?.replace("%", "") || "0");
-    const b1 = parseFloat(p.benchmark_returns?.["1y"]?.replace("%", "") || "0");
-    const s3 = parseFloat(p.cagr?.["3y"]?.replace("%", "") || "0");
-    const b3 = parseFloat(p.benchmark_returns?.["3y"]?.replace("%", "") || "0");
-    const s5 = parseFloat(p.cagr?.["5y"]?.replace("%", "") || "0");
-    const b5 = parseFloat(p.benchmark_returns?.["5y"]?.replace("%", "") || "0");
-
-    let greenCount = 0;
-    let totalValid = 0;
-
-    if (!isNaN(s1) && !isNaN(b1)) { totalValid++; if (s1 > b1) greenCount++; }
-    if (!isNaN(s3) && !isNaN(b3)) { totalValid++; if (s3 > b3) greenCount++; }
-    if (!isNaN(s5) && !isNaN(b5)) { totalValid++; if (s5 > b5) greenCount++; }
-
-    if (totalValid === 0) return "slate";
-    const ratio = greenCount / totalValid;
-    if (ratio >= 0.66) return "emerald";
-    if (ratio >= 0.33) return "amber";
-    return "rose";
+  const cleanFilename = (filename: string) => {
+    if (!filename) return "";
+    // Remove .pdf extension (case insensitive)
+    let name = filename.replace(/\.pdf$/i, "");
+    // Remove pattern like (AJGPA8088H) - parenthesis with alphanumeric content
+    name = name.replace(/\s*\([A-Z0-9]+\)\s*/g, " ").trim();
+    return name;
   };
   
   const container = {
@@ -507,7 +494,7 @@ export function ReportView({ report }: ReportViewProps) {
         {/* Header Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <h1 className="text-3xl font-bold font-display text-slate-900 mb-1">{report.filename}</h1>
+          <h1 className="text-3xl font-bold font-display text-slate-900 mb-1">{cleanFilename(report.filename)}</h1>
           <div className="flex items-center gap-2 text-slate-500">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">Analyzed on {report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : "Unknown Date"}</span>
