@@ -449,7 +449,7 @@ export function ReportView({ report }: ReportViewProps) {
     // Remove .pdf extension (case insensitive)
     let name = filename.replace(/\.pdf$/i, "");
     // Remove pattern like (AJGPA8088H) - parenthesis with alphanumeric content
-    name = name.replace(/\s*\([A-Z0-9]+\)\s*/g, " ").trim();
+    name = name.replace(/\s*\([A-Z0-9\-\s]+\)\s*/gi, " ").trim();
     return name;
   };
   
