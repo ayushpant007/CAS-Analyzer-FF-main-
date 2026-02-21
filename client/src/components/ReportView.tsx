@@ -1010,7 +1010,7 @@ export function ReportView({ report }: ReportViewProps) {
                           <div className="flex flex-wrap gap-1">
                             {performances[mf.isin].benchmark_name && performances[mf.isin].benchmark_name !== "Data unavailable" && (
                               <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                                {performances[mf.isin].benchmark_name!}
+                                {performances[mf.isin].benchmark_name}
                               </span>
                             )}
                             {performances[mf.isin].data_sources?.nav && (
@@ -1031,7 +1031,7 @@ export function ReportView({ report }: ReportViewProps) {
                               <div className="mt-1 pt-1 border-t border-slate-50">
                                 <p className="text-[8px] text-slate-400 font-medium">Benchmark</p>
                                 <p className="text-[9px] font-bold text-blue-600">
-                                  {performances[mf.isin].benchmark_returns![period as "1y" | "3y" | "5y"]}
+                                  {performances[mf.isin].benchmark_returns[period as "1y" | "3y" | "5y"]}
                                 </p>
                               </div>
                             )}
@@ -1307,7 +1307,13 @@ export function ReportView({ report }: ReportViewProps) {
 
             transactions.forEach((tx: any) => {
               const category = categorize(tx.type || "");
-              console.log(`Transaction: ${tx.scheme_name}, Type: ${tx.type}, Assigned Category: ${category}`);
+              const typeLower = (tx.type || "").toLowerCase();
+              
+              // Skip "Switch In" or "STP In" transactions as per user request
+              // Usually Switch In/STP In are identified by keywords or being the destination of a transfer
+              const isSwitchIn = typeLower.includes("switch in") || typeLower.includes("stp in");
+              if (isSwitchIn) return;
+
               if (category === "STP") sections["STP (Systematic Transfer Plan)"].push(tx);
               else if (category === "SIP") sections["SIP (Systematic Investment Plan)"].push(tx);
               else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);
