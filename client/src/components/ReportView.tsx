@@ -444,6 +444,28 @@ export function ReportView({ report }: ReportViewProps) {
     return counts;
   }, [performances]);
 
+  const getClassifiedColor = (p: any) => {
+    const s1 = parseFloat(p.cagr?.["1y"]?.replace("%", "") || "0");
+    const b1 = parseFloat(p.benchmark_returns?.["1y"]?.replace("%", "") || "0");
+    const s3 = parseFloat(p.cagr?.["3y"]?.replace("%", "") || "0");
+    const b3 = parseFloat(p.benchmark_returns?.["3y"]?.replace("%", "") || "0");
+    const s5 = parseFloat(p.cagr?.["5y"]?.replace("%", "") || "0");
+    const b5 = parseFloat(p.benchmark_returns?.["5y"]?.replace("%", "") || "0");
+
+    let greenCount = 0;
+    let totalValid = 0;
+
+    if (!isNaN(s1) && !isNaN(b1)) { totalValid++; if (s1 > b1) greenCount++; }
+    if (!isNaN(s3) && !isNaN(b3)) { totalValid++; if (s3 > b3) greenCount++; }
+    if (!isNaN(s5) && !isNaN(b5)) { totalValid++; if (s5 > b5) greenCount++; }
+
+    if (totalValid === 0) return "slate";
+    const ratio = greenCount / totalValid;
+    if (ratio >= 0.66) return "emerald";
+    if (ratio >= 0.33) return "amber";
+    return "rose";
+  };
+
   const cleanFilename = (filename: string) => {
     if (!filename) return "";
     // Remove .pdf extension (case insensitive)
