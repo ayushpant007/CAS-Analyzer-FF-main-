@@ -395,6 +395,15 @@ const calculateRiskScore = (perf: any) => {
 
   const totalScore = alphaScore + betaScore + stdDevScore + sharpeScore;
 
+  const getFundRating = (totalPerfScore: number, totalRiskScore: number) => {
+    const combinedScore = totalPerfScore + totalRiskScore;
+    // Max combined score is 40 (Perf) + 40 (Risk) = 80
+    if (combinedScore >= 64) return { text: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" };
+    if (combinedScore >= 48) return { text: "Good", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" };
+    if (combinedScore >= 32) return { text: "Neutral", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" };
+    return { text: "Poor", color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200" };
+  };
+
   return {
     alphaDiff: avgAlpha,
     alphaScore,
@@ -405,7 +414,8 @@ const calculateRiskScore = (perf: any) => {
     sharpe,
     sharpeScore,
     totalScore,
-    rating: getRiskRating(totalScore)
+    rating: getRiskRating(totalScore),
+    getFundRating
   };
 };
 
