@@ -304,6 +304,111 @@ interface ReportViewProps {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+const CATEGORY_AVG_STD_DEV: Record<string, number> = {
+  "Large Cap": 12,
+  "Large & Mid Cap": 15,
+  "Multi Cap": 16,
+  "Flexi Cap": 14,
+  "Mid Cap": 19,
+  "Small Cap": 26,
+  "Focused Fund": 18.5,
+  "Value Fund": 17.5,
+  "Contra Fund": 17.5,
+  "ELSS": 16,
+  "Sector Funds": 23,
+  "Thematic Funds": 21.5,
+  "Debt": 12,
+  "Hybrid": 12,
+  "Gold / Silver": 12,
+  "Others": 12
+};
+
+const getRiskRating = (score: number) => {
+  if (score >= 32) return { text: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50" };
+  if (score >= 24) return { text: "Good", color: "text-blue-600", bg: "bg-blue-50" };
+  if (score >= 16) return { text: "Average", color: "text-amber-600", bg: "bg-amber-50" };
+  if (score >= 8) return { text: "Below Average", color: "text-orange-600", bg: "bg-orange-50" };
+  return { text: "Poor", color: "text-rose-600", bg: "bg-rose-50" };
+};
+
+const calculateRiskScore = (perf: any) => {
+  if (!perf || !perf.risk_ratios || !perf.cagr || !perf.benchmark_returns) return null;
+
+  const parseVal = (v: any) => {
+    if (typeof v === 'number') return v;
+    const s = String(v || "0");
+    return parseFloat(s.replace(/[^\d.-]/g, '') || "0");
+  };
+
+  // 1. Alpha Score
+  const c1 = parseVal(perf.cagr["1y"]);
+  const b1 = parseVal(perf.benchmark_returns["1y"]);
+  const c3 = parseVal(perf.cagr["3y"]);
+  const b3 = parseVal(perf.benchmark_returns["3y"]);
+  const c5 = parseVal(perf.cagr["5y"]);
+  const b5 = parseVal(perf.benchmark_returns["5y"]);
+  
+  const a1 = c1 - b1;
+  const a3 = c3 - b3;
+  const a5 = c5 - b5;
+  const avgAlpha = (a1 + a3 + a5) / 3;
+
+  let alphaScore = 0;
+  if (avgAlpha >= 3) alphaScore = 12;
+  else if (avgAlpha >= 2) alphaScore = 10;
+  else if (avgAlpha >= 1) alphaScore = 8;
+  else if (avgAlpha >= 0) alphaScore = 6;
+  else if (avgAlpha >= -1) alphaScore = 4;
+  else alphaScore = 2;
+
+  // 2. Beta Score
+  const beta = parseVal(perf.risk_ratios.beta?.fund);
+  let betaScore = 0;
+  if (beta >= 0.9 && beta <= 1.1) betaScore = 6;
+  else if ((beta >= 0.8 && beta < 0.9) || (beta > 1.1 && beta <= 1.2)) betaScore = 4;
+  else if ((beta >= 0.7 && beta < 0.8) || (beta > 1.2 && beta <= 1.3)) betaScore = 2;
+  else betaScore = 0;
+
+  // 3. Std Dev Score
+  const fundStdDev = parseVal(perf.risk_ratios.std_dev?.fund);
+  const category = perf.fund_category || "Others";
+  const categoryAvgStdDev = parseVal(perf.risk_ratios.std_dev?.category_avg) || CATEGORY_AVG_STD_DEV[category] || 12;
+  const riskGap = fundStdDev - categoryAvgStdDev;
+  
+  let stdDevScore = 0;
+  if (riskGap <= -2) stdDevScore = 7;
+  else if (riskGap <= -1) stdDevScore = 6;
+  else if (riskGap <= -0.5) stdDevScore = 5;
+  else if (riskGap <= 0.49) stdDevScore = 4;
+  else if (riskGap <= 0.99) stdDevScore = 2;
+  else stdDevScore = 0;
+
+  // 4. Sharpe Ratio Score
+  const sharpe = parseVal(perf.risk_ratios.sharpe?.fund);
+  let sharpeScore = 0;
+  if (sharpe >= 0.20) sharpeScore = 15;
+  else if (sharpe >= 0.15) sharpeScore = 12;
+  else if (sharpe >= 0.10) sharpeScore = 10;
+  else if (sharpe >= 0.05) sharpeScore = 6;
+  else if (sharpe >= 0.01) sharpeScore = 3;
+  else sharpeScore = 0;
+
+  const totalScore = alphaScore + betaScore + stdDevScore + sharpeScore;
+
+  return {
+    alphaDiff: avgAlpha,
+    alphaScore,
+    beta,
+    betaScore,
+    riskGap,
+    stdDevScore,
+    sharpe,
+    sharpeScore,
+    totalScore,
+    rating: getRiskRating(totalScore)
+  };
+};
+
 export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
@@ -1202,67 +1307,79 @@ export function ReportView({ report }: ReportViewProps) {
                       <div className="space-y-3 pt-4 border-t border-slate-100">
                         <div className="flex justify-between items-center">
                           <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Financial Metrics (Factsheet)</h5>
-                          <div className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">
-                            Score: {calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns).total}/40
-                          </div>
+                          {(() => {
+                            const risk = calculateRiskScore(performances[mf.isin]);
+                            if (!risk) return (
+                              <div className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">
+                                Score: {calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns).total}/40
+                              </div>
+                            );
+                            return (
+                              <div className="flex gap-2">
+                                <div className={`${risk.rating.bg} ${risk.rating.color} px-2 py-0.5 rounded text-[10px] font-bold border border-current/20`}>
+                                  Risk Rating: {risk.rating.text} ({risk.totalScore}/40)
+                                </div>
+                                <div className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">
+                                  Perf Score: {calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns).total}/40
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center relative group">
                             <p className="text-[9px] text-slate-500 uppercase">Alpha</p>
-                            <div className="space-y-1">
-                              {(() => {
-                                const perf = performances[mf.isin];
-                                if (!perf || !perf.cagr || !perf.benchmark_returns) {
-                                  return <p className="text-xs font-bold text-slate-900">{(perf?.risk_ratios as any)?.alpha?.fund || "N/A"}</p>;
-                                }
-
-                                const parseVal = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, '') || "0");
-                                
-                                const b1y = perf.benchmark_returns["1y"];
-                                const c1y = perf.cagr["1y"];
-                                const b3y = perf.benchmark_returns["3y"];
-                                const c3y = perf.cagr["3y"];
-                                const b5y = perf.benchmark_returns["5y"];
-                                const c5y = perf.cagr["5y"];
-
-                                if (!b1y || !c1y || !b3y || !c3y || !b5y || !c5y) {
-                                  return <p className="text-xs font-bold text-slate-900">{(perf?.risk_ratios as any)?.alpha?.fund || "N/A"}</p>;
-                                }
-
-                                const val1y = parseVal(c1y) - parseVal(b1y);
-                                const val3y = parseVal(c3y) - parseVal(b3y);
-                                const val5y = parseVal(c5y) - parseVal(b5y);
-                                
-                                const avgAlpha = (val1y + val3y + val5y) / 3;
-
+                            {(() => {
+                                const risk = calculateRiskScore(performances[mf.isin]);
+                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
                                 return (
-                                  <>
-                                    <p className={`text-xs font-bold ${avgAlpha >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                      {avgAlpha >= 0 ? '+' : ''}{avgAlpha.toFixed(2)}%
+                                  <div className="space-y-0.5">
+                                    <p className={`text-xs font-bold ${risk.alphaDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                      {risk.alphaDiff >= 0 ? '+' : ''}{risk.alphaDiff.toFixed(2)}%
                                     </p>
-                                    <div className="flex flex-wrap justify-center gap-1 text-[8px] font-medium text-slate-400">
-                                      <span title="1Y Alpha" className={val1y >= 0 ? 'text-emerald-500' : 'text-rose-500'}>{val1y >= 0 ? '+' : ''}{val1y.toFixed(1)}</span>
-                                      <span>|</span>
-                                      <span title="3Y Alpha" className={val3y >= 0 ? 'text-emerald-500' : 'text-rose-500'}>{val3y >= 0 ? '+' : ''}{val3y.toFixed(1)}</span>
-                                      <span>|</span>
-                                      <span title="5Y Alpha" className={val5y >= 0 ? 'text-emerald-500' : 'text-rose-500'}>{val5y >= 0 ? '+' : ''}{val5y.toFixed(1)}</span>
-                                    </div>
-                                  </>
+                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.alphaScore}/12</p>
+                                  </div>
                                 );
-                              })()}
-                            </div>
+                            })()}
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[9px] text-slate-500 uppercase">Beta</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).beta?.fund}</p>
+                            {(() => {
+                                const risk = calculateRiskScore(performances[mf.isin]);
+                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
+                                return (
+                                  <div className="space-y-0.5">
+                                    <p className="text-xs font-bold text-slate-900">{risk.beta.toFixed(2)}</p>
+                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.betaScore}/6</p>
+                                  </div>
+                                );
+                            })()}
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[9px] text-slate-500 uppercase">Sharpe</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).sharpe?.fund}</p>
+                            {(() => {
+                                const risk = calculateRiskScore(performances[mf.isin]);
+                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
+                                return (
+                                  <div className="space-y-0.5">
+                                    <p className="text-xs font-bold text-slate-900">{risk.sharpe.toFixed(2)}</p>
+                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.sharpeScore}/15</p>
+                                  </div>
+                                );
+                            })()}
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Std Dev</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].risk_ratios as any).std_dev?.fund}</p>
+                            <p className="text-[9px] text-slate-500 uppercase">Std Dev / Gap</p>
+                            {(() => {
+                                const risk = calculateRiskScore(performances[mf.isin]);
+                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
+                                return (
+                                  <div className="space-y-0.5">
+                                    <p className="text-xs font-bold text-slate-900">Gap: {risk.riskGap >= 0 ? '+' : ''}{risk.riskGap.toFixed(2)}</p>
+                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.stdDevScore}/7</p>
+                                  </div>
+                                );
+                            })()}
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[9px] text-slate-500 uppercase">Exp. Ratio</p>
