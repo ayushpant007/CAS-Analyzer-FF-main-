@@ -1163,11 +1163,39 @@ export function ReportView({ report }: ReportViewProps) {
                           </div>
                         ))}
                       </div>
-                      <div className="grid grid-cols-1">
+                      <div className="grid grid-cols-1 gap-2">
                         <div className="bg-slate-100/50 p-2 rounded-lg text-center border border-slate-200">
                           <p className="text-[10px] text-slate-500 uppercase font-bold">NAV</p>
                           <p className="text-sm font-bold text-slate-900">₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
                         </div>
+                        {(() => {
+                          const score = calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns);
+                          return (
+                            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                              <div className="flex justify-between items-center mb-2">
+                                <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider">Performance Scoring Breakdown</p>
+                                <p className="text-xs font-bold text-blue-700">Total: {score.total}/40</p>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 mb-2">
+                                <div className="text-center">
+                                  <p className="text-[8px] text-slate-500 uppercase">1Y Score</p>
+                                  <p className="text-xs font-bold text-slate-900">{score.breakDown["1y"]}/10</p>
+                                </div>
+                                <div className="text-center border-x border-blue-100">
+                                  <p className="text-[8px] text-slate-500 uppercase">3Y Score</p>
+                                  <p className="text-xs font-bold text-slate-900">{score.breakDown["3y"]}/15</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-[8px] text-slate-500 uppercase">5Y Score</p>
+                                  <p className="text-xs font-bold text-slate-900">{score.breakDown["5y"]}/15</p>
+                                </div>
+                              </div>
+                              <p className="text-[9px] text-center text-blue-500 font-medium italic border-t border-blue-100 pt-1">
+                                Performance Score = 1Y Score + 3Y Score + 5Y Score
+                              </p>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* Financial Metrics Section */}
