@@ -1408,6 +1408,36 @@ export function ReportView({ report }: ReportViewProps) {
                             <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).last_updated}</p>
                           </div>
                         </div>
+
+                        {/* Total Fund Rating Section */}
+                        {(() => {
+                          const perfScore = calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns);
+                          const riskScore = calculateRiskScore(performances[mf.isin]);
+                          if (!riskScore) return null;
+                          const fundRating = riskScore.getFundRating(perfScore.total, riskScore.totalScore);
+                          
+                          return (
+                            <div className={`mt-6 p-4 rounded-xl border-2 ${fundRating.bg} ${fundRating.border} shadow-sm`}>
+                              <div className="flex flex-col items-center text-center space-y-2">
+                                <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Overall Fund Analysis</h5>
+                                <div className="flex items-center gap-4">
+                                  <div className="text-center">
+                                    <p className="text-[8px] text-slate-400 uppercase">Total Combined Score</p>
+                                    <p className="text-lg font-black text-slate-900">{perfScore.total + riskScore.totalScore}/80</p>
+                                  </div>
+                                  <div className="h-8 w-px bg-slate-200" />
+                                  <div className="text-center">
+                                    <p className="text-[8px] text-slate-400 uppercase">Fund Rating</p>
+                                    <p className={`text-lg font-black ${fundRating.color} uppercase tracking-tight`}>{fundRating.text}</p>
+                                  </div>
+                                </div>
+                                <p className="text-[10px] text-slate-500 italic">
+                                  Combined Score = Performance Score ({perfScore.total}) + Risk Metrics Score ({riskScore.totalScore})
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
