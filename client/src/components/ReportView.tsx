@@ -435,6 +435,46 @@ export function ReportView({ report }: ReportViewProps) {
     }
   };
 
+  const calculatePerformanceScore = (schemeReturns: any, benchmarkReturns: any) => {
+    if (!schemeReturns || !benchmarkReturns) return { total: 0, breakDown: { "1y": 0, "3y": 0, "5y": 0 } };
+    
+    const parseVal = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, '') || "0");
+    
+    const s1 = parseVal(schemeReturns["1y"]);
+    const b1 = parseVal(benchmarkReturns["1y"]);
+    const s3 = parseVal(schemeReturns["3y"]);
+    const b3 = parseVal(benchmarkReturns["3y"]);
+    const s5 = parseVal(schemeReturns["5y"]);
+    const b5 = parseVal(benchmarkReturns["5y"]);
+
+    const getScore1Y = (diff: number) => {
+      if (diff >= 3) return 10;
+      if (diff >= 1.5) return 8;
+      if (diff >= 0) return 6;
+      if (diff >= -1.49) return 4;
+      if (diff >= -2.99) return 2;
+      return 0;
+    };
+
+    const getScoreLongTerm = (diff: number) => {
+      if (diff >= 3) return 15;
+      if (diff >= 1.5) return 13;
+      if (diff >= 0) return 11;
+      if (diff >= -1.49) return 9;
+      if (diff >= -2.99) return 7;
+      return 0;
+    };
+
+    const score1y = getScore1Y(s1 - b1);
+    const score3y = getScoreLongTerm(s3 - b3);
+    const score5y = getScoreLongTerm(s5 - b5);
+
+    return {
+      total: score1y + score3y + score5y,
+      breakDown: { "1y": score1y, "3y": score3y, "5y": score5y }
+    };
+  };
+
   const analyzePerformance = async (isin: string) => {
     if (!isin) return;
     setAnalyzingIsin(isin);
@@ -455,6 +495,29 @@ export function ReportView({ report }: ReportViewProps) {
     } finally {
       setAnalyzingIsin(null);
     }
+  };
+
+  const classifyPerformance = (schemeReturns: any, benchmarkReturns: any) => {
+    if (!schemeReturns || !benchmarkReturns) return null;
+    const s1 = parseFloat(schemeReturns["1y"]?.replace("%", "") || "0");
+    const b1 = parseFloat(benchmarkReturns["1y"]?.replace("%", "") || "0");
+    const s3 = parseFloat(schemeReturns["3y"]?.replace("%", "") || "0");
+    const b3 = parseFloat(benchmarkReturns["3y"]?.replace("%", "") || "0");
+    const s5 = parseFloat(schemeReturns["5y"]?.replace("%", "") || "0");
+    const b5 = parseFloat(benchmarkReturns["5y"]?.replace("%", "") || "0");
+
+    let greenCount = 0;
+    let totalValid = 0;
+
+    if (!isNaN(s1) && !isNaN(b1)) { totalValid++; if (s1 > b1) greenCount++; }
+    if (!isNaN(s3) && !isNaN(b3)) { totalValid++; if (s3 > b3) greenCount++; }
+    if (!isNaN(s5) && !isNaN(b5)) { totalValid++; if (s5 > b5) greenCount++; }
+
+    if (totalValid === 0) return null;
+    const ratio = greenCount / totalValid;
+    if (ratio >= 0.66) return "green";
+    if (ratio >= 0.33) return "yellow";
+    return "red";
   };
 
   const performanceClassification = useMemo(() => {
@@ -1127,9 +1190,20 @@ export function ReportView({ report }: ReportViewProps) {
 
                                 const parseVal = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, '') || "0");
                                 
-                                const val1y = parseVal(perf.benchmark_returns["1y"]) - parseVal(perf.cagr["1y"]);
-                                const val3y = parseVal(perf.benchmark_returns["3y"]) - parseVal(perf.cagr["3y"]);
-                                const val5y = parseVal(perf.benchmark_returns["5y"]) - parseVal(perf.cagr["5y"]);
+                                const b1y = perf.benchmark_returns["1y"];
+                                const c1y = perf.cagr["1y"];
+                                const b3y = perf.benchmark_returns["3y"];
+                                const c3y = perf.cagr["3y"];
+                                const b5y = perf.benchmark_returns["5y"];
+                                const c5y = perf.cagr["5y"];
+
+                                if (!b1y || !c1y || !b3y || !c3y || !b5y || !c5y) {
+                                  return <p className="text-xs font-bold text-slate-900">{(perf?.risk_ratios as any)?.alpha?.fund || "N/A"}</p>;
+                                }
+
+                                const val1y = parseVal(b1y) - parseVal(c1y);
+                                const val3y = parseVal(b3y) - parseVal(c3y);
+                                const val5y = parseVal(b5y) - parseVal(c5y);
                                 
                                 const avgAlpha = (val1y + val3y + val5y) / 3;
 
