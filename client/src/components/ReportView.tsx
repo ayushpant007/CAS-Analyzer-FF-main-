@@ -1105,7 +1105,7 @@ export function ReportView({ report }: ReportViewProps) {
                         <h5 className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">AI Reason</h5>
                         <p className="text-xs text-slate-700 leading-relaxed">
                           {performances[mf.isin].risk_ratios?.alpha?.fund && parseFloat(performances[mf.isin].risk_ratios.alpha.fund) > 0 
-                            ? `This fund is generating a positive alpha of ${performances[mf.isin].risk_ratios.alpha.fund}, indicating superior stock selection and management performance relative to its benchmark. `
+                            ? `This fund is generating a positive alpha, indicating superior stock selection and management performance relative to its benchmark. `
                             : ""}
                           {getClassifiedColor(performances[mf.isin]) === "emerald" 
                             ? "Consistent outperformance across multiple time horizons suggests strong fund management and a robust investment strategy."
@@ -1229,23 +1229,23 @@ export function ReportView({ report }: ReportViewProps) {
                                   return <p className="text-xs font-bold text-slate-900">{(perf?.risk_ratios as any)?.alpha?.fund || "N/A"}</p>;
                                 }
 
-                                const val1y = parseVal(b1y) - parseVal(c1y);
-                                const val3y = parseVal(b3y) - parseVal(c3y);
-                                const val5y = parseVal(b5y) - parseVal(c5y);
+                                const val1y = parseVal(c1y) - parseVal(b1y);
+                                const val3y = parseVal(c3y) - parseVal(b3y);
+                                const val5y = parseVal(c5y) - parseVal(b5y);
                                 
                                 const avgAlpha = (val1y + val3y + val5y) / 3;
 
                                 return (
                                   <>
                                     <p className={`text-xs font-bold ${avgAlpha >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                      {avgAlpha.toFixed(2)}%
+                                      {avgAlpha >= 0 ? '+' : ''}{avgAlpha.toFixed(2)}%
                                     </p>
                                     <div className="flex flex-wrap justify-center gap-1 text-[8px] font-medium text-slate-400">
-                                      <span title="1Y Alpha">{val1y >= 0 ? '+' : ''}{val1y.toFixed(1)}</span>
+                                      <span title="1Y Alpha" className={val1y >= 0 ? 'text-emerald-500' : 'text-rose-500'}>{val1y >= 0 ? '+' : ''}{val1y.toFixed(1)}</span>
                                       <span>|</span>
-                                      <span title="3Y Alpha">{val3y >= 0 ? '+' : ''}{val3y.toFixed(1)}</span>
+                                      <span title="3Y Alpha" className={val3y >= 0 ? 'text-emerald-500' : 'text-rose-500'}>{val3y >= 0 ? '+' : ''}{val3y.toFixed(1)}</span>
                                       <span>|</span>
-                                      <span title="5Y Alpha">{val5y >= 0 ? '+' : ''}{val5y.toFixed(1)}</span>
+                                      <span title="5Y Alpha" className={val5y >= 0 ? 'text-emerald-500' : 'text-rose-500'}>{val5y >= 0 ? '+' : ''}{val5y.toFixed(1)}</span>
                                     </div>
                                   </>
                                 );
