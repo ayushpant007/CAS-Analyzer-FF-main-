@@ -220,13 +220,12 @@ ${text}`;
 
       console.log(`Fetching real data for: ${fundName} (${isin})`);
 
-      const [navData, factsheetMetrics, jsonMetrics] = await Promise.all([
+      const [navData, jsonMetrics] = await Promise.all([
         fetchNavForScheme(fundName),
-        extractMetricsFromFactsheet(fundName),
         getMetricsFromJson(fundName)
       ]);
 
-      const mergedMetrics = jsonMetrics || factsheetMetrics;
+      const mergedMetrics = jsonMetrics;
       const benchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
       const benchmarkReturns = await getBenchmarkReturns(fundName, benchmarkName);
 

@@ -129,28 +129,6 @@
     "factsheet_month": "December 2025",
     "last_updated": "2025-12-31"
   },
-  Perfect 👍
-Continuing extraction from:
-
-📄 LIC Mutual Fund – Factsheet 31 December 2025 
-
-lic-mf-factsheet-31st-december-…
-
-
-📅 Data as on: 31 December 2025
-
-Now covering:
-
-Sectoral Funds
-
-Hybrid Funds
-
-Equity Savings
-
-Arbitrage
-
-✅ BATCH 2 (Schemes 11–25)
-[
   {
     "amc_name": "LIC Mutual Fund",
     "scheme_name": "LIC MF Banking & Financial Services Fund",
@@ -359,20 +337,6 @@ Arbitrage
     "factsheet_month": "December 2025",
     "last_updated": "2025-12-31"
   },
-  Perfect 👍
-Continuing extraction from:
-
-📄 LIC Mutual Fund – Factsheet 31 December 2025 
-
-lic-mf-factsheet-31st-december-…
-
-
-📅 Data as on: 31 December 2025
-
-Now completing remaining Index Funds + ETFs + Gold + Target Maturity
-
-✅ BATCH 4 (Schemes 41–55)
-[
   {
     "amc_name": "LIC Mutual Fund",
     "scheme_name": "LIC MF Nifty 50 Index Fund",

@@ -194,24 +194,6 @@
     "factsheet_month": "December 2025",
     "last_updated": "2025-12-31"
   },
-  Perfect 👍
-Continuing ICICI Prudential Mutual Fund – Passive Fund Factsheet December 2025 
-
-Passive Fund Factsheet December…
-
-
-📅 Data reference: 31 December 2025
-
-Now covering:
-
-Smart Beta ETFs
-
-Debt ETFs
-
-Target Maturity ETFs
-
-✅ BATCH 2 (Schemes 16–30)
-[
   {
     "amc_name": "ICICI Prudential Mutual Fund",
     "scheme_name": "ICICI Prudential Nifty 50 Equal Weight ETF",

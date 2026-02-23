@@ -10,7 +10,7 @@
     "expense_ratio_percent": 1.49,
     "aum_cr": 50875.69,
     "factsheet_month": "December 2025",
-    "last_updated": "2025-12-31"
+    "last_updated": "2025-12-31" 
   },
   {
     "amc_name": "Nippon India Mutual Fund",
@@ -129,17 +129,6 @@
     "factsheet_month": "December 2025",
     "last_updated": "2025-12-31"
   },
-  Perfect 👍
-Continuing extraction from:
-
-📄 Nippon India Mutual Fund – Fundamentals January 2026 (Data as on 31 December 2025) 
-
-Nippon-FS-Jan-2026
-
-Now covering remaining Equity + Sectoral + Thematic Funds.
-
-✅ BATCH 2 (Schemes 11–25)
-[
   {
     "amc_name": "Nippon India Mutual Fund",
     "scheme_name": "Nippon India Banking & Financial Services Fund",
