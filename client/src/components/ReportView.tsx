@@ -96,6 +96,46 @@ function PerformanceRow({ scheme, reportId }: { scheme: any, reportId: number })
     }
   };
 
+  const calculatePerformanceScore = (schemeReturns: any, benchmarkReturns: any) => {
+    if (!schemeReturns || !benchmarkReturns) return { total: 0, breakDown: { "1y": 0, "3y": 0, "5y": 0 } };
+    
+    const parseVal = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, '') || "0");
+    
+    const s1 = parseVal(schemeReturns["1y"]);
+    const b1 = parseVal(benchmarkReturns["1y"]);
+    const s3 = parseVal(schemeReturns["3y"]);
+    const b3 = parseVal(benchmarkReturns["3y"]);
+    const s5 = parseVal(schemeReturns["5y"]);
+    const b5 = parseVal(benchmarkReturns["5y"]);
+
+    const getScore1Y = (diff: number) => {
+      if (diff >= 3) return 10;
+      if (diff >= 1.5) return 8;
+      if (diff >= 0) return 6;
+      if (diff >= -1.49) return 4;
+      if (diff >= -2.99) return 2;
+      return 0;
+    };
+
+    const getScoreLongTerm = (diff: number) => {
+      if (diff >= 3) return 15;
+      if (diff >= 1.5) return 13;
+      if (diff >= 0) return 11;
+      if (diff >= -1.49) return 9;
+      if (diff >= -2.99) return 7;
+      return 0;
+    };
+
+    const score1y = getScore1Y(s1 - b1);
+    const score3y = getScoreLongTerm(s3 - b3);
+    const score5y = getScoreLongTerm(s5 - b5);
+
+    return {
+      total: score1y + score3y + score5y,
+      breakDown: { "1y": score1y, "3y": score3y, "5y": score5y }
+    };
+  };
+
   const classifyPerformance = (schemeReturns: any, benchmarkReturns: any) => {
     if (!schemeReturns || !benchmarkReturns) return null;
     const s1 = parseFloat(schemeReturns["1y"]?.replace("%", "") || "0");
@@ -1069,7 +1109,12 @@ export function ReportView({ report }: ReportViewProps) {
 
                       {/* Financial Metrics Section */}
                       <div className="space-y-3 pt-4 border-t border-slate-100">
-                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Financial Metrics (Factsheet)</h5>
+                        <div className="flex justify-between items-center">
+                          <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Financial Metrics (Factsheet)</h5>
+                          <div className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">
+                            Score: {calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns).total}/40
+                          </div>
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                           <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
                             <p className="text-[9px] text-slate-500 uppercase">Alpha</p>
