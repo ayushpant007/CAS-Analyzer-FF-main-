@@ -1142,7 +1142,224 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {/* Risk Metrics Check Section */}
+      {/* Portfolio Fit & Optimization Section */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-700 p-4 text-white">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold">PORTFOLIO FIT & OPTIMIZATION</h3>
+              <p className="text-xs opacity-80 uppercase tracking-wider">Overall Strategy & Efficiency Check (20 Marks)</p>
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-lg">
+              <span className="text-sm font-bold">Total Score: {(() => {
+                const totalValuation = mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                const actualMap: Record<string, number> = {};
+                mfSnapshot.forEach((mf: any) => {
+                  const cat = (mf.fund_category || "").toLowerCase();
+                  let mainCat = "Gold/Silver";
+                  if (cat.includes("equity")) mainCat = "Equity";
+                  else if (cat.includes("debt")) mainCat = "Debt";
+                  else if (cat.includes("hybrid")) mainCat = "Hybrid";
+                  actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
+                });
+
+                const age = analysis.client_details?.age || 30;
+                const riskProfile = analysis.client_details?.risk_profile || "Aggressive";
+                let ageKey = "20-35";
+                if (age > 60) ageKey = "60+";
+                else if (age > 50) ageKey = "50-60";
+                else if (age > 35) ageKey = "35-50";
+
+                const ideal = IDEAL_ALLOCATIONS[ageKey]?.[riskProfile] || IDEAL_ALLOCATIONS["20-35"]["Aggressive"];
+                let allocationScore = 10;
+                let maxDev = 0;
+                Object.entries(ideal).forEach(([cat, target]) => {
+                  const targetPct = parseFloat(target as string);
+                  const actualPct = actualMap[cat] || 0;
+                  maxDev = Math.max(maxDev, Math.abs(actualPct - targetPct));
+                });
+
+                if (maxDev > 20) allocationScore = 0;
+                else if (maxDev > 10) allocationScore = 4;
+                else if (maxDev > 5) allocationScore = 7;
+
+                const categoryCounts: Record<string, number> = {};
+                mfSnapshot.forEach((mf: any) => {
+                  const cat = mf.fund_category || "Other";
+                  categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                });
+                const hasOverDiversification = Object.values(categoryCounts).some(count => count > 5);
+                const poorFunds = Object.values(performances).filter(p => calculateRiskScore(p)?.totalScore < 20).length;
+                
+                let redundancyScore = 10;
+                if (hasOverDiversification || poorFunds > 2) redundancyScore = 0;
+                else if (poorFunds > 0) redundancyScore = 4;
+                else if (Object.keys(categoryCounts).length > 10) redundancyScore = 7;
+
+                return allocationScore + redundancyScore;
+              })()}/20</span>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 6.1 Asset Allocation Fit */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="font-bold text-slate-900">6.1 Asset Allocation Fit (10 Marks)</h4>
+              {(() => {
+                const totalValuation = mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                const actualMap: Record<string, number> = {};
+                mfSnapshot.forEach((mf: any) => {
+                  const cat = (mf.fund_category || "").toLowerCase();
+                  let mainCat = "Gold/Silver";
+                  if (cat.includes("equity")) mainCat = "Equity";
+                  else if (cat.includes("debt")) mainCat = "Debt";
+                  else if (cat.includes("hybrid")) mainCat = "Hybrid";
+                  actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
+                });
+
+                const age = analysis.client_details?.age || 30;
+                const riskProfile = analysis.client_details?.risk_profile || "Aggressive";
+                let ageKey = "20-35";
+                if (age > 60) ageKey = "60+";
+                else if (age > 50) ageKey = "50-60";
+                else if (age > 35) ageKey = "35-50";
+
+                const ideal = IDEAL_ALLOCATIONS[ageKey]?.[riskProfile] || IDEAL_ALLOCATIONS["20-35"]["Aggressive"];
+                let maxDev = 0;
+                Object.entries(ideal).forEach(([cat, target]) => {
+                  const targetPct = parseFloat(target as string);
+                  const actualPct = actualMap[cat] || 0;
+                  maxDev = Math.max(maxDev, Math.abs(actualPct - targetPct));
+                });
+
+                let score = 10;
+                let status = "Within ideal range";
+                if (maxDev > 20) { score = 0; status = "Major mismatch"; }
+                else if (maxDev > 10) { score = 4; status = "Moderate mismatch"; }
+                else if (maxDev > 5) { score = 7; status = "Slight deviation"; }
+
+                return (
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-indigo-600">{score}/10</span>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">{status}</p>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-500">
+                  <tr>
+                    <th className="px-4 py-2 text-left">Asset</th>
+                    <th className="px-4 py-2 text-right">Ideal Allocation</th>
+                    <th className="px-4 py-2 text-right">Actual</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {(() => {
+                    const totalValuation = mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+                    const actualMap: Record<string, number> = {};
+                    mfSnapshot.forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      let mainCat = "Gold/Silver";
+                      if (cat.includes("equity")) mainCat = "Equity";
+                      else if (cat.includes("debt")) mainCat = "Debt";
+                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
+                      actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
+                    });
+
+                    const age = analysis.client_details?.age || 30;
+                    const riskProfile = analysis.client_details?.risk_profile || "Aggressive";
+                    let ageKey = "20-35";
+                    if (age > 60) ageKey = "60+";
+                    else if (age > 50) ageKey = "50-60";
+                    else if (age > 35) ageKey = "35-50";
+
+                    const ideal = IDEAL_ALLOCATIONS[ageKey]?.[riskProfile] || IDEAL_ALLOCATIONS["20-35"]["Aggressive"];
+                    return Object.entries(ideal).map(([cat, target]) => (
+                      <tr key={cat}>
+                        <td className="px-4 py-2 font-medium text-slate-700">{cat}</td>
+                        <td className="px-4 py-2 text-right text-slate-600">{target}</td>
+                        <td className="px-4 py-2 text-right font-bold text-indigo-600">{(actualMap[cat] || 0).toFixed(1)}%</td>
+                      </tr>
+                    ));
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 6.2 Over-Diversification & Redundancy */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="font-bold text-slate-900">6.2 Over-Diversification & Redundancy (10 Marks)</h4>
+              {(() => {
+                const categoryCounts: Record<string, number> = {};
+                mfSnapshot.forEach((mf: any) => {
+                  const cat = mf.fund_category || "Other";
+                  categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                });
+                const hasOverDiversification = Object.values(categoryCounts).some(count => count > 5);
+                const poorFunds = Object.values(performances).filter(p => calculateRiskScore(p)?.totalScore < 20).length;
+                
+                let score = 10;
+                let status = "Well optimized";
+                if (hasOverDiversification || poorFunds > 2) { score = 0; status = "Highly cluttered"; }
+                else if (poorFunds > 0) { score = 4; status = "Multiple overlaps"; }
+                else if (Object.keys(categoryCounts).length > 10) { score = 7; status = "Minor redundancy"; }
+
+                return (
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-violet-600">{score}/10</span>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">{status}</p>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm space-y-2">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Detection Check</p>
+                <ul className="space-y-1">
+                  {(() => {
+                    const categoryCounts: Record<string, number> = {};
+                    mfSnapshot.forEach((mf: any) => {
+                      const cat = mf.fund_category || "Other";
+                      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                    });
+                    const over5 = Object.values(categoryCounts).some(count => count > 5);
+                    const poorFunds = Object.values(performances).filter(p => calculateRiskScore(p)?.totalScore < 20).length;
+
+                    return [
+                      { label: "5+ funds in same category", pass: !over5 },
+                      { label: "Funds with score < 50", pass: poorFunds === 0 },
+                      { label: "Excessive overlap", pass: mfSnapshot.length <= 10 },
+                      { label: "Duplicate strategies", pass: true }
+                    ].map((rule, idx) => (
+                      <li key={idx} className="flex items-center gap-2 text-[10px]">
+                        <div className={`w-3 h-3 rounded-full flex items-center justify-center ${rule.pass ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                          {rule.pass ? "✔" : "✘"}
+                        </div>
+                        <span className={rule.pass ? "text-slate-600" : "text-rose-600 font-medium"}>{rule.label}</span>
+                      </li>
+                    ));
+                  })()}
+                </ul>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl text-white space-y-2">
+                <p className="text-[10px] font-bold opacity-60 uppercase tracking-wider">Optimization Tip</p>
+                <p className="text-[10px] leading-relaxed italic">
+                  {mfSnapshot.length > 10 
+                    ? "Your portfolio has too many funds. Consider consolidating similar funds to reduce tracking overhead and costs."
+                    : "Your portfolio size is manageable. Focus on picking best-in-class funds within each category."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
           <div className="flex justify-between items-center">
