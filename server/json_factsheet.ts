@@ -38,15 +38,16 @@ export async function getMetricsFromJson(schemeName: string) {
   
   // Try exact match first
   let match = data.find(item => 
-    item.scheme_name.toLowerCase().replace(/\s+/g, ' ').trim() === normalizedSearch
+    item.scheme_name && item.scheme_name.toLowerCase().replace(/\s+/g, ' ').trim() === normalizedSearch
   );
 
   // Try partial match if no exact match
   if (!match) {
-    match = data.find(item => 
-      normalizedSearch.includes(item.scheme_name.toLowerCase().replace(/\s+/g, ' ').trim()) ||
-      item.scheme_name.toLowerCase().replace(/\s+/g, ' ').trim().includes(normalizedSearch)
-    );
+    match = data.find(item => {
+      if (!item.scheme_name) return false;
+      const normalizedItem = item.scheme_name.toLowerCase().replace(/\s+/g, ' ').trim();
+      return normalizedSearch.includes(normalizedItem) || normalizedItem.includes(normalizedSearch);
+    });
   }
 
   if (match) {
