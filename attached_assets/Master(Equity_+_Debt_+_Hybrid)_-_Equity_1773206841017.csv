@@ -1,0 +1,2165 @@
+Fund Name,Plan,Category,VR ID,Alpha,Beta,Sharpe,Standard Deviation,Mean Return,Sortino
+360 ONE ELSS Tax Saver Nifty 50 Index Dir,Direct,ELSS (Tax Saver),42908,-1.58,0.85,0.70,11.18,13.96,1.10
+360 ONE ELSS Tax Saver Nifty 50 Index Reg,Regular,ELSS (Tax Saver),42906,-1.83,0.85,0.68,11.18,13.71,1.07
+360 ONE Flexicap Dir,Direct,Flexi Cap,43547,--,--,--,--,--,--
+360 ONE Flexicap Reg,Regular,Flexi Cap,43545,--,--,--,--,--,--
+360 ONE Focused Dir,Direct,Flexi Cap,28458,0.77,0.90,0.90,11.83,16.78,1.35
+360 ONE Focused Reg,Regular,Flexi Cap,28456,-0.22,0.90,0.82,11.82,15.78,1.23
+360 ONE Silver ETF,Regular,Thematic-PSU,45054,--,--,--,--,--,--
+360 ONE Silver ETF,Direct,Thematic-PSU,45054,--,--,--,--,--,--
+Abakkus Flexi Cap Dir,Direct,Flexi Cap,45683,--,--,--,--,--,--
+Abakkus Flexi Cap Reg,Regular,Flexi Cap,45681,--,--,--,--,--,--
+Abakkus Small Cap Dir,Direct,Small Cap,45863,N/A,N/A,N/A,N/A,N/A,N/A
+Abakkus Small Cap Reg,Regular,Small Cap,45862,N/A,N/A,N/A,N/A,N/A,N/A
+ABSL Bal Bhavishya Yojna Dir,Direct,Flexi Cap,38821,-0.57,0.96,0.80,12.64,16.17,1.10
+ABSL Bal Bhavishya Yojna Reg,Regular,Flexi Cap,38819,-1.92,0.96,0.69,12.58,14.77,0.95
+ABSL Banking & Financial Services Dir,Direct,Sectoral-Auto,22526,4.25,0.92,1.01,12.36,18.56,2.21
+ABSL Banking & Financial Services Reg,Regular,Sectoral-Auto,22524,3.30,0.92,0.93,12.35,17.61,2.05
+ABSL BSE 500 Momentum 50 Index Fund Dir,Direct,Flexi Cap,45377,--,--,--,--,--,--
+ABSL BSE 500 Momentum 50 Index Reg,Regular,Flexi Cap,45375,--,--,--,--,--,--
+ABSL BSE 500 Quality 50 Index Dir,Direct,Flexi Cap,45381,--,--,--,--,--,--
+ABSL BSE 500 Quality 50 Index Reg,Regular,Flexi Cap,45379,--,--,--,--,--,--
+ABSL BSE Sensex ETF,Regular,Large Cap,32649,-2.48,0.92,0.58,11.04,12.50,0.94
+ABSL BSE Sensex ETF,Direct,Large Cap,32649,-2.48,0.92,0.58,11.04,12.50,0.94
+ABSL Conglomerate Dir,Direct,Thematic,44788,--,--,--,--,--,--
+ABSL Conglomerate Reg,Regular,Thematic,44786,--,--,--,--,--,--
+ABSL Consumption Dir,Direct,Thematic-Infrastructure,15834,-0.95,0.78,0.76,13.25,16.14,1.02
+ABSL Consumption Reg,Regular,Thematic-Infrastructure,2787,-2.03,0.78,0.68,13.24,15.05,0.91
+ABSL Digital India Dir,Direct,Sectoral-Technology,15878,4.38,0.85,0.18,19.10,9.46,0.24
+ABSL ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),15889,0.33,0.92,0.88,11.90,16.61,1.32
+ABSL ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),24,-0.40,0.92,0.82,11.89,15.87,1.23
+ABSL ESG Integration Strategy Dir,Direct,Thematic-ESG,41221,1.21,0.98,0.85,12.48,16.74,1.23
+ABSL ESG Integration Strategy Reg,Regular,Thematic-ESG,41219,0.05,0.98,0.76,12.46,15.57,1.10
+ABSL Flexi Cap Dir,Direct,Flexi Cap,15741,N/A,N/A,N/A,N/A,N/A,N/A
+ABSL Flexi Cap Reg,Regular,Flexi Cap,561,1.74,0.96,1.01,12.28,18.46,1.47
+ABSL Focused Dir,Direct,Flexi Cap,15883,1.98,0.90,1.01,11.80,18.08,1.77
+ABSL Focused Reg,Regular,Flexi Cap,2865,1.04,0.90,0.94,11.78,17.12,1.63
+ABSL Global Emerging Opportunities Dir*,Direct,International,17094,--,--,0.78,12.79,16.13,1.16
+ABSL Global Emerging Opportunities Reg*,Regular,International,8751,--,--,0.74,12.79,15.58,1.10
+ABSL Global Excellence Equity FoF Dir*,Direct,International,17099,--,--,1.27,12.63,22.16,1.70
+ABSL Global Excellence Equity FoF Reg*,Regular,International,6275,--,--,1.22,12.62,21.55,1.64
+ABSL International Equity Dir,Direct,International,15903,--,--,0.86,12.35,16.68,1.43
+ABSL International Equity Reg,Regular,International,5802,--,--,0.81,12.36,16.10,1.35
+ABSL Large & Mid Cap Dir,Direct,Large & Mid Cap,15697,-0.28,1.04,0.82,13.52,17.17,1.08
+ABSL Large & Mid Cap Reg,Regular,Large & Mid Cap,27,-1.09,1.04,0.76,13.51,16.36,1.00
+ABSL Large Cap Dir,Direct,Large Cap,15831,0.71,0.97,0.87,11.58,16.15,1.32
+ABSL Large Cap Reg,Regular,Large Cap,1400,0.04,0.97,0.81,11.57,15.48,1.23
+ABSL Mid Cap Dir,Direct,Mid Cap,15870,-0.92,0.95,0.96,15.52,20.97,1.47
+ABSL Mid Cap Reg,Regular,Mid Cap,1439,-1.77,0.95,0.90,15.50,20.11,1.39
+ABSL MNC Dir,Direct,Thematic-Consumption,15872,-2.41,0.94,0.58,13.88,14.14,0.88
+ABSL MNC Reg,Regular,Thematic-Consumption,25,-3.11,0.94,0.53,13.87,13.42,0.80
+ABSL Multi-Cap Dir,Direct,Multi Cap,41466,0.75,0.91,0.91,13.51,18.45,1.16
+ABSL Multi-Cap Reg,Regular,Multi Cap,41464,-0.39,0.91,0.83,13.47,17.27,1.05
+ABSL Nifty 200 Momentum 30 ETF,Regular,Large & Mid Cap,42334,0.76,1.26,0.84,17.35,20.61,1.12
+ABSL Nifty 200 Momentum 30 ETF,Direct,Large & Mid Cap,42334,0.76,1.26,0.84,17.35,20.61,1.12
+ABSL Nifty 200 Quality 30 ETF,Regular,Large & Mid Cap,42335,-2.99,1.03,0.59,13.88,14.33,0.71
+ABSL Nifty 200 Quality 30 ETF,Direct,Large & Mid Cap,42335,-2.99,1.03,0.59,13.88,14.33,0.71
+ABSL Nifty 50 Equal Weight Index Dir,Direct,Large Cap,41505,3.28,1.00,1.05,12.29,19.02,1.39
+ABSL Nifty 50 Equal Weight Index Reg,Regular,Large Cap,41503,2.66,1.00,1.00,12.29,18.39,1.33
+ABSL Nifty 50 ETF,Regular,Large Cap,13012,-0.88,0.94,0.73,11.23,14.31,1.15
+ABSL Nifty 50 ETF,Direct,Large Cap,13012,-0.88,0.94,0.73,11.23,14.31,1.15
+ABSL Nifty 50 Index Dir,Direct,Large Cap,15769,-1.08,0.94,0.71,11.22,14.10,1.12
+ABSL Nifty 50 Index Reg,Regular,Large Cap,1445,-1.36,0.94,0.69,11.22,13.82,1.08
+ABSL Nifty Bank ETF,Regular,Sectoral-Auto,40378,0.01,1.00,0.74,12.08,15.03,1.42
+ABSL Nifty Bank ETF,Direct,Sectoral-Auto,40378,0.01,1.00,0.74,12.08,15.03,1.42
+ABSL Nifty Healthcare ETF,Regular,Sectoral-Pharma,41780,-0.89,1.01,1.13,16.75,24.99,1.89
+ABSL Nifty Healthcare ETF,Direct,Sectoral-Pharma,41780,-0.89,1.01,1.13,16.75,24.99,1.89
+ABSL Nifty India Defence Index Dir,Direct,Thematic,44489,--,--,--,--,--,--
+ABSL Nifty India Defence Index Reg,Regular,Thematic,44487,--,--,--,--,--,--
+ABSL Nifty IT ETF,Direct,Sectoral-Technology,41807,0.67,1.02,-0.02,22.42,5.55,-0.03
+ABSL Nifty Midcap 150 Index Dir,Direct,Mid Cap,41385,0.77,0.99,1.10,15.68,23.37,1.47
+ABSL Nifty Midcap 150 Index Reg,Regular,Mid Cap,41383,0.19,0.99,1.06,15.67,22.79,1.42
+ABSL Nifty Next 50 ETF,Regular,Large Cap,38491,4.82,1.26,1.02,16.59,23.06,1.35
+ABSL Nifty Next 50 ETF,Direct,Large Cap,38491,4.82,1.26,1.02,16.59,23.06,1.35
+ABSL Nifty Next 50 Index Dir,Direct,Large Cap,42072,4.31,1.26,0.99,16.62,22.57,1.31
+ABSL Nifty Next 50 Index Reg,Regular,Large Cap,42070,3.71,1.26,0.96,16.59,21.96,1.26
+ABSL Nifty PSE ETF,Regular,Thematic-Energy,44301,--,--,--,--,--,--
+ABSL Nifty PSE ETF,Direct,Thematic-Energy,44301,--,--,--,--,--,--
+ABSL Nifty Smallcap 50 Index Dir,Direct,Small Cap,41389,4.56,1.03,0.94,20.27,25.24,1.52
+ABSL Nifty Smallcap 50 Index Reg,Regular,Small Cap,41387,4.00,1.03,0.92,20.27,24.68,1.47
+ABSL Pharma & Healthcare Dir,Direct,Sectoral-Pharma,40007,0.03,0.94,1.17,15.79,24.56,2.01
+ABSL Pharma & Healthcare Reg,Regular,Sectoral-Pharma,40005,-1.30,0.93,1.09,15.75,23.19,1.87
+ABSL PSU Equity Dir,Direct,Thematic-Energy,40480,-1.30,0.95,1.22,21.09,31.87,2.09
+ABSL PSU Equity Reg,Regular,Thematic-Energy,40478,-2.60,0.95,1.16,21.06,30.53,1.98
+ABSL Retirement 30s Dir,Direct,Flexi Cap,39181,1.03,0.96,0.91,12.82,17.78,1.29
+ABSL Retirement 30s Reg,Regular,Flexi Cap,39179,-0.30,0.96,0.81,12.81,16.44,1.15
+ABSL Silver ETF,Regular,Thematic-PSU,42016,-1.51,0.98,1.17,41.02,54.22,2.54
+ABSL Silver ETF,Direct,Thematic-PSU,42016,-1.51,0.98,1.17,41.02,54.22,2.54
+ABSL Silver ETF FoF Dir,Direct,Thematic-PSU,42019,4.26,0.83,1.31,35.10,52.21,3.17
+ABSL Silver ETF FoF Reg,Regular,Thematic-PSU,42017,3.83,0.83,1.30,35.09,51.77,3.14
+ABSL Small Cap Dir,Direct,Small Cap,15935,1.04,0.89,0.77,17.75,19.83,1.17
+ABSL Small Cap Reg,Regular,Small Cap,5006,0.02,0.89,0.72,17.73,18.79,1.09
+ABSL Special Opportunities Dir,Direct,Thematic,41143,4.64,0.98,1.20,12.90,21.57,1.87
+ABSL Special Opportunities Reg,Regular,Thematic,41141,3.46,0.98,1.11,12.89,20.39,1.72
+ABSL US Equity Passive FoF Dir,Direct,International,41797,--,--,1.40,16.19,28.83,2.19
+ABSL US Equity Passive FoF Reg,Regular,International,41795,--,--,1.38,16.19,28.48,2.16
+ABSL Value Dir,Direct,Value Oriented,15879,2.63,1.16,0.98,15.79,21.59,1.39
+ABSL Value Reg,Regular,Value Oriented,6778,1.77,1.16,0.93,15.77,20.72,1.31
+Aditya Birla SL BSE Top 10 Banks ETF,Regular,Sectoral-Auto,45861,--,--,--,--,--,--
+Aditya Birla SL BSE Top 10 Banks ETF,Direct,Sectoral-Auto,45861,--,--,--,--,--,--
+Aditya Birla SL MSCI India ETF,Regular,Large & Mid Cap,45843,--,--,--,--,--,--
+Aditya Birla SL MSCI India ETF,Direct,Large & Mid Cap,45843,--,--,--,--,--,--
+Angel One Nifty 50 ETF,Regular,Large Cap,45159,--,--,--,--,--,--
+Angel One Nifty 50 ETF,Direct,Large Cap,45159,--,--,--,--,--,--
+Angel One Nifty 50 Index Dir,Direct,Large Cap,45161,--,--,--,--,--,--
+Angel One Nifty 50 Index Reg,Regular,Large Cap,45160,--,--,--,--,--,--
+Angel One Nifty Total Market ETF,Regular,Flexi Cap,44964,--,--,--,--,--,--
+Angel One Nifty Total Market ETF,Direct,Flexi Cap,44964,--,--,--,--,--,--
+Angel One Nifty Total Market Index Dir,Direct,Flexi Cap,44963,--,--,--,--,--,--
+Angel One Nifty Total Market Index Reg,Regular,Flexi Cap,44962,--,--,--,--,--,--
+Angel One Nifty Total Market Momentum Quality 50 ETF,Regular,Flexi Cap,45605,--,--,--,--,--,--
+Angel One Nifty Total Market Momentum Quality 50 ETF,Direct,Flexi Cap,45605,--,--,--,--,--,--
+Angel One Nifty Total Market Momentum Quality 50 Index Dir,Direct,Flexi Cap,45607,--,--,--,--,--,--
+Angel One Nifty Total Market Momentum Quality 50 Index Reg,Regular,Flexi Cap,45606,--,--,--,--,--,--
+Angel One Silver ETF,Regular,Thematic-PSU,45828,--,--,--,--,--,--
+Angel One Silver ETF,Direct,Thematic-PSU,45828,--,--,--,--,--,--
+Angel One Silver ETF FoF Dir,Direct,Thematic-PSU,45827,--,--,--,--,--,--
+Angel One Silver ETF FoF Reg,Regular,Thematic-PSU,45826,--,--,--,--,--,--
+Axis BSE India Sector Leaders Index Dir,Direct,Thematic,45782,--,--,--,--,--,--
+Axis BSE India Sector Leaders Index Reg,Regular,Thematic,45781,--,--,--,--,--,--
+Axis BSE Sensex ETF,Regular,Large Cap,43285,--,--,--,--,--,--
+Axis BSE Sensex ETF,Direct,Large Cap,43285,--,--,--,--,--,--
+Axis BSE Sensex Index Dir,Direct,Large Cap,44150,--,--,--,--,--,--
+Axis BSE Sensex Index Reg,Regular,Large Cap,44148,--,--,--,--,--,--
+Axis Consumption Dir,Direct,Thematic-Infrastructure,44466,--,--,--,--,--,--
+Axis Consumption Reg,Regular,Thematic-Infrastructure,44464,--,--,--,--,--,--
+Axis ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),15688,0.41,0.89,0.83,12.27,16.35,1.43
+Axis ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),10826,-0.33,0.89,0.77,12.27,15.60,1.33
+Axis ESG Integration Strategy Dir,Direct,Thematic-ESG,40536,-1.79,0.93,0.61,11.74,13.25,0.91
+Axis ESG Integration Strategy Reg,Regular,Thematic-ESG,40534,-2.77,0.93,0.53,11.72,12.27,0.79
+Axis Flexi Cap Dir,Direct,Flexi Cap,34711,0.02,0.96,0.83,12.85,16.79,1.09
+Axis Flexi Cap Reg,Regular,Flexi Cap,34709,-0.99,0.96,0.75,12.82,15.75,0.99
+Axis Focused Dir,Direct,Flexi Cap,15684,-2.76,0.93,0.58,12.82,13.57,0.97
+Axis Focused Reg,Regular,Flexi Cap,14951,-3.69,0.92,0.51,12.81,12.64,0.85
+Axis Global Equity Alpha FoF Dir,Direct,International,41100,--,--,1.32,11.35,21.07,1.94
+Axis Global Equity Alpha FoF Reg,Regular,International,41098,--,--,1.25,11.35,20.24,1.83
+Axis Global Innovation FoF Dir,Direct,International,41496,--,--,0.98,14.63,20.48,1.51
+Axis Global Innovation FoF Reg,Regular,International,41494,--,--,0.92,14.59,19.56,1.41
+Axis Greater China Equity FoF Dir,Direct,International,41287,--,--,0.49,19.52,15.68,1.04
+Axis Greater China Equity FoF Reg,Regular,International,41285,--,--,0.44,19.56,14.63,0.92
+Axis Large & Mid Cap Dir,Direct,Large & Mid Cap,37839,4.76,0.88,1.19,12.06,20.46,1.58
+Axis Large & Mid Cap Reg,Regular,Large & Mid Cap,37837,3.65,0.88,1.10,12.04,19.32,1.46
+Axis Large Cap Dir,Direct,Large Cap,15682,-0.77,0.90,0.72,11.05,14.03,1.04
+Axis Large Cap Reg,Regular,Large Cap,10780,-1.67,0.90,0.64,11.04,13.13,0.92
+Axis Midcap Dir,Direct,Mid Cap,15690,0.84,0.83,1.04,14.14,20.76,1.35
+Axis Midcap Reg,Regular,Mid Cap,12052,-0.20,0.83,0.96,14.13,19.70,1.25
+Axis Momentum Dir,Direct,Thematic,44768,--,--,--,--,--,--
+Axis Momentum Reg,Regular,Thematic,44766,--,--,--,--,--,--
+Axis Multi Factor Passive FoF Dir,Direct,Thematic,42080,-0.85,0.97,0.79,12.51,15.94,0.97
+Axis Multi Factor Passive FoF Reg,Regular,Thematic,42078,-1.21,0.97,0.76,12.53,15.60,0.94
+Axis Multicap Dir,Direct,Multi Cap,41885,N/A,N/A,N/A,N/A,N/A,N/A
+Axis Multicap Reg,Regular,Multi Cap,41883,4.19,0.90,1.16,13.56,21.80,1.46
+Axis NASDAQ 100 US Specific Equity Passive FoF Dir,Direct,International,42633,--,--,1.42,15.63,28.26,2.19
+Axis NASDAQ 100 US Specific Equity Passive FoF Reg,Regular,International,42631,--,--,1.39,15.62,27.88,2.21
+Axis Nifty 100 Index Dir,Direct,Large Cap,40298,-0.25,1.00,0.79,11.81,15.45,1.13
+Axis Nifty 100 Index Reg,Regular,Large Cap,40296,-0.95,1.00,0.73,11.81,14.75,1.04
+Axis Nifty 50 ETF,Regular,Large Cap,34322,-0.89,0.94,0.73,11.22,14.29,1.15
+Axis Nifty 50 ETF,Direct,Large Cap,34322,-0.89,0.94,0.73,11.22,14.29,1.15
+Axis Nifty 50 Index Dir,Direct,Large Cap,41860,-1.02,0.94,0.72,11.18,14.13,1.13
+Axis Nifty 50 Index Reg,Regular,Large Cap,41858,-1.31,0.94,0.69,11.18,13.84,1.09
+Axis Nifty 500 Index Dir,Direct,Flexi Cap,44413,--,--,--,--,--,--
+Axis Nifty 500 Index Reg,Regular,Flexi Cap,44412,--,--,--,--,--,--
+Axis Nifty Bank ETF,Regular,Sectoral-Auto,41162,-0.02,1.00,0.74,12.07,14.99,1.41
+Axis Nifty Bank ETF,Direct,Sectoral-Auto,41162,-0.02,1.00,0.74,12.07,14.99,1.41
+Axis Nifty Bank Index Dir,Direct,Sectoral-Auto,44321,--,--,--,--,--,--
+Axis Nifty Bank Index Reg,Regular,Sectoral-Auto,44319,--,--,--,--,--,--
+Axis NIFTY Healthcare ETF,Regular,Sectoral-Pharma,41481,-1.17,1.00,1.11,16.67,24.63,1.86
+Axis NIFTY Healthcare ETF,Direct,Sectoral-Pharma,41481,-1.17,1.00,1.11,16.67,24.63,1.86
+Axis NIFTY India Consumption ETF,Regular,Thematic-Infrastructure,41685,0.02,0.82,0.81,14.29,17.70,0.99
+Axis NIFTY India Consumption ETF,Direct,Thematic-Infrastructure,41685,0.02,0.82,0.81,14.29,17.70,0.99
+Axis NIFTY IT ETF,Direct,Sectoral-Technology,41382,0.56,1.01,-0.03,22.39,5.45,-0.04
+Axis Nifty IT Index Dir,Direct,Sectoral-Technology,43614,--,--,--,--,--,--
+Axis Nifty Midcap 50 Index Dir,Direct,Mid Cap,42158,1.30,1.02,1.11,16.50,24.43,1.51
+Axis Nifty Midcap 50 Index Reg,Regular,Mid Cap,42156,0.55,1.02,1.07,16.48,23.68,1.45
+Axis Nifty Next 50 Index Dir,Direct,Large Cap,41946,4.55,1.25,1.01,16.50,22.72,1.33
+Axis Nifty Next 50 Index Reg,Regular,Large Cap,41944,3.84,1.25,0.96,16.50,22.01,1.27
+Axis Nifty Smallcap 50 Index Dir,Direct,Small Cap,42118,4.60,1.02,0.95,20.13,25.17,1.52
+Axis Nifty Smallcap 50 Index Reg,Regular,Small Cap,42116,3.87,1.02,0.91,20.11,24.43,1.47
+Axis Nifty500 Momentum 50 Index Dir,Direct,Flexi Cap,44905,--,--,--,--,--,--
+Axis Nifty500 Momentum 50 Index Reg,Regular,Flexi Cap,44904,--,--,--,--,--,--
+Axis Nifty500 Quality 50 Index Dir,Direct,Flexi Cap,45468,--,--,--,--,--,--
+Axis Nifty500 Quality 50 Index Reg,Regular,Flexi Cap,45467,--,--,--,--,--,--
+Axis Nifty500 Value 50 ETF,Regular,Value Oriented,45050,--,--,--,--,--,--
+Axis Nifty500 Value 50 ETF,Direct,Value Oriented,45050,--,--,--,--,--,--
+Axis Nifty500 Value 50 Index Dir,Direct,Value Oriented,44613,--,--,--,--,--,--
+Axis Nifty500 Value 50 Index Reg,Regular,Value Oriented,44612,--,--,--,--,--,--
+Axis Services Opportunities Dir,Direct,Thematic,45324,--,--,--,--,--,--
+Axis Services Opportunities Reg,Regular,Thematic,45322,--,--,--,--,--,--
+Axis Silver ETF,Regular,Thematic-PSU,42522,-1.01,0.99,1.18,41.37,55.09,2.54
+Axis Silver ETF,Direct,Thematic-PSU,42522,-1.01,0.99,1.18,41.37,55.09,2.54
+Axis Silver FoF Dir,Direct,Thematic-PSU,42525,4.96,0.82,1.34,34.59,52.31,3.26
+Axis Silver FoF Reg,Regular,Thematic-PSU,42523,4.45,0.82,1.32,34.57,51.78,3.22
+Axis Small Cap Dir,Direct,Small Cap,22335,2.30,0.73,0.87,14.52,18.77,1.17
+Axis Small Cap Reg,Regular,Small Cap,22333,1.23,0.73,0.80,14.50,17.68,1.08
+Axis Value Dir,Direct,Value Oriented,41696,6.49,1.01,1.33,13.25,23.76,1.88
+Axis Value Reg,Regular,Value Oriented,41694,5.08,1.01,1.23,13.22,22.33,1.73
+Bajaj Finserv Banking And Financial Services Dir,Direct,Sectoral-Auto,45563,--,--,--,--,--,--
+Bajaj Finserv Banking And Financial Services Reg,Regular,Sectoral-Auto,45561,--,--,--,--,--,--
+Bajaj Finserv Consumption Dir,Direct,Thematic-Infrastructure,44689,--,--,--,--,--,--
+Bajaj Finserv Consumption Reg,Regular,Thematic-Infrastructure,44687,--,--,--,--,--,--
+Bajaj Finserv ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),44856,--,--,--,--,--,--
+Bajaj Finserv ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),44854,--,--,--,--,--,--
+Bajaj Finserv Flexi Cap Dir,Direct,Flexi Cap,43653,--,--,--,--,--,--
+Bajaj Finserv Flexi Cap Reg,Regular,Flexi Cap,43651,--,--,--,--,--,--
+Bajaj Finserv Healthcare Dir,Direct,Sectoral-Pharma,44774,--,--,--,--,--,--
+Bajaj Finserv Healthcare Reg,Regular,Sectoral-Pharma,44772,--,--,--,--,--,--
+Bajaj Finserv Large and Mid Cap Dir,Direct,Large & Mid Cap,44118,--,--,--,--,--,--
+Bajaj Finserv Large and Mid Cap Reg,Regular,Large & Mid Cap,44116,--,--,--,--,--,--
+Bajaj Finserv Large Cap Dir,Direct,Large Cap,44455,--,--,--,--,--,--
+Bajaj Finserv Large Cap Reg,Regular,Large Cap,44453,--,--,--,--,--,--
+Bajaj Finserv Multi Cap Dir,Direct,Multi Cap,44918,--,--,--,--,--,--
+Bajaj Finserv Multi Cap Reg,Regular,Multi Cap,44916,--,--,--,--,--,--
+Bajaj Finserv Nifty 50 ETF,Regular,Large Cap,44066,--,--,--,--,--,--
+Bajaj Finserv Nifty 50 ETF,Direct,Large Cap,44066,--,--,--,--,--,--
+Bajaj Finserv Nifty 50 Index Dir,Direct,Large Cap,45133,--,--,--,--,--,--
+Bajaj Finserv Nifty 50 Index Reg,Regular,Large Cap,45131,--,--,--,--,--,--
+Bajaj Finserv Nifty Bank ETF,Regular,Sectoral-Auto,44067,--,--,--,--,--,--
+Bajaj Finserv Nifty Bank ETF,Direct,Sectoral-Auto,44067,--,--,--,--,--,--
+Bajaj Finserv Nifty Next 50 Index Dir,Direct,Large Cap,45113,--,--,--,--,--,--
+Bajaj Finserv Nifty Next 50 Index Reg,Regular,Large Cap,45111,--,--,--,--,--,--
+Bajaj Finserv Small Cap Dir,Direct,Small Cap,45271,--,--,--,--,--,--
+Bajaj Finserv Small Cap Reg,Regular,Small Cap,45269,--,--,--,--,--,--
+Bandhan BSE Healthcare Index Dir,Direct,Sectoral-Pharma,44512,--,--,--,--,--,--
+Bandhan BSE Healthcare Index Reg,Regular,Sectoral-Pharma,44511,--,--,--,--,--,--
+Bandhan BSE India Sector Leaders Index Dir,Direct,Thematic,45461,--,--,--,--,--,--
+Bandhan BSE India Sector Leaders Index Reg,Regular,Thematic,45460,--,--,--,--,--,--
+Bandhan BSE Sensex ETF,Regular,Large Cap,32902,-2.82,0.92,0.55,11.01,12.14,0.89
+Bandhan BSE Sensex ETF,Direct,Large Cap,32902,-2.82,0.92,0.55,11.01,12.14,0.89
+Bandhan ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16493,1.11,0.88,0.95,11.45,16.97,1.32
+Bandhan ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),10032,0.00,0.88,0.85,11.44,15.85,1.18
+Bandhan Financial Services Dir,Direct,Sectoral-Auto,43567,--,--,--,--,--,--
+Bandhan Financial Services Reg,Regular,Sectoral-Auto,43565,--,--,--,--,--,--
+Bandhan Flexi Cap Dir,Direct,Flexi Cap,16501,1.07,0.86,0.94,11.31,16.69,1.35
+Bandhan Flexi Cap Reg,Regular,Flexi Cap,2886,0.35,0.86,0.87,11.30,15.97,1.26
+Bandhan Focused Dir,Direct,Flexi Cap,16507,3.66,0.95,1.02,13.91,20.25,1.41
+Bandhan Focused Reg,Regular,Flexi Cap,3151,2.36,0.95,0.92,13.89,18.94,1.28
+Bandhan Healthcare Dir,Direct,Sectoral-Pharma,45548,--,--,--,--,--,--
+Bandhan Healthcare Reg,Regular,Sectoral-Pharma,45546,--,--,--,--,--,--
+Bandhan Large & Mid Cap Dir,Direct,Large & Mid Cap,16474,6.70,1.02,1.34,13.22,23.84,1.80
+Bandhan Large & Mid Cap Reg,Regular,Large & Mid Cap,2797,5.53,1.01,1.25,13.20,22.65,1.68
+Bandhan Large Cap Dir,Direct,Large Cap,16699,2.63,1.04,1.00,12.58,18.70,1.46
+Bandhan Large Cap Reg,Regular,Large Cap,3400,1.45,1.04,0.91,12.56,17.51,1.32
+Bandhan Midcap Dir,Direct,Mid Cap,42342,-0.12,0.97,0.98,16.43,22.18,1.18
+Bandhan Midcap Reg,Regular,Mid Cap,42340,-1.64,0.97,0.89,16.40,20.62,1.07
+Bandhan Multi Cap Dir,Direct,Multi Cap,41822,1.53,0.86,0.99,12.65,18.64,1.39
+Bandhan Multi Cap Reg,Regular,Multi Cap,41820,0.07,0.86,0.88,12.63,17.16,1.23
+Bandhan Multi-Factor Dir,Direct,Thematic,45334,--,--,--,--,--,--
+Bandhan Multi-Factor Reg,Regular,Thematic,45332,--,--,--,--,--,--
+Bandhan Nifty 100 Index Dir,Direct,Large Cap,42076,-0.17,1.00,0.80,11.81,15.53,1.14
+Bandhan Nifty 100 Index Reg,Regular,Large Cap,42074,-0.66,1.00,0.76,11.81,15.03,1.08
+Bandhan Nifty 200 Quality 30 Index Dir,Direct,Large & Mid Cap,44741,--,--,--,--,--,--
+Bandhan Nifty 200 Quality 30 Index Reg,Regular,Large & Mid Cap,44740,--,--,--,--,--,--
+Bandhan Nifty 50 ETF,Regular,Large Cap,32903,-0.93,0.94,0.73,11.22,14.25,1.14
+Bandhan Nifty 50 ETF,Direct,Large Cap,32903,-0.93,0.94,0.73,11.22,14.25,1.14
+Bandhan Nifty 50 Index Dir,Direct,Large Cap,16504,-1.04,0.95,0.72,11.23,14.15,1.12
+Bandhan Nifty 50 Index Reg,Regular,Large Cap,11154,-1.53,0.95,0.67,11.23,13.66,1.05
+Bandhan Nifty 500 Momentum 50 Index Dir,Direct,Flexi Cap,44630,--,--,--,--,--,--
+Bandhan Nifty 500 Momentum 50 Index Reg,Regular,Flexi Cap,44629,--,--,--,--,--,--
+Bandhan Nifty 500 Value 50 Index Dir,Direct,Value Oriented,44628,--,--,--,--,--,--
+Bandhan Nifty 500 Value 50 Index Reg,Regular,Value Oriented,44627,--,--,--,--,--,--
+Bandhan Nifty Alpha 50 Index Dir,Direct,Flexi Cap,43864,--,--,--,--,--,--
+Bandhan Nifty Alpha 50 Index Reg,Regular,Flexi Cap,43862,--,--,--,--,--,--
+Bandhan Nifty Alpha Low Volatility 30 Index Dir,Direct,Large & Mid Cap,44859,--,--,--,--,--,--
+Bandhan Nifty Alpha Low Volatility 30 Index Reg,Regular,Large & Mid Cap,44858,--,--,--,--,--,--
+Bandhan Nifty Bank Index Dir,Direct,Sectoral-Auto,44477,--,--,--,--,--,--
+Bandhan Nifty Bank Index Reg,Regular,Sectoral-Auto,44476,--,--,--,--,--,--
+Bandhan Nifty IT Index Dir,Direct,Sectoral-Technology,43728,--,--,--,--,--,--
+Bandhan Nifty Midcap 150 Index Dir,Direct,Mid Cap,44531,--,--,--,--,--,--
+Bandhan Nifty Midcap 150 Index Reg,Regular,Mid Cap,44530,--,--,--,--,--,--
+Bandhan Nifty Next 50 Index Dir,Direct,Large Cap,44984,--,--,--,--,--,--
+Bandhan Nifty Next 50 Index Reg,Regular,Large Cap,44983,--,--,--,--,--,--
+Bandhan Nifty Smallcap 250 Index Dir,Direct,Small Cap,43958,--,--,--,--,--,--
+Bandhan Nifty Smallcap 250 Index Reg,Regular,Small Cap,43956,--,--,--,--,--,--
+Bandhan Nifty Total Mkt Index Dir,Direct,Flexi Cap,44403,--,--,--,--,--,--
+Bandhan Nifty Total Mkt Index Reg,Regular,Flexi Cap,44402,--,--,--,--,--,--
+Bandhan Nifty100 Low Volatility 30 Index Dir,Direct,Large Cap,42544,1.35,0.95,0.86,12.25,16.62,1.17
+Bandhan Nifty100 Low Volatility 30 Index Reg,Regular,Large Cap,42542,0.61,0.95,0.80,12.24,15.88,1.09
+Bandhan Nifty200 Momentum 30 Index Dir,Direct,Large & Mid Cap,42496,0.39,1.26,0.81,17.28,20.15,1.08
+Bandhan Nifty200 Momentum 30 Index Reg,Regular,Large & Mid Cap,42494,-0.24,1.26,0.78,17.27,19.51,1.03
+Bandhan Silver ETF,Regular,Thematic-PSU,45671,--,--,--,--,--,--
+Bandhan Silver ETF,Direct,Thematic-PSU,45671,--,--,--,--,--,--
+Bandhan Silver ETF FoF Dir,Direct,Thematic-PSU,45734,--,--,--,--,--,--
+Bandhan Silver ETF FoF Reg,Regular,Thematic-PSU,45733,--,--,--,--,--,--
+Bandhan Small Cap Dir,Direct,Small Cap,40564,10.34,0.92,1.29,18.11,29.44,1.99
+Bandhan Small Cap Reg,Regular,Small Cap,40562,8.98,0.91,1.21,18.07,28.05,1.87
+Bandhan US specific Equity Active FoF Dir,Direct,International,41620,--,--,1.18,16.20,25.24,1.85
+Bandhan US specific Equity Active FoF Reg,Regular,International,41618,--,--,1.12,16.18,24.23,1.75
+Bandhan Value Dir,Direct,Value Oriented,16498,1.96,0.92,1.01,11.98,18.21,1.43
+Bandhan Value Reg,Regular,Value Oriented,6693,0.89,0.92,0.92,11.97,17.13,1.31
+Bank of Ind Midcap Tax 2 Dir,Direct,ELSS (Tax Saver),36922,-0.97,1.19,0.75,16.19,18.30,1.01
+Bank of Ind Midcap Tax 2 Reg,Regular,ELSS (Tax Saver),36920,-0.87,1.19,0.76,16.23,18.40,1.02
+Bank of India Banking & Financial Services Dir,Direct,Sectoral-Auto,45745,--,--,--,--,--,--
+Bank of India Banking & Financial Services Reg,Regular,Sectoral-Auto,45743,--,--,--,--,--,--
+Bank of India Consumption Dir,Direct,Thematic-Infrastructure,44808,--,--,--,--,--,--
+Bank of India Consumption Reg,Regular,Thematic-Infrastructure,44806,--,--,--,--,--,--
+Bank of India ELSS Tax Saver Eco,Regular,ELSS (Tax Saver),10099,-0.47,1.16,0.77,15.98,18.43,1.06
+Bank of India ELSS Tax Saver Fund Dir,Direct,ELSS (Tax Saver),16803,0.39,1.16,0.83,15.99,19.31,1.13
+Bank of India ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),10097,-0.73,1.16,0.76,15.98,18.18,1.04
+Bank of India Flexi Cap Dir,Direct,Flexi Cap,41018,4.15,1.18,1.02,16.81,23.33,1.47
+Bank of India Flexi Cap Reg,Regular,Flexi Cap,41016,2.74,1.18,0.94,16.79,21.90,1.35
+Bank of India Large & Mid Cap Dir,Direct,Large & Mid Cap,16267,0.88,1.10,0.91,14.10,18.89,1.23
+Bank of India Large & Mid Cap Eco,Regular,Large & Mid Cap,8989,0.44,1.10,0.88,14.11,18.46,1.19
+Bank of India Large & Mid Cap Reg,Regular,Large & Mid Cap,8985,-0.25,1.10,0.83,14.09,17.76,1.13
+Bank of India Large Cap Dir,Direct,Large Cap,41521,2.53,1.07,0.95,13.39,18.87,1.29
+Bank of India Large Cap Reg,Regular,Large Cap,41519,1.29,1.07,0.86,13.39,17.64,1.17
+Bank of India Mid Cap Dir,Direct,Mid Cap,45385,--,--,--,--,--,--
+Bank of India Mid Cap Reg,Regular,Mid Cap,45383,--,--,--,--,--,--
+Bank of India Midcap Tax Sr 1 Dir,Direct,ELSS (Tax Saver),34774,-0.60,1.20,0.76,16.59,18.79,0.99
+Bank of India Midcap Tax Sr 1 Reg,Regular,ELSS (Tax Saver),34772,-0.55,1.20,0.77,16.60,18.81,0.99
+Bank of India Multi Cap Dir,Direct,Multi Cap,43162,--,--,--,--,--,--
+Bank of India Multi Cap Reg,Regular,Multi Cap,43160,--,--,--,--,--,--
+Bank of India Small Cap Dir,Direct,Small Cap,38283,2.29,0.90,0.82,18.22,21.13,1.06
+Bank of India Small Cap Reg,Regular,Small Cap,38281,0.84,0.89,0.75,18.18,19.66,0.96
+Baroda BNP Paribas Aqua FoF Dir,Direct,International,41454,--,--,0.65,14.95,15.79,1.13
+Baroda BNP Paribas Aqua FoF Reg,Regular,International,41452,--,--,0.58,14.94,14.75,1.00
+Baroda BNP Paribas Banking & Fin Srvcs Dir,Direct,Sectoral-Auto,15698,5.41,0.91,1.14,11.90,19.64,2.47
+Baroda BNP Paribas Banking & Fin Srvcs Reg,Regular,Sectoral-Auto,14946,3.98,0.91,1.02,11.92,18.23,2.21
+Baroda BNP Paribas Business Conglomerates Dir,Direct,Thematic,45458,--,--,--,--,--,--
+Baroda BNP Paribas Business Conglomerates Reg,Regular,Thematic,45456,--,--,--,--,--,--
+Baroda BNP Paribas Children's Dir,Direct,Flexi Cap,44780,--,--,--,--,--,--
+Baroda BNP Paribas Children's Reg,Regular,Flexi Cap,44778,--,--,--,--,--,--
+Baroda BNP Paribas ELSS Tax Saver  Reg,Regular,ELSS (Tax Saver),3001,2.01,0.98,0.98,13.09,18.94,1.36
+Baroda BNP Paribas ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),15732,3.22,0.98,1.07,13.10,20.16,1.48
+Baroda BNP Paribas Energy Opportunities Dir,Direct,Thematic-Dividend Yield,44850,--,--,--,--,--,--
+Baroda BNP Paribas Energy Opportunities Reg,Regular,Thematic-Dividend Yield,44848,--,--,--,--,--,--
+Baroda BNP Paribas ESG Best-in-class strategy Dir,Direct,Thematic-ESG,45837,--,--,--,--,--,--
+Baroda BNP Paribas ESG Best-in-class strategy Reg,Regular,Thematic-ESG,45835,--,--,--,--,--,--
+Baroda BNP Paribas Flexi Cap Dir,Direct,Flexi Cap,42312,0.41,1.01,0.87,13.38,17.70,1.10
+Baroda BNP Paribas Flexi Cap Reg,Regular,Flexi Cap,42310,-0.90,1.01,0.77,13.36,16.37,0.98
+Baroda BNP Paribas Focused Dir,Direct,Flexi Cap,34653,-2.37,1.12,0.67,14.92,16.10,0.85
+Baroda BNP Paribas Focused Reg,Regular,Flexi Cap,34651,-4.19,1.12,0.55,14.91,14.26,0.69
+Baroda BNP Paribas Health and Wellness Dir,Direct,Sectoral-Pharma,45233,--,--,--,--,--,--
+Baroda BNP Paribas Health and Wellness Reg,Regular,Sectoral-Pharma,45231,--,--,--,--,--,--
+Baroda BNP Paribas India Consumption Dir,Direct,Thematic-Infrastructure,37339,-0.26,0.80,0.81,13.67,17.19,0.97
+Baroda BNP Paribas India Consumption Reg,Regular,Thematic-Infrastructure,37337,-1.72,0.80,0.70,13.65,15.72,0.84
+Baroda BNP Paribas Large & Mid Cap Dir,Direct,Large & Mid Cap,41088,1.83,1.06,0.95,13.98,19.41,1.21
+Baroda BNP Paribas Large & Mid Cap Reg,Regular,Large & Mid Cap,41086,0.53,1.06,0.86,13.97,18.11,1.09
+Baroda BNP Paribas Large Cap Dir,Direct,Large Cap,15719,2.15,0.97,0.97,11.84,17.59,1.32
+Baroda BNP Paribas Large Cap Reg,Regular,Large Cap,2338,0.96,0.97,0.87,11.83,16.40,1.18
+Baroda BNP Paribas Midcap Dir,Direct,Mid Cap,15726,2.70,0.82,1.24,13.25,22.50,1.50
+Baroda BNP Paribas Midcap Reg,Regular,Mid Cap,3259,1.24,0.82,1.13,13.24,21.03,1.37
+Baroda BNP Paribas Multi Cap Dir,Direct,Multi Cap,15707,1.37,0.90,0.94,13.71,18.98,1.14
+Baroda BNP Paribas Multi Cap Reg,Regular,Multi Cap,1820,0.33,0.90,0.86,13.70,17.93,1.05
+Baroda BNP Paribas NIFTY 50 Index Dir,Direct,Large Cap,43987,--,--,--,--,--,--
+Baroda BNP Paribas NIFTY 50 Index Reg,Regular,Large Cap,43985,--,--,--,--,--,--
+Baroda BNP Paribas Nifty Bank ETF,Regular,Sectoral-Auto,44357,--,--,--,--,--,--
+Baroda BNP Paribas Nifty Bank ETF,Direct,Sectoral-Auto,44357,--,--,--,--,--,--
+Baroda BNP Paribas Nifty Midcap 150 Index Dir,Direct,Mid Cap,44651,--,--,--,--,--,--
+Baroda BNP Paribas Nifty Midcap 150 Index Reg,Regular,Mid Cap,44650,--,--,--,--,--,--
+Baroda BNP Paribas Nifty200 Momentum 30 Index Dir,Direct,Large & Mid Cap,44582,--,--,--,--,--,--
+Baroda BNP Paribas Nifty200 Momentum 30 Index Reg,Regular,Large & Mid Cap,44581,--,--,--,--,--,--
+Baroda BNP Paribas Small Cap Dir,Direct,Small Cap,43795,--,--,--,--,--,--
+Baroda BNP Paribas Small Cap Reg,Regular,Small Cap,43793,--,--,--,--,--,--
+Baroda BNP Paribas Value Dir,Direct,Value Oriented,43508,--,--,--,--,--,--
+Baroda BNP Paribas Value Reg,Regular,Value Oriented,43506,--,--,--,--,--,--
+BHARAT 22 ETF,Regular,Large Cap,34740,10.75,1.15,1.30,16.74,27.92,2.02
+BHARAT 22 ETF,Direct,Large Cap,34740,10.75,1.15,1.30,16.74,27.92,2.02
+Canara Robeco Banking And Financial Services Dir,Direct,Sectoral-Auto,45866,N/A,N/A,N/A,N/A,N/A,N/A
+Canara Robeco Banking And Financial Services Reg,Regular,Sectoral-Auto,45864,N/A,N/A,N/A,N/A,N/A,N/A
+Canara Robeco Consumer Trends Dir,Direct,Thematic-Infrastructure,16600,0.25,0.76,0.85,13.03,17.15,1.20
+Canara Robeco Consumer Trends Reg,Regular,Thematic-Infrastructure,10590,-1.00,0.76,0.75,13.02,15.89,1.06
+Canara Robeco ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16594,0.50,0.93,0.90,11.99,16.93,1.24
+Canara Robeco ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),59,-0.65,0.93,0.81,11.98,15.77,1.11
+Canara Robeco Flexi Cap Dir,Direct,Flexi Cap,16588,0.55,0.92,0.91,11.81,16.80,1.27
+Canara Robeco Flexi Cap Reg,Regular,Flexi Cap,1839,-0.61,0.92,0.81,11.80,15.63,1.13
+Canara Robeco Focused Dir,Direct,Flexi Cap,41458,2.73,0.90,1.07,11.91,18.80,1.50
+Canara Robeco Focused Reg,Regular,Flexi Cap,41456,1.27,0.90,0.94,11.89,17.33,1.34
+Canara Robeco Large and Mid Cap Dir,Direct,Large & Mid Cap,16581,-0.23,1.03,0.81,13.47,17.07,1.11
+Canara Robeco Large and Mid Cap Reg,Regular,Large & Mid Cap,2645,-1.27,1.03,0.74,13.45,16.01,1.00
+Canara Robeco Large Cap Dir,Direct,Large Cap,15765,1.49,0.92,0.94,10.99,16.46,1.37
+Canara Robeco Large Cap Reg,Regular,Large Cap,11333,0.29,0.92,0.83,10.98,15.26,1.22
+Canara Robeco Mid Cap Dir,Direct,Mid Cap,42705,0.51,0.90,1.04,14.80,21.55,1.40
+Canara Robeco Mid Cap Reg,Regular,Mid Cap,42703,-0.85,0.89,0.95,14.78,20.16,1.28
+Canara Robeco Multi Cap Dir,Direct,Multi Cap,43571,--,--,--,--,--,--
+Canara Robeco Multi Cap Reg,Regular,Multi Cap,43569,--,--,--,--,--,--
+Canara Robeco Small Cap Dir,Direct,Small Cap,38817,0.73,0.78,0.76,15.47,17.91,0.98
+Canara Robeco Small Cap Reg,Regular,Small Cap,38815,-0.50,0.78,0.68,15.44,16.65,0.88
+Canara Robeco Value Dir,Direct,Value Oriented,41625,1.31,0.98,0.96,12.65,18.28,1.33
+Canara Robeco Value Reg,Regular,Value Oriented,41623,-0.18,0.98,0.85,12.60,16.76,1.16
+Capitalmind Flexi Cap Dir,Direct,Flexi Cap,45313,--,--,--,--,--,--
+Capitalmind Flexi Cap Reg,Regular,Flexi Cap,45312,--,--,--,--,--,--
+CPSE ETF,Regular,Thematic-Energy,25711,2.13,0.93,1.36,21.07,34.69,2.14
+CPSE ETF,Direct,Thematic-Energy,25711,2.13,0.93,1.36,21.07,34.69,2.14
+DSP Banking & Financial Services Dir,Direct,Sectoral-Auto,43892,--,--,--,--,--,--
+DSP Banking & Financial Services Reg,Regular,Sectoral-Auto,43890,--,--,--,--,--,--
+DSP BSE Sensex ETF,Regular,Large Cap,43657,--,--,--,--,--,--
+DSP BSE Sensex ETF,Direct,Large Cap,43657,--,--,--,--,--,--
+DSP BSE Sensex Next 30 ETF,Regular,Large Cap,44874,--,--,--,--,--,--
+DSP BSE Sensex Next 30 ETF,Direct,Large Cap,44874,--,--,--,--,--,--
+DSP BSE Sensex Next 30 Index Dir,Direct,Large Cap,44872,--,--,--,--,--,--
+DSP BSE Sensex Next 30 Index Reg,Regular,Large Cap,44870,--,--,--,--,--,--
+DSP BSE Top 10 Banks ETF,Regular,Sectoral-Auto,45893,--,--,--,--,--,--
+DSP BSE Top 10 Banks ETF,Direct,Sectoral-Auto,45893,--,--,--,--,--,--
+DSP ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16454,4.05,0.97,1.16,12.75,20.90,1.86
+DSP ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),3985,3.13,0.97,1.09,12.74,19.97,1.74
+DSP Flexi Cap Dir,Direct,Flexi Cap,16386,1.38,0.97,0.94,12.84,18.22,1.52
+DSP Flexi Cap Reg,Regular,Flexi Cap,393,0.33,0.97,0.86,12.83,17.17,1.39
+DSP Focused Dir,Direct,Flexi Cap,16388,2.95,0.96,1.03,13.14,19.62,1.78
+DSP Focused Reg,Regular,Flexi Cap,11183,1.88,0.96,0.95,13.13,18.55,1.64
+DSP Global Clean Energy Overseas Equity Omni FoF Dir,Direct,International,17012,--,--,0.58,18.40,16.86,1.00
+DSP Global Clean Energy Overseas Equity Omni FoF Reg,Regular,International,10559,--,--,0.55,18.39,16.26,0.94
+DSP Global Innovation Overseas Equity Omni FoF Dir*,Direct,International,42054,--,--,1.23,16.35,26.29,2.53
+DSP Global Innovation Overseas Equity Omni FoF Reg*,Regular,International,42052,--,--,1.18,16.33,25.39,2.42
+DSP Healthcare Dir,Direct,Sectoral-Pharma,38201,0.28,0.83,1.14,14.58,22.70,1.86
+DSP Healthcare Reg,Regular,Sectoral-Pharma,38197,-1.06,0.83,1.05,14.56,21.34,1.71
+DSP Large & Mid Cap Dir,Direct,Large & Mid Cap,16425,4.28,1.02,1.16,13.17,21.44,1.75
+DSP Large & Mid Cap Reg,Regular,Large & Mid Cap,776,3.27,1.02,1.09,13.17,20.41,1.63
+DSP Large Cap Dir,Direct,Large Cap,16456,3.74,0.88,1.12,10.85,18.27,1.97
+DSP Large Cap Reg,Regular,Large Cap,1540,2.87,0.88,1.04,10.85,17.40,1.83
+DSP Midcap Dir,Direct,Mid Cap,16438,-0.70,0.97,0.97,16.04,21.59,1.37
+DSP Midcap Reg,Regular,Mid Cap,3725,-1.64,0.97,0.91,16.03,20.64,1.29
+DSP MSCI India ETF,Regular,Large & Mid Cap,45616,--,--,--,--,--,--
+DSP MSCI India ETF,Direct,Large & Mid Cap,45616,--,--,--,--,--,--
+DSP Multicap Dir,Direct,Multi Cap,43999,--,--,--,--,--,--
+DSP Multicap Reg,Regular,Multi Cap,43997,--,--,--,--,--,--
+DSP Natural Resources and New Energy Dir,Direct,Thematic-Dividend Yield,16988,8.95,0.63,1.27,15.05,25.17,2.02
+DSP Natural Resources and New Energy Reg,Regular,Thematic-Dividend Yield,7128,7.83,0.63,1.19,15.03,24.04,1.90
+DSP NIFTY 50 Equal Weight ETF,Regular,Large Cap,41801,3.50,1.00,1.07,12.30,19.24,1.42
+DSP NIFTY 50 Equal Weight ETF,Direct,Large Cap,41801,3.50,1.00,1.07,12.30,19.24,1.42
+DSP Nifty 50 Equal Weight Index Dir,Direct,Large Cap,34695,3.33,1.00,1.05,12.30,19.07,1.40
+DSP Nifty 50 Equal Weight Index Reg,Regular,Large Cap,34693,2.80,1.00,1.01,12.29,18.53,1.34
+DSP Nifty 50 ETF,Regular,Large Cap,41895,-0.90,0.94,0.73,11.22,14.28,1.14
+DSP Nifty 50 ETF,Direct,Large Cap,41895,-0.90,0.94,0.73,11.22,14.28,1.14
+DSP Nifty 50 Index Dir,Direct,Large Cap,39135,-1.06,0.94,0.71,11.23,14.12,1.12
+DSP Nifty 50 Index Reg,Regular,Large Cap,39133,-1.27,0.94,0.70,11.22,13.91,1.09
+DSP Nifty 500 Index Dir,Direct,Flexi Cap,45719,--,--,--,--,--,--
+DSP Nifty 500 Index Reg,Regular,Flexi Cap,45717,--,--,--,--,--,--
+DSP Nifty Bank ETF,Regular,Sectoral-Auto,42992,0.02,1.00,0.74,12.08,15.04,1.42
+DSP Nifty Bank ETF,Direct,Sectoral-Auto,42992,0.02,1.00,0.74,12.08,15.04,1.42
+DSP Nifty Bank Index Dir,Direct,Sectoral-Auto,44336,--,--,--,--,--,--
+DSP Nifty Bank Index Reg,Regular,Sectoral-Auto,44335,--,--,--,--,--,--
+DSP Nifty Healthcare ETF,Regular,Sectoral-Pharma,44001,--,--,--,--,--,--
+DSP Nifty Healthcare ETF,Direct,Sectoral-Pharma,44001,--,--,--,--,--,--
+DSP Nifty Healthcare Index Dir,Direct,Sectoral-Pharma,45212,--,--,--,--,--,--
+DSP Nifty Healthcare Index Reg,Regular,Sectoral-Pharma,45210,--,--,--,--,--,--
+DSP Nifty IT ETF,Direct,Sectoral-Technology,43573,--,--,--,--,--,--
+DSP Nifty IT Index Dir,Direct,Sectoral-Technology,45208,--,--,--,--,--,--
+DSP Nifty Midcap 150 ETF,Regular,Mid Cap,45652,--,--,--,--,--,--
+DSP Nifty Midcap 150 ETF,Direct,Mid Cap,45652,--,--,--,--,--,--
+DSP Nifty Midcap 150 Index Dir,Direct,Mid Cap,45650,--,--,--,--,--,--
+DSP Nifty Midcap 150 Index Reg,Regular,Mid Cap,45648,--,--,--,--,--,--
+DSP Nifty Midcap 150 Quality 50 ETF,Regular,Mid Cap,41902,-5.89,0.89,0.61,14.67,15.03,0.88
+DSP Nifty Midcap 150 Quality 50 ETF,Direct,Mid Cap,41902,-5.89,0.89,0.61,14.67,15.03,0.88
+DSP Nifty Midcap 150 Quality 50 Index Dir,Direct,Mid Cap,42316,-5.87,0.89,0.61,14.66,15.05,0.89
+DSP Nifty Midcap 150 Quality 50 Index Reg,Regular,Mid Cap,42314,-6.50,0.89,0.57,14.65,14.42,0.82
+DSP Nifty Next 50 ETF,Regular,Large Cap,45716,--,--,--,--,--,--
+DSP Nifty Next 50 ETF,Direct,Large Cap,45716,--,--,--,--,--,--
+DSP Nifty Next 50 Index Dir,Direct,Large Cap,39165,4.57,1.26,1.01,16.60,22.82,1.33
+DSP Nifty Next 50 Index Reg,Regular,Large Cap,39163,4.21,1.26,0.99,16.59,22.46,1.30
+DSP Nifty Private Bank ETF,Regular,Sectoral-Auto,43655,--,--,--,--,--,--
+DSP Nifty Private Bank ETF,Direct,Sectoral-Auto,43655,--,--,--,--,--,--
+DSP Nifty Private Bank Index Dir,Direct,Sectoral-Auto,44972,--,--,--,--,--,--
+DSP Nifty Private Bank Index Reg,Regular,Sectoral-Auto,44970,--,--,--,--,--,--
+DSP Nifty PSU Bank ETF,Regular,Sectoral-Auto,43656,--,--,--,--,--,--
+DSP Nifty PSU Bank ETF,Direct,Sectoral-Auto,43656,--,--,--,--,--,--
+DSP Nifty Smallcap 250 ETF,Regular,Small Cap,45659,--,--,--,--,--,--
+DSP Nifty Smallcap 250 ETF,Direct,Small Cap,45659,--,--,--,--,--,--
+DSP Nifty Smallcap 250 Index Dir,Direct,Small Cap,45657,--,--,--,--,--,--
+DSP Nifty Smallcap 250 Index Reg,Regular,Small Cap,45655,--,--,--,--,--,--
+DSP Nifty Smallcap250 Quality 50 Index Dir,Direct,Small Cap,43941,--,--,--,--,--,--
+DSP Nifty Smallcap250 Quality 50 Index Reg,Regular,Small Cap,43939,--,--,--,--,--,--
+DSP Nifty Top 10 Equal Wght ETF,Regular,Large Cap,44494,--,--,--,--,--,--
+DSP Nifty Top 10 Equal Wght ETF,Direct,Large Cap,44494,--,--,--,--,--,--
+DSP Nifty Top 10 Equal Wght Index Dir,Direct,Large Cap,44493,--,--,--,--,--,--
+DSP Nifty Top 10 Equal Wght Index Reg,Regular,Large Cap,44492,--,--,--,--,--,--
+DSP Nifty500 Flexicap Quality 30 ETF,Regular,Flexi Cap,45521,--,--,--,--,--,--
+DSP Nifty500 Flexicap Quality 30 ETF,Direct,Flexi Cap,45521,--,--,--,--,--,--
+DSP Nifty500 Flexicap Quality 30 Index Dir,Direct,Flexi Cap,45446,--,--,--,--,--,--
+DSP Nifty500 Flexicap Quality 30 Index Reg,Regular,Flexi Cap,45444,--,--,--,--,--,--
+DSP Silver ETF,Regular,Thematic-PSU,42419,-0.90,0.99,1.19,41.03,54.87,2.60
+DSP Silver ETF,Direct,Thematic-PSU,42419,-0.90,0.99,1.19,41.03,54.87,2.60
+DSP Silver ETF FoF Dir,Direct,Thematic-PSU,45137,--,--,--,--,--,--
+DSP Silver ETF FoF Reg,Regular,Thematic-PSU,45135,--,--,--,--,--,--
+DSP Small Cap Dir,Direct,Small Cap,16411,2.52,0.93,0.83,19.02,21.88,1.28
+DSP Small Cap Reg,Regular,Small Cap,5069,1.63,0.93,0.78,19.01,20.98,1.21
+DSP US Specific Equity Omni FoF Dir,Direct,International,17006,--,--,1.12,14.79,22.72,1.63
+DSP US Specific Equity Omni FoF Reg,Regular,International,15152,--,--,1.07,14.77,21.86,1.55
+DSP Value Fund Dir*,Direct,Value Oriented,41194,7.44,0.64,1.52,9.53,20.62,2.33
+DSP Value Fund Reg*,Regular,Value Oriented,41192,6.65,0.64,1.44,9.52,19.83,2.21
+DSP World Gold Mining Overseas Equity Omni FoF Dir,Direct,International,17016,--,--,1.66,30.34,56.38,3.32
+DSP World Gold Mining Overseas Equity Omni FoF Reg,Regular,International,5623,--,--,1.64,30.32,55.69,3.28
+DSP World Mining Overseas Equity Omni FoF Dir,Direct,International,17021,--,--,0.95,22.95,27.98,1.78
+DSP World Mining Overseas Equity Omni FoF Reg,Regular,International,10799,--,--,0.92,22.94,27.31,1.72
+Edelweiss ASEAN Equity Offshore Dir,Direct,International,17131,--,--,0.69,11.20,13.83,1.25
+Edelweiss ASEAN Equity Offshore Reg,Regular,International,12762,--,--,0.63,11.19,13.11,1.13
+Edelweiss BSE Capital Mkts & Insurance ETF,Regular,Thematic,44826,--,--,--,--,--,--
+Edelweiss BSE Capital Mkts & Insurance ETF,Direct,Thematic,44826,--,--,--,--,--,--
+Edelweiss BSE Internet Economy Index Dir,Direct,Thematic,45129,--,--,--,--,--,--
+Edelweiss BSE Internet Economy Index Reg,Regular,Thematic,45127,--,--,--,--,--,--
+Edelweiss BSE Sensex ETF,Regular,Large Cap,45582,--,--,--,--,--,--
+Edelweiss BSE Sensex ETF,Direct,Large Cap,45582,--,--,--,--,--,--
+Edelweiss Consumption Dir,Direct,Thematic-Infrastructure,44882,--,--,--,--,--,--
+Edelweiss Consumption Reg,Regular,Thematic-Infrastructure,44880,--,--,--,--,--,--
+Edelweiss ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),17762,1.59,1.00,0.98,12.90,18.74,1.30
+Edelweiss ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),10125,-0.06,1.00,0.85,12.89,17.07,1.13
+Edelweiss Emerging Markets Opportunities Equity Offshr Dir,Direct,International,27119,--,--,1.16,13.94,22.29,2.19
+Edelweiss Emerging Markets Opportunities Equity Offshr Reg,Regular,International,27118,--,--,1.10,13.93,21.40,2.07
+Edelweiss Europe Dynamic Equity Offshr Dir,Direct,International,23435,--,--,1.28,12.78,22.41,2.19
+Edelweiss Europe Dynamic Equity Offshr Reg,Regular,International,23434,--,--,1.21,12.77,21.56,2.07
+Edelweiss Financial Services Fund Dir,Direct,Sectoral-Auto,45749,--,--,--,--,--,--
+Edelweiss Financial Services Reg,Regular,Sectoral-Auto,45747,--,--,--,--,--,--
+Edelweiss Flexi Cap Dir,Direct,Flexi Cap,29263,3.35,1.00,1.11,13.02,20.54,1.46
+Edelweiss Flexi Cap Reg,Regular,Flexi Cap,29261,1.80,1.00,0.99,13.00,18.97,1.30
+Edelweiss Focused Dir,Direct,Flexi Cap,42298,3.00,0.96,1.08,12.62,19.72,1.43
+Edelweiss Focused Reg,Regular,Flexi Cap,42296,1.39,0.96,0.95,12.60,18.09,1.26
+Edelweiss Greater China Equity Offshore Dir,Direct,International,17132,--,--,0.51,19.72,16.12,0.96
+Edelweiss Greater China Equity Offshore Reg,Regular,International,10567,--,--,0.46,19.71,15.20,0.87
+Edelweiss Large & Mid Cap Dir,Direct,Large & Mid Cap,16569,2.88,1.03,1.05,13.33,20.16,1.37
+Edelweiss Large & Mid Cap Reg,Regular,Large & Mid Cap,4871,1.42,1.03,0.95,13.31,18.70,1.23
+Edelweiss Large Cap B,Regular,Large Cap,10434,0.21,0.96,0.82,11.50,15.57,1.13
+Edelweiss Large Cap C,Regular,Large Cap,10436,0.20,0.96,0.82,11.51,15.57,1.13
+Edelweiss Large Cap Dir,Direct,Large Cap,17352,1.73,0.97,0.96,11.52,17.11,1.31
+Edelweiss Large Cap Reg,Regular,Large Cap,10432,0.20,0.96,0.82,11.50,15.57,1.13
+Edelweiss Mid Cap Dir,Direct,Mid Cap,16586,4.64,0.93,1.31,15.34,26.28,1.67
+Edelweiss Mid Cap Reg,Regular,Mid Cap,6227,3.28,0.93,1.23,15.32,24.89,1.55
+Edelweiss MSCI India Domestic & World Healthcare 45 Index Dir,Direct,Sectoral-Pharma,41147,3.00,0.66,1.34,12.03,22.17,2.57
+Edelweiss MSCI India Domestic & World Healthcare 45 Index Reg,Regular,Sectoral-Pharma,41145,2.45,0.66,1.29,12.02,21.62,2.48
+Edelweiss Multi Cap Dir,Direct,Multi Cap,43782,--,--,--,--,--,--
+Edelweiss Multi Cap Reg,Regular,Multi Cap,43780,--,--,--,--,--,--
+Edelweiss Nifty 100 Quality 30 Index Dir,Direct,Large Cap,41778,-1.14,0.99,0.65,13.01,14.51,0.78
+Edelweiss Nifty 100 Quality 30 Index Reg,Regular,Large Cap,32428,-1.77,0.99,0.60,13.00,13.87,0.72
+Edelweiss Nifty 50 ETF,Regular,Large Cap,45581,--,--,--,--,--,--
+Edelweiss Nifty 50 ETF,Direct,Large Cap,45581,--,--,--,--,--,--
+Edelweiss Nifty 50 Index,Regular,Large Cap,30199,-1.52,0.94,0.67,11.18,13.63,1.05
+Edelweiss Nifty 50 Index Dir,Direct,Large Cap,41775,-1.07,0.94,0.71,11.18,14.07,1.11
+Edelweiss Nifty Alpha Low Volatility 30 Index Dir,Direct,Large & Mid Cap,44309,--,--,--,--,--,--
+Edelweiss Nifty Alpha Low Volatility 30 Index Reg,Regular,Large & Mid Cap,44307,--,--,--,--,--,--
+Edelweiss Nifty Bank ETF,Regular,Sectoral-Auto,44536,--,--,--,--,--,--
+Edelweiss Nifty Bank ETF,Direct,Sectoral-Auto,44536,--,--,--,--,--,--
+Edelweiss NIFTY Large Mid Cap 250 Index Dir,Direct,Large & Mid Cap,41844,1.67,1.07,1.00,13.27,19.36,1.34
+Edelweiss NIFTY Large Mid Cap 250 Index Reg,Regular,Large & Mid Cap,41842,1.01,1.07,0.95,13.26,18.69,1.28
+Edelweiss Nifty LargeMidcap 250 ETF,Regular,Large & Mid Cap,45481,--,--,--,--,--,--
+Edelweiss Nifty LargeMidcap 250 ETF,Direct,Large & Mid Cap,45481,--,--,--,--,--,--
+Edelweiss Nifty Midcap150 Momentum 50 Index Dir,Direct,Mid Cap,42812,0.34,1.06,1.02,17.73,24.19,1.29
+Edelweiss Nifty Midcap150 Momentum 50 Index Reg,Regular,Mid Cap,42810,-0.37,1.06,0.98,17.72,23.47,1.24
+Edelweiss Nifty Next 50 Index Dir,Direct,Large Cap,42804,4.56,1.26,1.01,16.55,22.78,1.32
+Edelweiss Nifty Next 50 Index Reg,Regular,Large Cap,42802,3.84,1.26,0.96,16.54,22.05,1.27
+Edelweiss Nifty Smallcap 250 Index Dir,Direct,Small Cap,42808,0.89,1.01,0.78,19.54,21.39,1.15
+Edelweiss Nifty Smallcap 250 Index Reg,Regular,Small Cap,42806,0.21,1.01,0.75,19.53,20.69,1.10
+Edelweiss Nifty500 Multicap Momentum Quality 50 ETF,Regular,Multi Cap,44626,--,--,--,--,--,--
+Edelweiss Nifty500 Multicap Momentum Quality 50 ETF,Direct,Multi Cap,44626,--,--,--,--,--,--
+Edelweiss Nifty500 Multicap Momentum Quality 50 Index Dir,Direct,Multi Cap,44648,--,--,--,--,--,--
+Edelweiss Nifty500 Multicap Momentum Quality 50 Index Reg,Regular,Multi Cap,44646,--,--,--,--,--,--
+Edelweiss Recently Listed IPO Dir,Direct,Thematic,35234,0.36,1.09,0.71,17.56,18.51,0.81
+Edelweiss Recently Listed IPO Reg,Regular,Thematic,35232,-0.93,1.09,0.63,17.54,17.20,0.73
+Edelweiss Silver ETF,Regular,Thematic-PSU,43921,--,--,--,--,--,--
+Edelweiss Silver ETF,Direct,Thematic-PSU,43921,--,--,--,--,--,--
+Edelweiss Silver ETF FoF Dir,Direct,Thematic-PSU,45702,--,--,--,--,--,--
+Edelweiss Silver ETF FoF Reg,Regular,Thematic-PSU,45701,--,--,--,--,--,--
+Edelweiss Small Cap Dir,Direct,Small Cap,38851,3.66,0.81,0.95,15.94,21.23,1.31
+Edelweiss Small Cap Reg,Regular,Small Cap,38849,2.19,0.81,0.86,15.91,19.75,1.18
+Edelweiss Technology Dir,Direct,Sectoral-Technology,44122,--,--,--,--,--,--
+Edelweiss US Technology Equity FoF Dir,Direct,International,40665,--,--,0.92,25.27,29.42,1.50
+Edelweiss US Technology Equity FoF Reg,Regular,International,40664,--,--,0.89,25.25,28.49,1.44
+Edelweiss US Value Equity Offshore Dir,Direct,International,20060,--,--,0.74,12.63,15.47,1.06
+Edelweiss US Value Equity Offshore Reg,Regular,International,20059,--,--,0.67,12.62,14.56,0.96
+Franklin Asian Equity Dir,Direct,International,15977,--,--,0.87,13.14,17.53,1.51
+Franklin Asian Equity Reg,Regular,International,6383,--,--,0.80,13.14,16.62,1.39
+Franklin India ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16014,2.28,0.94,1.04,12.21,18.81,1.50
+Franklin India ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),601,1.47,0.94,0.97,12.19,17.99,1.40
+Franklin India Flexi Cap Dir,Direct,Flexi Cap,16008,2.82,0.93,1.09,11.96,19.16,1.56
+Franklin India Flexi Cap Reg,Regular,Flexi Cap,116,2.03,0.93,1.03,11.95,18.36,1.46
+Franklin India Focused Equity Dir,Direct,Flexi Cap,15990,0.93,0.87,0.91,11.55,16.60,1.24
+Franklin India Focused Equity Reg,Regular,Flexi Cap,5141,0.12,0.86,0.84,11.54,15.77,1.14
+Franklin India Large & Mid Cap Dir,Direct,Large & Mid Cap,15986,-0.31,1.03,0.83,13.26,17.04,1.24
+Franklin India Large & Mid Cap Reg,Regular,Large & Mid Cap,2605,-1.05,1.03,0.77,13.24,16.29,1.15
+Franklin India Large Cap Dir,Direct,Large Cap,15982,0.41,0.95,0.83,11.41,15.62,1.25
+Franklin India Large Cap Reg,Regular,Large Cap,114,-0.40,0.95,0.76,11.40,14.80,1.14
+Franklin India Mid Cap Dir,Direct,Mid Cap,16003,0.49,0.92,1.06,14.86,21.86,1.46
+Franklin India Mid Cap Reg,Regular,Mid Cap,115,-0.33,0.91,1.01,14.84,21.02,1.39
+Franklin India Multi Cap Dir,Direct,Multi Cap,44410,--,--,--,--,--,--
+Franklin India Multi Cap Reg,Regular,Multi Cap,44408,--,--,--,--,--,--
+Franklin India Multi-Factor Dir,Direct,Thematic,45585,--,--,--,--,--,--
+Franklin India Multi-Factor Reg,Regular,Thematic,45583,--,--,--,--,--,--
+Franklin India NSE Nifty 50 Index Dir,Direct,Large Cap,15996,-1.09,0.94,0.71,11.15,14.03,1.11
+Franklin India NSE Nifty 50 Index Reg,Regular,Large Cap,834,-1.47,0.94,0.68,11.15,13.65,1.06
+Franklin India Opportunities Dir,Direct,Thematic,15999,10.29,1.05,1.44,15.20,28.01,2.04
+Franklin India Opportunities Reg,Regular,Thematic,753,9.09,1.05,1.36,15.19,26.81,1.93
+Franklin India Small Cap Dir,Direct,Small Cap,16010,1.17,0.85,0.78,17.07,19.39,1.11
+Franklin India Small Cap Reg,Regular,Small Cap,3019,0.32,0.85,0.73,17.06,18.54,1.04
+Franklin India Technology Dir,Direct,Sectoral-Technology,16018,12.26,0.73,0.64,17.92,17.48,0.93
+Franklin U.S. Opportunities Equity Active FoF Dir,Direct,International,16027,--,--,1.01,16.13,22.41,1.48
+Franklin U.S. Opportunities Equity Active FoF Reg,Regular,International,14017,--,--,0.95,16.11,21.45,1.40
+Groww Banking & Financial Services Dir,Direct,Sectoral-Auto,43974,--,--,--,--,--,--
+Groww Banking & Financial Services Reg,Regular,Sectoral-Auto,43972,--,--,--,--,--,--
+Groww BSE Hospitals ETF,Regular,Sectoral-Pharma,45815,--,--,--,--,--,--
+Groww BSE Hospitals ETF,Direct,Sectoral-Pharma,45815,--,--,--,--,--,--
+Groww BSE Hospitals ETF FoF Dir,Direct,Sectoral-Pharma,45818,--,--,--,--,--,--
+Groww BSE Hospitals ETF FoF Reg,Regular,Sectoral-Pharma,45816,--,--,--,--,--,--
+Groww BSE Power ETF,Regular,Thematic,45370,--,--,--,--,--,--
+Groww BSE Power ETF,Direct,Thematic,45370,--,--,--,--,--,--
+Groww BSE Power ETF FOF Dir,Direct,Thematic,45373,--,--,--,--,--,--
+Groww BSE Power ETF FOF Reg,Regular,Thematic,45371,--,--,--,--,--,--
+Groww ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),34683,-0.98,0.98,0.75,13.16,15.94,0.97
+Groww ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),34681,-2.56,0.98,0.63,13.18,14.37,0.81
+Groww Large Cap Dir,Direct,Large Cap,15579,1.16,0.96,0.88,11.76,16.48,1.25
+Groww Large Cap Reg,Regular,Large Cap,14013,-0.19,0.96,0.77,11.75,15.13,1.08
+Groww Multicap Dir,Direct,Multi Cap,44697,--,--,--,--,--,--
+Groww Multicap Reg,Regular,Multi Cap,44695,--,--,--,--,--,--
+Groww Nifty 200 ETF,Regular,Large & Mid Cap,44969,--,--,--,--,--,--
+Groww Nifty 200 ETF,Direct,Large & Mid Cap,44969,--,--,--,--,--,--
+Groww Nifty 200 ETF FoF Dir,Direct,Large & Mid Cap,44967,--,--,--,--,--,--
+Groww Nifty 200 ETF FoF Reg,Regular,Large & Mid Cap,44965,--,--,--,--,--,--
+Groww Nifty 50 ETF,Regular,Large Cap,45330,--,--,--,--,--,--
+Groww Nifty 50 ETF,Direct,Large Cap,45330,--,--,--,--,--,--
+Groww Nifty 50 Index Dir,Direct,Large Cap,45328,--,--,--,--,--,--
+Groww Nifty 50 Index Reg,Regular,Large Cap,45326,--,--,--,--,--,--
+Groww Nifty 500 Low Volatility 50 ETF,Regular,Flexi Cap,45217,--,--,--,--,--,--
+Groww Nifty 500 Low Volatility 50 ETF,Direct,Flexi Cap,45217,--,--,--,--,--,--
+Groww Nifty 500 Momentum 50 ETF,Regular,Flexi Cap,45094,--,--,--,--,--,--
+Groww Nifty 500 Momentum 50 ETF,Direct,Flexi Cap,45094,--,--,--,--,--,--
+Groww Nifty 500 Momentum 50 ETF FoF Dir,Direct,Flexi Cap,45097,--,--,--,--,--,--
+Groww Nifty 500 Momentum 50 ETF FoF Reg,Regular,Flexi Cap,45095,--,--,--,--,--,--
+Groww Nifty Capital Markets ETF,Regular,Thematic,45632,--,--,--,--,--,--
+Groww Nifty Capital Markets ETF,Direct,Thematic,45632,--,--,--,--,--,--
+Groww Nifty Capital Markets ETF FoF Dir,Direct,Thematic,45628,--,--,--,--,--,--
+Groww Nifty Capital Markets ETF FoF Reg,Regular,Thematic,45626,--,--,--,--,--,--
+Groww Nifty Chemicals ETF,Regular,Thematic,45751,--,--,--,--,--,--
+Groww Nifty Chemicals ETF,Direct,Thematic,45751,--,--,--,--,--,--
+Groww Nifty India Defence ETF,Regular,Thematic,44590,--,--,--,--,--,--
+Groww Nifty India Defence ETF,Direct,Thematic,44590,--,--,--,--,--,--
+Groww Nifty India Defence ETF FoF Dir,Direct,Thematic,44597,--,--,--,--,--,--
+Groww Nifty India Defence ETF FoF Reg,Regular,Thematic,44595,--,--,--,--,--,--
+Groww Nifty India Internet ETF,Regular,Thematic,45241,--,--,--,--,--,--
+Groww Nifty India Internet ETF,Direct,Thematic,45241,--,--,--,--,--,--
+Groww Nifty India Internet ETF FoF Dir,Direct,Thematic,45244,--,--,--,--,--,--
+Groww Nifty India Internet ETF FoF Reg,Regular,Thematic,45242,--,--,--,--,--,--
+Groww Nifty India Railways PSU ETF,Regular,Thematic-Energy,44875,--,--,--,--,--,--
+Groww Nifty India Railways PSU ETF,Direct,Thematic-Energy,44875,--,--,--,--,--,--
+Groww Nifty India Railways PSU Index Dir,Direct,Thematic-Energy,44878,--,--,--,--,--,--
+Groww Nifty India Railways PSU Index Reg,Regular,Thematic-Energy,44876,--,--,--,--,--,--
+Groww Nifty Metal ETF,Regular,Thematic,45677,--,--,--,--,--,--
+Groww Nifty Metal ETF,Direct,Thematic,45677,--,--,--,--,--,--
+Groww Nifty Midcap 150 ETF,Regular,Mid Cap,45580,--,--,--,--,--,--
+Groww Nifty Midcap 150 ETF,Direct,Mid Cap,45580,--,--,--,--,--,--
+Groww Nifty Midcap 150 Index Dir,Direct,Mid Cap,45578,--,--,--,--,--,--
+Groww Nifty Midcap 150 Index Reg,Regular,Mid Cap,45576,--,--,--,--,--,--
+Groww Nifty Next 50 ETF,Regular,Large Cap,45428,--,--,--,--,--,--
+Groww Nifty Next 50 ETF,Direct,Large Cap,45428,--,--,--,--,--,--
+Groww Nifty Next 50 Index Dir,Direct,Large Cap,45431,--,--,--,--,--,--
+Groww Nifty Next 50 Index Reg,Regular,Large Cap,45429,--,--,--,--,--,--
+Groww Nifty Non-Cyclical Consumer Index Dir,Direct,Thematic-Infrastructure,44325,--,--,--,--,--,--
+Groww Nifty Non-Cyclical Consumer Index Reg,Regular,Thematic-Infrastructure,44323,--,--,--,--,--,--
+Groww Nifty PSE ETF,Regular,Thematic-Energy,45783,--,--,--,--,--,--
+Groww Nifty PSE ETF,Direct,Thematic-Energy,45783,--,--,--,--,--,--
+Groww Nifty PSE ETF FOF Dir,Direct,Thematic-Energy,45786,--,--,--,--,--,--
+Groww Nifty PSE ETF FOF Reg,Regular,Thematic-Energy,45784,--,--,--,--,--,--
+Groww Nifty PSU Bank ETF,Regular,Sectoral-Auto,45912,N/A,N/A,N/A,N/A,N/A,N/A
+Groww Nifty PSU Bank ETF,Direct,Sectoral-Auto,45912,N/A,N/A,N/A,N/A,N/A,N/A
+Groww Nifty PSU Bank Index Dir,Direct,Sectoral-Auto,45910,N/A,N/A,N/A,N/A,N/A,N/A
+Groww Nifty PSU Bank Index Reg,Regular,Sectoral-Auto,45908,N/A,N/A,N/A,N/A,N/A,N/A
+Groww Nifty Realty ETF,Regular,Thematic,45522,--,--,--,--,--,--
+Groww Nifty Realty ETF,Direct,Thematic,45522,--,--,--,--,--,--
+Groww Nifty Smallcap 250 ETF,Regular,Small Cap,45552,--,--,--,--,--,--
+Groww Nifty Smallcap 250 ETF,Direct,Small Cap,45552,--,--,--,--,--,--
+Groww Nifty Smallcap 250 Index Dir,Direct,Small Cap,44156,--,--,--,--,--,--
+Groww Nifty Smallcap 250 Index Reg,Regular,Small Cap,44154,--,--,--,--,--,--
+Groww Nifty Total Market Index Dir,Direct,Flexi Cap,43806,--,--,--,--,--,--
+Groww Nifty Total Market Index Reg,Regular,Flexi Cap,43804,--,--,--,--,--,--
+Groww Silver ETF,Regular,Thematic-PSU,45150,--,--,--,--,--,--
+Groww Silver ETF,Direct,Thematic-PSU,45150,--,--,--,--,--,--
+Groww Silver ETF FoF Dir,Direct,Thematic-PSU,45153,--,--,--,--,--,--
+Groww Silver ETF FoF Reg,Regular,Thematic-PSU,45151,--,--,--,--,--,--
+Groww Small Cap Fund Dir,Direct,Small Cap,45697,--,--,--,--,--,--
+Groww Small Cap Fund Reg,Regular,Small Cap,45695,--,--,--,--,--,--
+Groww Value Dir,Direct,Value Oriented,30921,1.95,0.92,1.00,12.12,18.23,1.80
+Groww Value Reg,Regular,Value Oriented,30919,0.57,0.92,0.89,12.11,16.84,1.60
+HDFC Banking & Financial Services Dir,Direct,Sectoral-Auto,41533,4.94,0.89,1.09,11.78,18.98,2.20
+HDFC Banking & Financial Services Reg,Regular,Sectoral-Auto,41531,3.69,0.89,0.99,11.77,17.73,1.99
+HDFC BSE 500 ETF,Regular,Flexi Cap,43117,-0.33,1.00,0.85,12.63,16.82,1.18
+HDFC BSE 500 ETF,Direct,Flexi Cap,43117,-0.33,1.00,0.85,12.63,16.82,1.18
+HDFC BSE 500 Index Dir,Direct,Flexi Cap,43477,--,--,--,--,--,--
+HDFC BSE 500 Index Reg,Regular,Flexi Cap,43476,--,--,--,--,--,--
+HDFC BSE India Sector Leaders Index Dir,Direct,Thematic,45589,--,--,--,--,--,--
+HDFC BSE India Sector Leaders Index Reg,Regular,Thematic,45588,--,--,--,--,--,--
+HDFC BSE Sensex ETF,Regular,Large Cap,31377,-2.48,0.92,0.58,11.05,12.51,0.94
+HDFC BSE Sensex ETF,Direct,Large Cap,31377,-2.48,0.92,0.58,11.05,12.51,0.94
+HDFC BSE Sensex Index Dir,Direct,Large Cap,16071,-2.68,0.92,0.56,11.05,12.31,0.91
+HDFC BSE Sensex Index Reg,Regular,Large Cap,1370,-2.84,0.92,0.55,11.05,12.15,0.89
+HDFC Defence Dir,Direct,Thematic,43512,--,--,--,--,--,--
+HDFC Defence Reg,Regular,Thematic,43510,--,--,--,--,--,--
+HDFC Developed World Overseas Equity Passive FoF Dir*,Direct,International,41714,--,--,1.49,10.65,21.96,2.02
+HDFC Developed World Overseas Equity Passive FoF Reg*,Regular,International,41713,--,--,1.45,10.65,21.53,1.96
+HDFC Diversified Equity All Cap Active FoF Dir,Direct,Flexi Cap,45485,--,--,--,--,--,--
+HDFC Diversified Equity All Cap Active FoF Reg,Regular,Flexi Cap,45483,--,--,--,--,--,--
+HDFC ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16160,5.60,0.83,1.36,10.83,20.89,2.21
+HDFC ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),854,4.98,0.83,1.31,10.83,20.27,2.12
+HDFC Flexi Cap Dir,Direct,Flexi Cap,16026,7.17,0.77,1.56,10.09,21.80,2.50
+HDFC Flexi Cap Reg,Regular,Flexi Cap,219,6.50,0.77,1.49,10.08,21.14,2.39
+HDFC Focused Dir,Direct,Flexi Cap,16021,7.79,0.72,1.67,9.42,21.81,2.53
+HDFC Focused Reg,Regular,Flexi Cap,2372,6.64,0.72,1.55,9.40,20.65,2.35
+HDFC Housing Opportunities Dir,Direct,Thematic,34770,2.33,1.08,0.95,15.01,20.38,1.43
+HDFC Housing Opportunities Reg,Regular,Thematic,34768,1.34,1.08,0.89,15.00,19.38,1.33
+HDFC Large and Mid Cap Dir,Direct,Large & Mid Cap,16626,3.03,1.08,1.08,13.70,20.90,1.54
+HDFC Large and Mid Cap Reg,Regular,Large & Mid Cap,172,2.22,1.08,1.02,13.69,20.08,1.45
+HDFC Large Cap Dir,Direct,Large Cap,16164,1.55,0.93,0.93,11.26,16.61,1.35
+HDFC Large Cap Reg,Regular,Large Cap,104,0.96,0.93,0.88,11.26,16.01,1.27
+HDFC Mid Cap Dir,Direct,Mid Cap,16114,5.20,0.85,1.41,13.69,25.40,1.91
+HDFC Mid Cap Reg,Regular,Mid Cap,5067,4.55,0.84,1.36,13.68,24.74,1.84
+HDFC MNC Dir,Direct,Thematic-Consumption,43179,--,--,--,--,--,--
+HDFC MNC Reg,Regular,Thematic-Consumption,43177,--,--,--,--,--,--
+HDFC Multi Cap Dir,Direct,Multi Cap,41864,1.91,0.98,1.01,14.21,20.45,1.42
+HDFC Multi Cap Reg,Regular,Multi Cap,41862,0.87,0.98,0.94,14.19,19.39,1.32
+HDFC NIFTY 100 Equal Wght Index Dir,Direct,Large Cap,42093,3.39,1.12,1.03,13.83,20.31,1.45
+HDFC NIFTY 100 Equal Wght Index Reg,Regular,Large Cap,42092,2.96,1.12,1.00,13.82,19.87,1.41
+HDFC NIFTY 100 ETF,Regular,Large Cap,42416,-0.32,1.00,0.79,11.83,15.39,1.12
+HDFC NIFTY 100 ETF,Direct,Large Cap,42416,-0.32,1.00,0.79,11.83,15.39,1.12
+HDFC NIFTY 100 Index Dir,Direct,Large Cap,42091,-0.38,1.00,0.78,11.81,15.31,1.11
+HDFC NIFTY 100 Index Reg,Regular,Large Cap,42090,-0.84,1.00,0.74,11.80,14.85,1.06
+HDFC NIFTY 50 ETF,Regular,Large Cap,31376,-0.90,0.95,0.73,11.23,14.29,1.14
+HDFC NIFTY 50 ETF,Direct,Large Cap,31376,-0.90,0.95,0.73,11.23,14.29,1.14
+HDFC NIFTY 50 Index Dir,Direct,Large Cap,16069,-1.10,0.94,0.71,11.23,14.09,1.12
+HDFC NIFTY 50 Index Reg,Regular,Large Cap,1368,-1.26,0.94,0.70,11.23,13.93,1.09
+HDFC NIFTY Bank ETF,Regular,Sectoral-Auto,41076,-0.01,1.00,0.74,12.08,15.01,1.41
+HDFC NIFTY Bank ETF,Direct,Sectoral-Auto,41076,-0.01,1.00,0.74,12.08,15.01,1.41
+HDFC NIFTY Growth Sectors 15 ETF,Regular,Thematic,42537,-3.36,0.84,0.42,13.92,12.02,0.53
+HDFC NIFTY Growth Sectors 15 ETF,Direct,Thematic,42537,-3.36,0.84,0.42,13.92,12.02,0.53
+HDFC Nifty India Consumption Index Dir,Direct,Thematic-Infrastructure,45800,--,--,--,--,--,--
+HDFC Nifty India Consumption Index Reg,Regular,Thematic-Infrastructure,45799,--,--,--,--,--,--
+HDFC Nifty India Digital Index Dir,Direct,Sectoral-Technology,44757,--,--,--,--,--,--
+HDFC NIFTY IT ETF,Direct,Sectoral-Technology,42716,0.59,1.02,-0.03,22.42,5.48,-0.04
+HDFC Nifty LargeMidcap 250 Index Dir,Direct,Large & Mid Cap,44570,--,--,--,--,--,--
+HDFC Nifty LargeMidcap 250 Index Reg,Regular,Large & Mid Cap,44569,--,--,--,--,--,--
+HDFC NIFTY Midcap 150 ETF,Regular,Mid Cap,43115,0.83,0.99,1.11,15.66,23.41,1.47
+HDFC NIFTY Midcap 150 ETF,Direct,Mid Cap,43115,0.83,0.99,1.11,15.66,23.41,1.47
+HDFC NIFTY Midcap 150 Index Dir,Direct,Mid Cap,43475,--,--,--,--,--,--
+HDFC NIFTY Midcap 150 Index Reg,Regular,Mid Cap,43474,--,--,--,--,--,--
+HDFC NIFTY Next 50 ETF,Regular,Large Cap,42417,4.64,1.26,1.01,16.59,22.89,1.33
+HDFC NIFTY Next 50 ETF,Direct,Large Cap,42417,4.64,1.26,1.01,16.59,22.89,1.33
+HDFC NIFTY Next 50 Index Dir,Direct,Large Cap,41800,4.34,1.26,0.99,16.60,22.58,1.31
+HDFC NIFTY Next 50 Index Reg,Regular,Large Cap,41799,3.98,1.26,0.97,16.60,22.21,1.28
+HDFC NIFTY Private Bank ETF,Regular,Sectoral-Auto,42715,-2.47,0.97,0.51,12.12,12.25,0.95
+HDFC NIFTY Private Bank ETF,Direct,Sectoral-Auto,42715,-2.47,0.97,0.51,12.12,12.25,0.95
+HDFC NIFTY PSU BANK ETF,Regular,Sectoral-Auto,44059,--,--,--,--,--,--
+HDFC NIFTY PSU BANK ETF,Direct,Sectoral-Auto,44059,--,--,--,--,--,--
+HDFC NIFTY Realty Index Dir,Direct,Thematic,44211,--,--,--,--,--,--
+HDFC NIFTY Realty Index Reg,Regular,Thematic,44210,--,--,--,--,--,--
+HDFC Nifty Smallcap 250 ETF,Regular,Small Cap,43116,0.88,1.02,0.78,19.63,21.44,1.16
+HDFC Nifty Smallcap 250 ETF,Direct,Small Cap,43116,0.88,1.02,0.78,19.63,21.44,1.16
+HDFC Nifty Smallcap 250 Index Dir,Direct,Small Cap,43484,--,--,--,--,--,--
+HDFC Nifty Smallcap 250 Index Reg,Regular,Small Cap,43483,--,--,--,--,--,--
+HDFC Nifty Top 20 Equal Weight Index Dir,Direct,Large Cap,45043,--,--,--,--,--,--
+HDFC Nifty Top 20 Equal Weight Index Reg,Regular,Large Cap,45042,--,--,--,--,--,--
+HDFC NIFTY100 Low Volatility 30 ETF,Regular,Large Cap,42568,1.74,0.96,0.89,12.28,17.04,1.22
+HDFC NIFTY100 Low Volatility 30 ETF,Direct,Large Cap,42568,1.74,0.96,0.89,12.28,17.04,1.22
+HDFC NIFTY100 Low Volatility 30 Index Dir,Direct,Large Cap,44405,--,--,--,--,--,--
+HDFC NIFTY100 Low Volatility 30 Index Reg,Regular,Large Cap,44404,--,--,--,--,--,--
+HDFC NIFTY100 Quality 30 ETF,Regular,Large Cap,42536,-1.14,0.99,0.65,13.03,14.52,0.78
+HDFC NIFTY100 Quality 30 ETF,Direct,Large Cap,42536,-1.14,0.99,0.65,13.03,14.52,0.78
+HDFC Nifty100 Quality 30 Index Dir,Direct,Large Cap,44915,--,--,--,--,--,--
+HDFC Nifty100 Quality 30 Index Reg,Regular,Large Cap,44914,--,--,--,--,--,--
+HDFC NIFTY200 Momentum 30 ETF,Regular,Large & Mid Cap,42569,0.73,1.26,0.83,17.33,20.55,1.11
+HDFC NIFTY200 Momentum 30 ETF,Direct,Large & Mid Cap,42569,0.73,1.26,0.83,17.33,20.55,1.11
+HDFC NIFTY200 Momentum 30 Index Dir,Direct,Large & Mid Cap,44153,--,--,--,--,--,--
+HDFC NIFTY200 Momentum 30 Index Reg,Regular,Large & Mid Cap,44152,--,--,--,--,--,--
+HDFC NIFTY50 Equal Weight Index Dir,Direct,Large Cap,41636,3.31,1.00,1.05,12.30,19.05,1.40
+HDFC NIFTY50 Equal Weight Index Reg,Regular,Large Cap,41635,2.85,1.00,1.02,12.30,18.59,1.35
+HDFC NIFTY50 Value 20 ETF,Regular,Value Oriented,42535,-1.92,0.86,0.62,12.22,13.68,0.86
+HDFC NIFTY50 Value 20 ETF,Direct,Value Oriented,42535,-1.92,0.86,0.62,12.22,13.68,0.86
+HDFC Nifty500 Multicap 50:25:25 Index Dir,Direct,Multi Cap,44463,--,--,--,--,--,--
+HDFC Nifty500 Multicap 50:25:25 Index Reg,Regular,Multi Cap,44462,--,--,--,--,--,--
+HDFC Non-Cyclical Consumer Dir,Direct,Thematic-Infrastructure,43559,--,--,--,--,--,--
+HDFC Non-Cyclical Consumer Reg,Regular,Thematic-Infrastructure,43557,N/A,N/A,N/A,N/A,N/A,N/A
+HDFC Pharma And Healthcare Dir,Direct,Sectoral-Pharma,43786,--,--,--,--,--,--
+HDFC Pharma And Healthcare Reg,Regular,Sectoral-Pharma,43784,--,--,--,--,--,--
+HDFC Retirement Savings Equity Dir,Direct,Flexi Cap,31780,2.36,0.86,1.08,10.98,17.91,1.57
+HDFC Retirement Savings Equity Reg,Regular,Flexi Cap,31779,1.28,0.85,0.98,10.97,16.83,1.43
+HDFC Silver ETF,Regular,Thematic-PSU,42489,-0.60,1.00,1.19,41.95,55.96,2.60
+HDFC Silver ETF,Direct,Thematic-PSU,42489,-0.60,1.00,1.19,41.95,55.96,2.60
+HDFC Silver ETF FoF Dir,Direct,Thematic-PSU,42666,2.42,0.89,1.27,37.13,53.29,2.94
+HDFC Silver ETF FoF Reg,Regular,Thematic-PSU,42665,2.07,0.89,1.26,37.11,52.92,2.91
+HDFC Small Cap Dir,Direct,Small Cap,16617,2.59,0.79,0.88,15.70,19.92,1.32
+HDFC Small Cap Reg,Regular,Small Cap,6770,1.70,0.79,0.82,15.68,19.02,1.24
+HDFC Technology Dir,Direct,Sectoral-Technology,43756,--,--,--,--,--,--
+HDFC Value Dir,Direct,Value Oriented,15989,3.41,0.98,1.13,12.61,20.34,1.75
+HDFC Value Reg,Regular,Value Oriented,218,2.56,0.98,1.06,12.61,19.49,1.64
+Helios Financial Services Dir,Direct,Sectoral-Auto,44374,--,--,--,--,--,--
+Helios Financial Services Reg,Regular,Sectoral-Auto,44372,--,--,--,--,--,--
+Helios Flexi Cap Dir,Direct,Flexi Cap,43839,--,--,--,--,--,--
+Helios Flexi Cap Reg,Regular,Flexi Cap,43837,--,--,--,--,--,--
+Helios Large & Mid Cap Dir,Direct,Large & Mid Cap,44610,--,--,--,--,--,--
+Helios Large & Mid Cap Reg,Regular,Large & Mid Cap,44608,--,--,--,--,--,--
+Helios Mid Cap Dir,Direct,Mid Cap,44987,--,--,--,--,--,--
+Helios Mid Cap Reg,Regular,Mid Cap,44985,--,--,--,--,--,--
+Helios Small Cap Dir,Direct,Small Cap,45559,--,--,--,--,--,--
+Helios Small Cap Reg,Regular,Small Cap,45557,--,--,--,--,--,--
+HSBC Asia Pacific (Ex Japan) Dividend Yield Dir,Direct,International,23946,--,--,1.35,11.95,22.26,2.45
+HSBC Asia Pacific (Ex Japan) Dividend Yield Reg,Regular,International,23944,--,--,1.32,11.96,21.83,2.39
+HSBC Brazil Dir,Direct,International,17042,--,--,0.67,23.65,21.89,1.46
+HSBC Brazil Reg,Regular,International,12632,--,--,0.64,23.64,21.30,1.40
+HSBC Consumption Dir,Direct,Thematic-Infrastructure,43710,--,--,--,--,--,--
+HSBC Consumption Reg,Regular,Thematic-Infrastructure,43708,--,--,--,--,--,--
+HSBC ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16200,2.99,1.02,1.02,13.93,20.37,1.23
+HSBC ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),3112,2.21,1.02,0.97,13.92,19.59,1.17
+HSBC Financial Services Dir,Direct,Sectoral-Auto,44926,--,--,--,--,--,--
+HSBC Financial Services Reg,Regular,Sectoral-Auto,44924,--,--,--,--,--,--
+HSBC Flexi Cap Dir,Direct,Flexi Cap,16320,1.65,1.06,0.95,14.03,19.47,1.20
+HSBC Flexi Cap Reg,Regular,Flexi Cap,2072,0.89,1.06,0.90,14.01,18.70,1.13
+HSBC Focused Dir,Direct,Flexi Cap,41022,2.07,0.99,0.94,13.82,19.16,1.14
+HSBC Focused Reg,Regular,Flexi Cap,41020,0.89,0.99,0.86,13.80,17.97,1.03
+HSBC Global Emerging Markets Dir,Direct,International,17037,--,--,1.16,15.23,23.71,2.00
+HSBC Global Emerging Markets Reg,Regular,International,6774,--,--,1.11,15.23,23.06,1.93
+HSBC Global Equity Climate Change FoF Dir,Direct,International,41323,--,--,0.44,13.88,12.24,0.78
+HSBC Global Equity Climate Change FoF Reg,Regular,International,41321,--,--,0.41,13.87,11.73,0.71
+HSBC India Export Opportunities Dir,Direct,Thematic,44524,--,--,--,--,--,--
+HSBC India Export Opportunities Reg,Regular,Thematic,44522,--,--,--,--,--,--
+HSBC Large and Mid Cap Dir,Direct,Large & Mid Cap,39456,4.52,1.03,1.01,15.49,21.80,1.02
+HSBC Large and Mid Cap Reg,Regular,Large & Mid Cap,39454,3.46,1.03,0.95,15.47,20.74,0.96
+HSBC Large Cap Dir,Direct,Large Cap,16289,1.88,0.94,0.94,11.58,17.00,1.25
+HSBC Large Cap Reg,Regular,Large Cap,1481,0.97,0.94,0.86,11.57,16.08,1.14
+HSBC Midcap Dir,Direct,Mid Cap,16280,2.88,0.98,1.15,16.78,25.36,1.21
+HSBC Midcap Reg,Regular,Mid Cap,2333,1.81,0.98,1.08,16.76,24.28,1.14
+HSBC Multi Cap Dir,Direct,Multi Cap,43023,5.10,0.98,1.19,14.84,23.74,1.55
+HSBC Multi Cap Reg,Regular,Multi Cap,43021,3.79,0.98,1.10,14.82,22.41,1.43
+HSBC Nifty 50 Index Dir,Direct,Large Cap,40972,-1.06,0.94,0.71,11.20,14.11,1.12
+HSBC Nifty 50 Index Reg,Regular,Large Cap,40970,-1.31,0.94,0.69,11.20,13.86,1.09
+HSBC Nifty Next 50 Index Dir,Direct,Large Cap,40976,4.35,1.26,0.99,16.58,22.58,1.31
+HSBC Nifty Next 50 Index Reg,Regular,Large Cap,40974,3.91,1.26,0.97,16.58,22.14,1.27
+HSBC Small Cap Dir,Direct,Small Cap,26133,-0.79,0.95,0.67,18.76,18.73,0.86
+HSBC Small Cap Reg,Regular,Small Cap,26131,-1.81,0.94,0.62,18.74,17.70,0.79
+HSBC Value Dir,Direct,Value Oriented,16269,6.12,1.04,1.26,13.99,23.66,1.65
+HSBC Value Reg,Regular,Value Oriented,10789,5.15,1.03,1.19,13.97,22.69,1.56
+ICICI Pru Active Momentum,Regular,Thematic,45355,--,--,--,--,--,--
+ICICI Pru Active Momentum Dir,Direct,Thematic,45357,--,--,--,--,--,--
+ICICI Pru Banking & Financial Services,Regular,Sectoral-Auto,8293,2.87,0.79,0.94,10.49,16.00,1.99
+ICICI Pru Banking & Financial Services Dir,Direct,Sectoral-Auto,15936,3.68,0.79,1.02,10.49,16.81,2.15
+ICICI Pru Bharat 22 FOF,Regular,Large Cap,36692,10.73,1.13,1.30,16.65,27.73,2.01
+ICICI Pru Bharat 22 FOF Dir,Direct,Large Cap,36693,10.74,1.13,1.30,16.65,27.74,2.01
+ICICI Pru Bharat Consumption,Regular,Thematic-Infrastructure,39670,-0.74,0.74,0.75,12.80,15.75,0.91
+ICICI Pru Bharat Consumption Dir,Direct,Thematic-Infrastructure,39672,0.17,0.73,0.82,12.79,16.64,0.99
+ICICI Pru BSE 500 ETF,Regular,Flexi Cap,36037,-0.33,1.00,0.85,12.62,16.81,1.18
+ICICI Pru BSE 500 ETF,Direct,Flexi Cap,36037,-0.33,1.00,0.85,12.62,16.81,1.18
+ICICI Pru BSE 500 ETF FOF,Regular,Flexi Cap,41850,-0.84,0.98,0.80,12.38,16.06,1.10
+ICICI Pru BSE 500 ETF FOF Dir,Direct,Flexi Cap,41852,-0.38,0.98,0.84,12.37,16.51,1.15
+ICICI Pru BSE Midcap Select ETF,Regular,Mid Cap,32594,-0.03,1.00,1.00,16.51,22.69,1.30
+ICICI Pru BSE Midcap Select ETF,Direct,Mid Cap,32594,-0.03,1.00,1.00,16.51,22.69,1.30
+ICICI Pru BSE Sensex ETF,Regular,Large Cap,1512,-2.45,0.92,0.58,11.05,12.54,0.94
+ICICI Pru BSE Sensex ETF,Direct,Large Cap,1512,-2.45,0.92,0.58,11.05,12.54,0.94
+ICICI Pru BSE Sensex Index,Regular,Large Cap,34647,-2.77,0.92,0.55,11.05,12.21,0.90
+ICICI Pru BSE Sensex Index Dir,Direct,Large Cap,34649,-2.69,0.92,0.56,11.05,12.30,0.91
+ICICI Pru Commodities,Regular,Thematic,40304,4.64,0.93,1.05,14.12,20.97,1.59
+ICICI Pru Commodities Dir,Direct,Thematic,40306,5.71,0.93,1.13,14.14,22.05,1.69
+ICICI Pru Conglomerate,Regular,Thematic,45487,--,--,--,--,--,--
+ICICI Pru Conglomerate Dir,Direct,Thematic,45489,--,--,--,--,--,--
+ICICI Pru Diversified Equity All Cap Active FoF,Regular,Flexi Cap,45887,N/A,N/A,N/A,N/A,N/A,N/A
+ICICI Pru Diversified Equity All Cap Active FoF Dir,Direct,Flexi Cap,45888,N/A,N/A,N/A,N/A,N/A,N/A
+ICICI Pru Diversified Equity All Cap Omni FoF Dir*,Direct,Flexi Cap,40662,4.64,0.89,1.25,11.58,20.62,1.91
+ICICI Pru Diversified Equity All Cap Omni FoF*,Regular,Flexi Cap,40660,4.09,0.89,1.21,11.58,20.06,1.84
+ICICI Pru ELSS Tax Saver,Regular,ELSS (Tax Saver),640,0.96,0.87,0.92,11.58,16.71,1.39
+ICICI Pru ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),15862,1.58,0.87,0.97,11.58,17.34,1.47
+ICICI Pru Energy Opportunities Dir,Direct,Thematic-Dividend Yield,44418,--,--,--,--,--,--
+ICICI Pru Energy Opportunities Reg,Regular,Thematic-Dividend Yield,44416,--,--,--,--,--,--
+ICICI Pru Eqt Minimum Variance Fund Dir,Direct,Thematic,44744,--,--,--,--,--,--
+ICICI Pru Eqt Minimum Variance Fund Reg,Regular,Thematic,44742,--,--,--,--,--,--
+ICICI Pru ESG Exclusionary Strategy,Regular,Thematic-ESG,41125,2.07,0.96,0.92,12.33,17.41,1.47
+ICICI Pru ESG Exclusionary Strategy Dir,Direct,Thematic-ESG,41127,3.26,0.96,1.01,12.34,18.60,1.62
+ICICI Pru Exports & Services,Regular,Thematic,2968,3.19,0.84,1.12,11.10,18.53,2.14
+ICICI Pru Exports & Services Dir,Direct,Thematic,15859,3.80,0.84,1.17,11.10,19.14,2.24
+ICICI Pru Flexicap,Regular,Flexi Cap,41523,2.82,0.92,1.05,12.35,19.04,1.35
+ICICI Pru Flexicap Dir,Direct,Flexi Cap,41525,3.80,0.92,1.13,12.38,20.04,1.46
+ICICI Pru FMCG,Regular,Thematic,591,-9.85,0.80,-0.08,12.84,5.12,-0.09
+ICICI Pru FMCG Dir,Direct,Thematic,15836,-8.99,0.80,-0.01,12.85,5.98,-0.01
+ICICI Pru Focused Equity,Regular,Flexi Cap,10399,5.37,0.93,1.27,12.36,21.74,1.97
+ICICI Pru Focused Equity Dir,Direct,Flexi Cap,17412,6.55,0.93,1.36,12.37,22.93,2.11
+ICICI Pru Global Advantage (FOF) Dir*,Direct,International,40282,--,--,1.10,12.18,19.48,1.63
+ICICI Pru Global Advantage (FOF)*,Regular,International,40280,--,--,1.04,12.18,18.76,1.54
+ICICI Pru Global Stable Equity (FOF),Regular,International,20855,--,--,0.74,9.44,13.08,1.31
+ICICI Pru Global Stable Equity (FOF) Dir,Direct,International,20857,--,--,0.79,9.43,13.59,1.40
+ICICI Pru Housing Opportunities,Regular,Thematic,42248,1.20,0.90,0.91,12.21,17.25,1.53
+ICICI Pru Housing Opportunities Dir,Direct,Thematic,42250,2.35,0.90,1.01,12.21,18.41,1.68
+ICICI Pru India Opportunities,Regular,Thematic,38583,7.01,0.82,1.45,11.08,22.20,2.34
+ICICI Pru India Opportunities Dir,Direct,Thematic,38585,8.01,0.82,1.54,11.11,23.23,2.48
+ICICI Pru Large & Mid Cap,Regular,Large & Mid Cap,534,4.87,0.90,1.26,11.59,20.73,1.70
+ICICI Pru Large & Mid Cap Dir,Direct,Large & Mid Cap,15868,5.74,0.90,1.34,11.60,21.62,1.80
+ICICI Pru Large Cap,Regular,Large Cap,7517,2.94,0.91,1.06,10.98,17.75,1.62
+ICICI Pru Large Cap Dir,Direct,Large Cap,15841,3.50,0.91,1.11,10.98,18.32,1.70
+ICICI Pru Long Term Wealth Enhancement,Regular,ELSS (Tax Saver),34950,2.34,0.90,1.00,12.28,18.36,1.42
+ICICI Pru Long Term Wealth Enhancement Dir,Direct,ELSS (Tax Saver),34952,2.71,0.90,1.03,12.29,18.73,1.46
+ICICI Pru Midcap,Regular,Mid Cap,2439,2.92,0.95,1.19,15.79,24.95,1.65
+ICICI Pru Midcap Dir,Direct,Mid Cap,15960,3.76,0.96,1.25,15.80,25.79,1.72
+ICICI Pru MNC,Regular,Thematic-Consumption,39975,0.40,0.80,0.82,11.24,15.37,0.95
+ICICI Pru MNC Dir,Direct,Thematic-Consumption,39977,1.51,0.80,0.92,11.25,16.48,1.06
+ICICI Pru Multi Sector Passive FoF,Regular,Thematic,1935,2.21,0.86,1.05,11.18,17.84,1.62
+ICICI Pru Multi Sector Passive FoF Dir,Direct,Thematic,15812,2.46,0.86,1.07,11.18,18.09,1.65
+ICICI Pru Multicap,Regular,Multi Cap,86,3.22,0.82,1.11,12.37,19.77,1.73
+ICICI Pru Multicap Dir,Direct,Multi Cap,15874,4.03,0.82,1.17,12.38,20.59,1.83
+ICICI Pru NASDAQ 100 Index,Regular,International,41742,--,--,1.46,15.37,28.53,2.20
+ICICI Pru NASDAQ 100 Index Dir,Direct,International,41744,--,--,1.49,15.37,28.99,2.25
+ICICI Pru Nifty 100 ETF,Regular,Large Cap,20933,-0.49,1.00,0.77,11.83,15.22,1.10
+ICICI Pru Nifty 100 ETF,Direct,Large Cap,20933,-0.49,1.00,0.77,11.83,15.22,1.10
+ICICI Pru Nifty 100 Low Volatility 30 ETF,Regular,Large Cap,34396,1.64,0.96,0.88,12.29,16.94,1.21
+ICICI Pru Nifty 100 Low Volatility 30 ETF,Direct,Large Cap,34396,1.64,0.96,0.88,12.29,16.94,1.21
+ICICI Pru Nifty 100 Low Volatility 30 ETF FOF,Regular,Large Cap,41397,1.25,0.93,0.85,12.09,16.32,1.18
+ICICI Pru Nifty 100 Low Volatility 30 ETF FOF Dir,Direct,Large Cap,41399,1.62,0.93,0.88,12.10,16.69,1.22
+ICICI Pru Nifty 200 Momentum 30 ETF,Regular,Large & Mid Cap,42387,0.65,1.27,0.83,17.36,20.51,1.11
+ICICI Pru Nifty 200 Momentum 30 ETF,Direct,Large & Mid Cap,42387,0.65,1.27,0.83,17.36,20.51,1.11
+ICICI Pru Nifty 200 Momentum 30 Index,Regular,Large & Mid Cap,42379,-0.16,1.26,0.78,17.27,19.64,1.05
+ICICI Pru Nifty 200 Momentum 30 Index Dir,Direct,Large & Mid Cap,42381,0.45,1.26,0.82,17.28,20.26,1.09
+ICICI Pru Nifty 200 Quality 30 ETF,Regular,Large & Mid Cap,43676,--,--,--,--,--,--
+ICICI Pru Nifty 200 Quality 30 ETF,Direct,Large & Mid Cap,43676,--,--,--,--,--,--
+ICICI Pru Nifty 50 ETF,Regular,Large Cap,18653,-0.88,0.95,0.73,11.23,14.32,1.15
+ICICI Pru Nifty 50 ETF,Direct,Large Cap,18653,-0.88,0.95,0.73,11.23,14.32,1.15
+ICICI Pru Nifty 50 Index,Regular,Large Cap,1236,-1.27,0.94,0.70,11.22,13.91,1.09
+ICICI Pru Nifty 50 Index Dir,Direct,Large Cap,15959,-1.11,0.94,0.71,11.22,14.07,1.12
+ICICI Pru Nifty 500 Index,Regular,Flexi Cap,44818,--,--,--,--,--,--
+ICICI Pru Nifty 500 Index Dir,Direct,Flexi Cap,44820,--,--,--,--,--,--
+ICICI Pru Nifty Alpha Low - Volatility 30 ETF,Regular,Large & Mid Cap,41071,-0.06,1.11,0.82,14.60,18.13,1.13
+ICICI Pru Nifty Alpha Low - Volatility 30 ETF,Direct,Large & Mid Cap,41071,-0.06,1.11,0.82,14.60,18.13,1.13
+ICICI Pru Nifty Alpha Low - Volatility 30 ETF FOF,Regular,Large & Mid Cap,41686,-0.36,1.10,0.79,14.74,17.70,1.01
+ICICI Pru Nifty Alpha Low - Volatility 30 ETF FOF Dir,Direct,Large & Mid Cap,41688,0.03,1.10,0.81,14.74,18.09,1.05
+ICICI Pru Nifty Bank ETF,Regular,Sectoral-Auto,40130,0.03,1.00,0.74,12.08,15.05,1.42
+ICICI Pru Nifty Bank ETF,Direct,Sectoral-Auto,40130,0.03,1.00,0.74,12.08,15.05,1.42
+ICICI Pru Nifty Bank Index,Regular,Sectoral-Auto,42102,-0.73,1.00,0.68,12.08,14.29,1.30
+ICICI Pru Nifty Bank Index Dir,Direct,Sectoral-Auto,42104,-0.12,1.00,0.73,12.08,14.90,1.40
+ICICI Pru Nifty Commodities ETF,Regular,Thematic,42947,4.84,1.04,1.04,15.75,22.48,1.58
+ICICI Pru Nifty Commodities ETF,Direct,Thematic,42947,4.84,1.04,1.04,15.75,22.48,1.58
+ICICI Pru Nifty Financial Services Ex-Bank ETF,Regular,Sectoral-Auto,42801,11.35,0.78,1.27,14.42,24.41,2.23
+ICICI Pru Nifty Financial Services Ex-Bank ETF,Direct,Sectoral-Auto,42801,11.35,0.78,1.27,14.42,24.41,2.23
+ICICI Pru Nifty FMCG ETF,Regular,Thematic,41601,-9.56,0.92,0.04,14.80,6.75,0.06
+ICICI Pru Nifty FMCG ETF,Direct,Thematic,41601,-9.56,0.92,0.04,14.80,6.75,0.06
+ICICI Pru Nifty Healthcare ETF,Regular,Sectoral-Pharma,41502,-0.97,1.00,1.12,16.68,24.85,1.87
+ICICI Pru Nifty Healthcare ETF,Direct,Sectoral-Pharma,41502,-0.97,1.00,1.12,16.68,24.85,1.87
+ICICI Pru Nifty India Consumption ETF,Regular,Thematic-Infrastructure,41802,0.19,0.82,0.82,14.31,17.89,1.00
+ICICI Pru Nifty India Consumption ETF,Direct,Thematic-Infrastructure,41802,0.19,0.82,0.82,14.31,17.89,1.00
+ICICI Pru Nifty IT ETF,Direct,Sectoral-Technology,41081,0.65,1.02,-0.03,22.42,5.53,-0.03
+ICICI Pru Nifty IT Index Dir,Direct,Sectoral-Technology,42405,0.45,1.01,-0.03,22.38,5.33,-0.04
+ICICI Pru Nifty LargeMidcap 250 Index,Regular,Large & Mid Cap,44178,--,--,--,--,--,--
+ICICI Pru Nifty LargeMidcap 250 Index Dir,Direct,Large & Mid Cap,44180,--,--,--,--,--,--
+ICICI Pru Nifty Metal ETF,Regular,Thematic,44461,--,--,--,--,--,--
+ICICI Pru Nifty Metal ETF,Direct,Thematic,44461,N/A,N/A,N/A,N/A,N/A,N/A
+ICICI Pru Nifty Midcap 150 ETF,Regular,Mid Cap,40555,0.90,0.99,1.11,15.66,23.49,1.48
+ICICI Pru Nifty Midcap 150 ETF,Direct,Mid Cap,40555,0.90,0.99,1.11,15.66,23.49,1.48
+ICICI Pru Nifty Midcap 150 Index,Regular,Mid Cap,41891,-0.06,0.99,1.05,15.61,22.48,1.39
+ICICI Pru Nifty Midcap 150 Index Dir,Direct,Mid Cap,41893,0.58,0.99,1.09,15.64,23.15,1.45
+ICICI Pru Nifty Next 50 ETF,Regular,Large Cap,37322,4.80,1.26,1.02,16.59,23.05,1.35
+ICICI Pru Nifty Next 50 ETF,Direct,Large Cap,37322,4.80,1.26,1.02,16.59,23.05,1.35
+ICICI Pru Nifty Next 50 Index,Regular,Large Cap,11236,4.07,1.26,0.98,16.60,22.33,1.29
+ICICI Pru Nifty Next 50 Index Dir,Direct,Large Cap,15856,4.41,1.26,1.00,16.61,22.67,1.31
+ICICI Pru Nifty Oil & Gas ETF,Regular,Thematic,44432,--,--,--,--,--,--
+ICICI Pru Nifty Oil & Gas ETF,Direct,Thematic,44432,--,--,--,--,--,--
+ICICI Pru Nifty Pharma Index,Regular,Sectoral-Pharma,42838,-2.19,0.97,1.02,16.53,23.03,1.80
+ICICI Pru Nifty Pharma Index Dir,Direct,Sectoral-Pharma,42840,-1.57,0.97,1.06,16.54,23.67,1.86
+ICICI Pru Nifty Private Bank ETF,Regular,Sectoral-Auto,40210,-2.47,0.97,0.51,12.12,12.25,0.95
+ICICI Pru Nifty Private Bank ETF,Direct,Sectoral-Auto,40210,-2.47,0.97,0.51,12.12,12.25,0.95
+ICICI Pru Nifty Private Bank Index,Regular,Sectoral-Auto,45298,--,--,--,--,--,--
+ICICI Pru Nifty Private Bank Index Dir,Direct,Sectoral-Auto,45300,--,--,--,--,--,--
+ICICI Pru Nifty PSU Bank ETF,Regular,Sectoral-Auto,43296,--,--,--,--,--,--
+ICICI Pru Nifty PSU Bank ETF,Direct,Sectoral-Auto,43296,--,--,--,--,--,--
+ICICI Pru Nifty Smallcap 250 Index,Regular,Small Cap,41787,0.07,1.01,0.74,19.56,20.58,1.09
+ICICI Pru Nifty Smallcap 250 Index Dir,Direct,Small Cap,41789,0.63,1.02,0.77,19.59,21.15,1.14
+ICICI Pru Nifty Top 15 Equal Weight ETF,Regular,Large Cap,45235,--,--,--,--,--,--
+ICICI Pru Nifty Top 15 Equal Weight ETF,Direct,Large Cap,45235,--,--,--,--,--,--
+ICICI Pru Nifty Top 15 Equal Weight Index,Regular,Large Cap,45236,--,--,--,--,--,--
+ICICI Pru Nifty Top 15 Equal Weight Index Dir,Direct,Large Cap,45238,--,--,--,--,--,--
+ICICI Pru Nifty200 Quality 30 Index,Regular,Large & Mid Cap,45191,--,--,--,--,--,--
+ICICI Pru Nifty200 Quality 30 Index Dir,Direct,Large & Mid Cap,45193,--,--,--,--,--,--
+ICICI Pru Nifty200 Value 30 ETF,Regular,Value Oriented,44607,--,--,--,--,--,--
+ICICI Pru Nifty200 Value 30 ETF,Direct,Value Oriented,44607,--,--,--,--,--,--
+ICICI Pru Nifty200 Value 30 Index Dir,Direct,Value Oriented,44605,--,--,--,--,--,--
+ICICI Pru Nifty200 Value 30 Index Reg,Regular,Value Oriented,44603,--,--,--,--,--,--
+ICICI Pru Nifty50 Equal Weight Index,Regular,Large Cap,42546,2.66,1.00,1.00,12.27,18.38,1.32
+ICICI Pru Nifty50 Equal Weight Index Dir,Direct,Large Cap,42548,3.24,1.00,1.05,12.28,18.97,1.39
+ICICI Pru Nifty50 Value 20 ETF,Regular,Value Oriented,32540,-2.02,0.86,0.61,12.22,13.58,0.84
+ICICI Pru Nifty50 Value 20 ETF,Direct,Value Oriented,32540,-2.02,0.86,0.61,12.22,13.58,0.84
+ICICI Pru Nifty50 Value 20 Index,Regular,Value Oriented,44068,--,--,--,--,--,--
+ICICI Pru Nifty50 Value 20 Index Dir,Direct,Value Oriented,44070,--,--,--,--,--,--
+ICICI Pru Pharma Healthcare and Diagnostics,Regular,Sectoral-Pharma,36528,1.43,0.94,1.26,15.85,26.12,1.73
+ICICI Pru Pharma Healthcare and Diagnostics Dir,Direct,Sectoral-Pharma,36530,2.27,0.95,1.32,15.86,26.97,1.81
+ICICI Pru PSU Equity,Regular,Thematic-Energy,42449,-1.03,0.82,1.23,18.24,28.52,2.09
+ICICI Pru PSU Equity Dir,Direct,Thematic-Energy,42451,0.34,0.82,1.30,18.25,29.89,2.21
+ICICI Pru Quality,Regular,Thematic,45162,--,--,--,--,--,--
+ICICI Pru Quality Dir,Direct,Thematic,45164,--,--,--,--,--,--
+ICICI Pru Retirement Pure Equity,Regular,Flexi Cap,39053,6.95,1.07,1.33,14.11,24.83,1.89
+ICICI Pru Retirement Pure Equity Dir,Direct,Flexi Cap,39055,8.34,1.07,1.42,14.12,26.22,2.04
+ICICI Pru Rural Opportunities,Regular,Thematic,44844,--,--,--,--,--,--
+ICICI Pru Rural Opportunities Dir,Direct,Thematic,44846,--,--,--,--,--,--
+ICICI Pru Silver ETF,Regular,Thematic-PSU,41982,-0.78,0.99,1.19,41.03,54.99,2.61
+ICICI Pru Silver ETF,Direct,Thematic-PSU,41982,-0.78,0.99,1.19,41.03,54.99,2.61
+ICICI Pru Silver ETF FoF,Regular,Thematic-PSU,42021,4.97,0.81,1.33,34.27,51.68,3.32
+ICICI Pru Silver ETF FoF Dir,Direct,Thematic-PSU,42023,5.41,0.81,1.34,34.28,52.14,3.35
+ICICI Pru Smallcap,Regular,Small Cap,5646,0.33,0.75,0.73,15.11,17.08,1.06
+ICICI Pru Smallcap Dir,Direct,Small Cap,17116,1.40,0.75,0.80,15.13,18.16,1.16
+ICICI Pru Strategic Metal and Energy Equity FoF,Regular,International,42033,--,--,1.28,20.65,32.56,2.44
+ICICI Pru Strategic Metal and Energy Equity FoF Dir,Direct,International,42035,--,--,1.33,20.65,33.49,2.53
+ICICI Pru Technology Dir,Direct,Sectoral-Technology,15864,5.79,0.83,0.26,18.53,10.90,0.35
+ICICI Pru Thematic Advantage (FOF) Dir*,Direct,Thematic,17838,4.23,0.76,1.24,10.24,18.77,2.24
+ICICI Pru Thematic Advantage (FOF)*,Regular,Thematic,1936,3.10,0.76,1.13,10.24,17.64,2.04
+ICICI Pru US Bluechip Equity,Regular,International,14998,--,--,0.81,13.27,16.82,1.29
+ICICI Pru US Bluechip Equity Dir,Direct,International,17160,--,--,0.87,13.29,17.68,1.40
+ICICI Pru Value,Regular,Value Oriented,2310,4.67,0.81,1.24,10.97,19.76,2.08
+ICICI Pru Value Dir,Direct,Value Oriented,15822,5.20,0.81,1.29,10.98,20.29,2.16
+Invesco India Consumption Dir,Direct,Thematic-Infrastructure,45529,--,--,--,--,--,--
+Invesco India Consumption Reg,Regular,Thematic-Infrastructure,45527,--,--,--,--,--,--
+Invesco India Contra Dir,Direct,Value Oriented,16719,2.95,1.02,1.06,13.40,20.30,1.48
+Invesco India Contra Reg,Regular,Value Oriented,4278,1.82,1.02,0.98,13.38,19.15,1.36
+Invesco India ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16849,-0.30,1.03,0.81,13.76,17.19,1.06
+Invesco India ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),3913,-1.45,1.03,0.72,13.75,16.03,0.95
+Invesco India ESG Integration Strategy Dir,Direct,Thematic-ESG,41339,-1.85,0.99,0.60,12.80,13.73,0.86
+Invesco India ESG Integration Strategy Reg,Regular,Thematic-ESG,41337,-3.27,0.98,0.48,12.77,12.29,0.70
+Invesco India Financial Services Dir,Direct,Sectoral-Auto,16702,9.52,0.81,1.41,11.85,22.81,2.26
+Invesco India Financial Services Reg,Regular,Sectoral-Auto,7830,8.19,0.81,1.30,11.84,21.48,2.09
+Invesco India Flexi Cap Dir,Direct,Flexi Cap,42014,3.88,1.02,1.07,14.16,21.22,1.24
+Invesco India Flexi Cap Reg,Regular,Flexi Cap,42012,2.44,1.01,0.97,14.13,19.74,1.12
+Invesco India Focused Dir,Direct,Flexi Cap,41096,5.31,1.00,1.11,14.74,22.48,1.64
+Invesco India Focused Reg,Regular,Flexi Cap,41094,3.98,1.00,1.02,14.70,21.12,1.51
+Invesco India Global Equity Income FoF Dir,Direct,International,26149,--,--,1.24,11.60,20.55,2.10
+Invesco India Global Equity Income FoF Reg,Regular,International,26147,--,--,1.20,11.60,20.06,2.03
+Invesco India Large & Mid Cap Dir,Direct,Large & Mid Cap,16770,6.83,1.08,1.24,14.96,24.65,1.51
+Invesco India Large & Mid Cap Reg,Regular,Large & Mid Cap,5346,5.66,1.08,1.16,14.95,23.47,1.41
+Invesco India Largecap Dir,Direct,Large Cap,16712,2.22,1.08,0.96,13.15,18.67,1.34
+Invesco India Largecap Reg,Regular,Large Cap,10565,0.84,1.08,0.85,13.14,17.28,1.19
+Invesco India Mid cap Dir,Direct,Mid Cap,16807,4.63,0.97,1.27,16.48,26.99,1.55
+Invesco India Mid cap Reg,Regular,Mid Cap,4280,3.39,0.97,1.19,16.47,25.73,1.45
+Invesco India Multicap Dir,Direct,Multi Cap,16811,-0.48,0.97,0.81,14.63,18.02,1.01
+Invesco India Multicap Reg,Regular,Multi Cap,6675,-1.73,0.97,0.73,14.61,16.75,0.90
+Invesco India Nifty 50 ETF,Regular,Large Cap,12761,-0.95,0.94,0.72,11.23,14.23,1.14
+Invesco India Nifty 50 ETF,Direct,Large Cap,12761,-0.95,0.94,0.72,11.23,14.23,1.14
+Invesco India Pan European Equity FoF Dir,Direct,International,23314,--,--,0.90,13.10,17.93,1.58
+Invesco India Pan European Equity FoF Reg,Regular,International,23312,--,--,0.87,13.09,17.54,1.53
+Invesco India PSU Equity Dir,Direct,Thematic-Energy,16831,-1.21,0.95,1.19,21.78,32.10,1.88
+Invesco India PSU Equity Reg,Regular,Thematic-Energy,10694,-2.50,0.95,1.13,21.77,30.78,1.79
+Invesco India Smallcap Dir,Direct,Small Cap,37843,7.15,0.82,1.12,16.86,24.92,1.33
+Invesco India Smallcap Reg,Regular,Small Cap,37841,5.76,0.82,1.03,16.85,23.52,1.24
+Invesco India Tech Dir,Direct,Sectoral-Technology,44543,--,--,--,--,--,--
+Invesco India-Invesco EQQQ NASDAQ-100 ETF FoF Dir,Direct,International,42218,--,--,1.43,15.84,28.76,2.23
+Invesco India-Invesco EQQQ NASDAQ-100 ETF FoF Reg,Regular,International,42217,--,--,1.42,15.84,28.52,2.20
+Invesco India-Invesco Global Consumer Trends FoF Dir,Direct,International,41229,--,--,0.65,23.05,21.15,0.99
+Invesco India-Invesco Global Consumer Trends FoF Reg,Regular,International,41227,--,--,0.61,23.03,20.21,0.93
+ITI Banking and Financial Services Dir,Direct,Sectoral-Auto,41834,4.03,0.89,1.03,11.62,18.09,1.90
+ITI Banking and Financial Services Reg,Regular,Sectoral-Auto,41832,2.12,0.89,0.87,11.61,16.17,1.60
+ITI Bharat Consumption Dir,Direct,Thematic-Infrastructure,44922,--,--,--,--,--,--
+ITI Bharat Consumption Reg,Regular,Thematic-Infrastructure,44920,--,--,--,--,--,--
+ITI ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),40137,1.81,1.15,0.93,15.69,20.65,1.19
+ITI ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),40135,-0.01,1.15,0.81,15.67,18.80,1.04
+ITI Flexi Cap Dir,Direct,Flexi Cap,43120,4.84,1.09,1.15,14.65,22.95,1.48
+ITI Flexi Cap Reg,Regular,Flexi Cap,43118,3.11,1.08,1.03,14.62,21.19,1.33
+ITI Focused Dir,Direct,Flexi Cap,43534,--,--,--,--,--,--
+ITI Focused Reg,Regular,Flexi Cap,43532,--,--,--,--,--,--
+ITI Large & Mid Cap Dir,Direct,Large & Mid Cap,44501,--,--,--,--,--,--
+ITI Large & Mid Cap Reg,Regular,Large & Mid Cap,44499,--,--,--,--,--,--
+ITI Large Cap Dir,Direct,Large Cap,41210,0.12,1.03,0.78,12.84,16.17,1.13
+ITI Large Cap Reg,Regular,Large Cap,41208,-1.77,1.03,0.64,12.81,14.26,0.92
+ITI Mid Cap Dir,Direct,Mid Cap,41319,2.84,0.99,1.20,16.20,25.50,1.56
+ITI Mid Cap Reg,Regular,Mid Cap,41317,1.07,0.99,1.09,16.17,23.70,1.42
+ITI Multi Cap Dir,Direct,Multi Cap,39831,2.97,1.00,1.05,14.86,21.76,1.27
+ITI Multi Cap Reg,Regular,Multi Cap,39829,1.30,0.99,0.94,14.84,20.07,1.14
+ITI Pharma and Healthcare Dir,Direct,Sectoral-Pharma,41793,-2.88,0.96,1.00,15.98,22.13,1.38
+ITI Pharma and Healthcare Reg,Regular,Sectoral-Pharma,41791,-4.82,0.96,0.88,15.95,20.15,1.21
+ITI Small Cap Dir,Direct,Small Cap,40532,7.27,0.84,1.13,16.92,25.25,1.41
+ITI Small Cap Reg,Regular,Small Cap,40530,5.63,0.83,1.04,16.89,23.58,1.29
+ITI Value Dir,Direct,Value Oriented,41509,2.23,1.09,0.99,14.46,20.38,1.29
+ITI Value Reg,Regular,Value Oriented,41507,0.37,1.09,0.86,14.44,18.49,1.12
+JioBlackRock Flexi Cap Dir,Direct,Flexi Cap,45482,--,--,--,--,--,--
+JioBlackRock Nifty 50 Index Dir,Direct,Large Cap,45423,--,--,--,--,--,--
+JioBlackRock Nifty Midcap 150 Index Dir,Direct,Mid Cap,45427,--,--,--,--,--,--
+JioBlackRock Nifty Next 50 Index Dir,Direct,Large Cap,45425,--,--,--,--,--,--
+JioBlackRock Nifty Smallcap 250 Index Dir,Direct,Small Cap,45424,--,--,--,--,--,--
+JioBlackRock Sector Rotation Dir,Direct,Thematic,45730,--,--,--,--,--,--
+JM ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16552,1.85,1.06,0.93,14.52,19.67,1.35
+JM ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),6679,0.65,1.06,0.85,14.51,18.47,1.23
+JM Flexicap Dir,Direct,Flexi Cap,16547,3.34,1.05,1.02,14.75,21.08,1.38
+JM Flexicap Reg,Regular,Flexi Cap,8653,2.03,1.05,0.93,14.72,19.75,1.26
+JM Focused Dir,Direct,Flexi Cap,16539,1.34,1.01,0.89,14.08,18.57,1.26
+JM Focused Reg,Regular,Flexi Cap,6673,-0.05,1.01,0.79,14.10,17.19,1.13
+JM Large & Mid Cap Dir,Direct,Large & Mid Cap,45304,--,--,--,--,--,--
+JM Large & Mid Cap Reg,Regular,Large & Mid Cap,45302,--,--,--,--,--,--
+JM Large Cap Dir,Direct,Large Cap,16541,1.08,1.03,0.85,12.97,17.11,1.27
+JM Large Cap Reg,Regular,Large Cap,108,-0.26,1.03,0.75,13.00,15.79,1.12
+JM Midcap Dir,Direct,Mid Cap,42731,1.13,1.03,1.07,17.11,24.36,1.60
+JM Midcap Reg,Regular,Mid Cap,42729,-0.58,1.02,0.97,17.07,22.60,1.45
+JM Small Cap Dir,Direct,Small Cap,44313,--,--,--,--,--,--
+JM Small Cap Reg,Regular,Small Cap,44311,--,--,--,--,--,--
+JM Value Dir,Direct,Value Oriented,16530,2.05,1.12,0.89,16.18,20.54,1.37
+JM Value Reg,Regular,Value Oriented,403,0.92,1.12,0.82,16.19,19.40,1.28
+Kotak Active Momentum Dir,Direct,Thematic,45389,--,--,--,--,--,--
+Kotak Active Momentum Reg,Regular,Thematic,45387,--,--,--,--,--,--
+Kotak Banking & Financial Services Dir,Direct,Sectoral-Auto,43128,--,--,--,--,--,--
+Kotak Banking & Financial Services Reg,Regular,Sectoral-Auto,43126,--,--,--,--,--,--
+Kotak BSE Housing Index Dir,Direct,Thematic,43706,--,--,--,--,--,--
+Kotak BSE Housing Index Reg,Regular,Thematic,43704,--,--,--,--,--,--
+Kotak BSE PSU Index Dir,Direct,Thematic-Energy,44430,--,--,--,--,--,--
+Kotak BSE PSU Index Reg,Regular,Thematic-Energy,44428,--,--,--,--,--,--
+Kotak BSE Sensex ETF,Regular,Large Cap,7780,-2.66,0.92,0.56,11.04,12.32,0.91
+Kotak BSE Sensex ETF,Direct,Large Cap,7780,-2.66,0.92,0.56,11.04,12.32,0.91
+Kotak BSE Sensex Index Dir,Direct,Large Cap,44908,--,--,--,--,--,--
+Kotak BSE Sensex Index Reg,Regular,Large Cap,44906,--,--,--,--,--,--
+Kotak Consumption Dir,Direct,Thematic-Infrastructure,43860,--,--,--,--,--,--
+Kotak Consumption Reg,Regular,Thematic-Infrastructure,43858,--,--,--,--,--,--
+Kotak Contra Dir,Direct,Value Oriented,16341,4.78,1.01,1.22,13.05,22.00,1.69
+Kotak Contra Reg,Regular,Value Oriented,2780,3.45,1.01,1.12,13.03,20.67,1.55
+Kotak ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16380,0.93,0.93,0.91,12.42,17.34,1.11
+Kotak ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),2937,-0.25,0.93,0.81,12.40,16.15,0.99
+Kotak Energy Opportunities Dir,Direct,Thematic-Dividend Yield,45066,--,--,--,--,--,--
+Kotak Energy Opportunities Reg,Regular,Thematic-Dividend Yield,45064,--,--,--,--,--,--
+Kotak ESG Exclusionary Strategy Dir,Direct,Thematic-ESG,41202,1.26,0.92,0.90,11.23,16.21,1.25
+Kotak ESG Exclusionary Strategy Reg,Regular,Thematic-ESG,41200,-0.24,0.92,0.77,11.21,14.70,1.06
+Kotak Flexicap Dir,Direct,Flexi Cap,17140,2.30,0.92,1.03,12.07,18.55,1.43
+Kotak Flexicap Reg,Regular,Flexi Cap,10594,1.43,0.92,0.96,12.06,17.67,1.33
+Kotak Focused Dir,Direct,Flexi Cap,40098,3.30,0.90,1.14,11.61,19.31,1.51
+Kotak Focused Reg,Regular,Flexi Cap,40096,1.92,0.89,1.02,11.60,17.91,1.35
+Kotak Global Emerging Market Overseas Equity Omni FoF Dir,Direct,International,17439,--,--,1.23,12.88,21.91,3.05
+Kotak Global Emerging Market Overseas Equity Omni FoF Reg,Regular,International,5560,--,--,1.19,12.87,21.43,2.96
+Kotak Global Innovation Overseas Equity Omni FoF Dir*,Direct,International,41595,--,--,1.04,14.50,21.18,1.37
+Kotak Global Innovation Overseas Equity Omni FoF Reg*,Regular,International,41593,--,--,0.96,14.49,20.02,1.27
+Kotak Healthcare Dir,Direct,Sectoral-Pharma,43896,--,--,--,--,--,--
+Kotak Healthcare Reg,Regular,Sectoral-Pharma,43894,--,--,--,--,--,--
+Kotak International REIT Overseas Equity Omni FoF Dir*,Direct,International,41237,--,--,0.18,15.30,8.83,0.33
+Kotak International REIT Overseas Equity Omni FoF Reg*,Regular,International,41235,--,--,0.12,15.30,7.96,0.22
+Kotak Large & Midcap Dir,Direct,Large & Mid Cap,16378,4.29,0.95,1.17,12.52,20.77,1.47
+Kotak Large & Midcap Reg,Regular,Large & Mid Cap,2360,3.19,0.95,1.08,12.51,19.65,1.36
+Kotak Large Cap Dir,Direct,Large Cap,16337,1.47,0.97,0.93,11.54,16.87,1.28
+Kotak Large Cap Reg,Regular,Large Cap,577,0.30,0.97,0.83,11.53,15.69,1.14
+Kotak Midcap Dir,Direct,Mid Cap,17134,1.22,0.90,1.07,15.21,22.33,1.32
+Kotak Midcap Reg,Regular,Mid Cap,4270,0.14,0.90,1.00,15.19,21.23,1.23
+Kotak MNC Dir,Direct,Thematic-Consumption,44579,--,--,--,--,--,--
+Kotak MNC Reg,Regular,Thematic-Consumption,44577,--,--,--,--,--,--
+Kotak MSCI India ETF,Regular,Large & Mid Cap,44952,--,--,--,--,--,--
+Kotak MSCI India ETF,Direct,Large & Mid Cap,44952,--,--,--,--,--,--
+Kotak Multi Factor Passive FoF Dir,Direct,Thematic,45899,N/A,N/A,N/A,N/A,N/A,N/A
+Kotak Multi Factor Passive FoF Reg,Regular,Thematic,45898,N/A,N/A,N/A,N/A,N/A,N/A
+Kotak Multicap Dir,Direct,Multi Cap,41707,5.73,1.02,1.24,15.09,24.75,1.51
+Kotak Multicap Reg,Regular,Multi Cap,41705,4.42,1.01,1.15,15.07,23.43,1.41
+Kotak Nifty 100 Equal Weight ETF,Regular,Large Cap,44953,--,--,--,--,--,--
+Kotak Nifty 100 Equal Weight ETF,Direct,Large Cap,44953,--,--,--,--,--,--
+Kotak Nifty 100 Equal Weight Index Dir,Direct,Large Cap,44796,--,--,--,--,--,--
+Kotak Nifty 100 Equal Weight Index Reg,Regular,Large Cap,44794,--,--,--,--,--,--
+Kotak Nifty 100 Low Volatility 30 ETF,Regular,Large Cap,42184,1.93,0.96,0.91,12.28,17.23,1.24
+Kotak Nifty 100 Low Volatility 30 ETF,Direct,Large Cap,42184,1.93,0.96,0.91,12.28,17.23,1.24
+Kotak Nifty 100 Low Volatility 30 Index Dir,Direct,Large Cap,44351,--,--,--,--,--,--
+Kotak Nifty 100 Low Volatility 30 Index Reg,Regular,Large Cap,44349,--,--,--,--,--,--
+Kotak Nifty 200 Momentum 30 ETF,Regular,Large & Mid Cap,45531,--,--,--,--,--,--
+Kotak Nifty 200 Momentum 30 ETF,Direct,Large & Mid Cap,45531,--,--,--,--,--,--
+Kotak Nifty 200 Momentum 30 Index Dir,Direct,Large & Mid Cap,43538,--,--,--,--,--,--
+Kotak Nifty 200 Momentum 30 Index Reg,Regular,Large & Mid Cap,43536,--,--,--,--,--,--
+Kotak Nifty 200 Quality 30 Index Dir,Direct,Large & Mid Cap,45258,--,--,--,--,--,--
+Kotak Nifty 200 Quality 30 Index Reg,Regular,Large & Mid Cap,45256,--,--,--,--,--,--
+Kotak Nifty 50 Equal Weight Index Dir,Direct,Large Cap,44800,--,--,--,--,--,--
+Kotak Nifty 50 Equal Weight Index Reg,Regular,Large Cap,44798,--,--,--,--,--,--
+Kotak Nifty 50 ETF,Regular,Large Cap,10843,-0.92,0.94,0.73,11.23,14.26,1.14
+Kotak Nifty 50 ETF,Direct,Large Cap,10843,-0.92,0.94,0.73,11.23,14.26,1.14
+Kotak Nifty 50 Index Dir,Direct,Large Cap,41517,-1.17,0.94,0.71,11.22,14.01,1.11
+Kotak Nifty 50 Index Reg,Regular,Large Cap,41515,-1.47,0.94,0.68,11.22,13.71,1.07
+Kotak Nifty 50 Value 20 ETF,Regular,Value Oriented,31271,-1.83,0.86,0.63,12.24,13.78,0.87
+Kotak Nifty 50 Value 20 ETF,Direct,Value Oriented,31271,-1.83,0.86,0.63,12.24,13.78,0.87
+Kotak Nifty Alpha 50 ETF,Regular,Flexi Cap,41896,3.16,1.43,0.92,20.71,25.08,1.17
+Kotak Nifty Alpha 50 ETF,Direct,Flexi Cap,41896,3.16,1.43,0.92,20.71,25.08,1.17
+Kotak Nifty Alpha 50 Index Dir,Direct,Flexi Cap,45402,--,--,--,--,--,--
+Kotak Nifty Alpha 50 Index Reg,Regular,Flexi Cap,45400,--,--,--,--,--,--
+Kotak Nifty Bank ETF,Regular,Sectoral-Auto,28873,-0.02,1.00,0.74,12.08,15.00,1.41
+Kotak Nifty Bank ETF,Direct,Sectoral-Auto,28873,-0.02,1.00,0.74,12.08,15.00,1.41
+Kotak Nifty Chemicals ETF,Regular,Thematic,45570,--,--,--,--,--,--
+Kotak Nifty Chemicals ETF,Direct,Thematic,45570,--,--,--,--,--,--
+Kotak Nifty Commodities Index Dir,Direct,Thematic,44991,--,--,--,--,--,--
+Kotak Nifty Commodities Index Reg,Regular,Thematic,44989,--,--,--,--,--,--
+Kotak Nifty Financial Services Ex-Bank Index Dir,Direct,Sectoral-Auto,43674,--,--,--,--,--,--
+Kotak Nifty Financial Services Ex-Bank Index Reg,Regular,Sectoral-Auto,43672,--,--,--,--,--,--
+Kotak NIFTY India Consumption ETF,Regular,Thematic-Infrastructure,42398,0.27,0.82,0.83,14.30,17.96,1.01
+Kotak NIFTY India Consumption ETF,Direct,Thematic-Infrastructure,42398,0.27,0.82,0.83,14.30,17.96,1.01
+Kotak Nifty India Tourism Index Dir,Direct,Thematic,44539,--,--,--,--,--,--
+Kotak Nifty India Tourism Index Reg,Regular,Thematic,44537,--,--,--,--,--,--
+Kotak Nifty IT ETF,Direct,Sectoral-Technology,41345,0.73,1.02,-0.02,22.41,5.61,-0.03
+Kotak Nifty Midcap 150 ETF,Regular,Mid Cap,45037,--,--,--,--,--,--
+Kotak Nifty Midcap 150 ETF,Direct,Mid Cap,45037,--,--,--,--,--,--
+Kotak Nifty Midcap 150 Index Dir,Direct,Mid Cap,45040,--,--,--,--,--,--
+Kotak Nifty Midcap 150 Index Reg,Regular,Mid Cap,45038,--,--,--,--,--,--
+Kotak Nifty Midcap 150 Momentum 50 Index Dir,Direct,Mid Cap,44573,--,--,--,--,--,--
+Kotak Nifty Midcap 150 Momentum 50 Index Reg,Regular,Mid Cap,44571,--,--,--,--,--,--
+Kotak Nifty Midcap 50 ETF,Regular,Mid Cap,41983,1.57,1.03,1.13,16.57,24.79,1.54
+Kotak Nifty Midcap 50 ETF,Direct,Mid Cap,41983,1.57,1.03,1.13,16.57,24.79,1.54
+Kotak Nifty Midcap 50 Index Dir,Direct,Mid Cap,44446,--,--,--,--,--,--
+Kotak Nifty Midcap 50 Index Reg,Regular,Mid Cap,44444,--,--,--,--,--,--
+Kotak Nifty MNC ETF,Regular,Thematic-Consumption,42418,2.92,0.88,0.96,13.17,18.76,1.09
+Kotak Nifty MNC ETF,Direct,Thematic-Consumption,42418,2.92,0.88,0.96,13.17,18.76,1.09
+Kotak Nifty Next 50 ETF,Regular,Large Cap,45721,--,--,--,--,--,--
+Kotak Nifty Next 50 ETF,Direct,Large Cap,45721,--,--,--,--,--,--
+Kotak Nifty Next 50 Index Dir,Direct,Large Cap,41327,4.60,1.26,1.01,16.52,22.80,1.33
+Kotak Nifty Next 50 Index Reg,Regular,Large Cap,41325,4.11,1.26,0.98,16.52,22.30,1.29
+Kotak Nifty PSU Bank ETF,Regular,Sectoral-Auto,6157,20.37,1.07,1.30,23.07,36.05,2.63
+Kotak Nifty PSU Bank ETF,Direct,Sectoral-Auto,6157,20.37,1.07,1.30,23.07,36.05,2.63
+Kotak Nifty Smallcap 250 Index Dir,Direct,Small Cap,44868,--,--,--,--,--,--
+Kotak Nifty Smallcap 250 Index Reg,Regular,Small Cap,44866,--,--,--,--,--,--
+Kotak Nifty Smallcap 50 Index Dir,Direct,Small Cap,43357,--,--,--,--,--,--
+Kotak Nifty Smallcap 50 Index Reg,Regular,Small Cap,43355,--,--,--,--,--,--
+Kotak Nifty Top 10 Equal Weight Index Dir,Direct,Large Cap,45101,--,--,--,--,--,--
+Kotak Nifty Top 10 Equal Weight Index Reg,Regular,Large Cap,45099,--,--,--,--,--,--
+Kotak Nifty200 Quality 30 ETF,Regular,Large & Mid Cap,45255,--,--,--,--,--,--
+Kotak Nifty200 Quality 30 ETF,Direct,Large & Mid Cap,45255,--,--,--,--,--,--
+Kotak Nifty200 Value 30 Index Dir,Direct,Value Oriented,45763,--,--,--,--,--,--
+Kotak Nifty200 Value 30 Index Reg,Regular,Value Oriented,45761,--,--,--,--,--,--
+Kotak Nifty500 Momentum 50 Index Dir,Direct,Flexi Cap,45646,--,--,--,--,--,--
+Kotak Nifty500 Momentum 50 Index Reg,Regular,Flexi Cap,45644,--,--,--,--,--,--
+Kotak Quality Overseas Equity Omni FoF Dir,Direct,International,45906,N/A,N/A,N/A,N/A,N/A,N/A
+Kotak Quality Overseas Equity Omni FoF Reg,Regular,International,45904,N/A,N/A,N/A,N/A,N/A,N/A
+Kotak Rural Opportunities Dir,Direct,Thematic,45597,--,--,--,--,--,--
+Kotak Rural Opportunities Reg,Regular,Thematic,45595,--,--,--,--,--,--
+Kotak Services Dir,Direct,Thematic,45797,--,--,--,--,--,--
+Kotak Services Reg,Regular,Thematic,45795,--,--,--,--,--,--
+Kotak Silver ETF,Regular,Thematic-PSU,42858,-1.12,0.98,1.18,40.86,54.43,2.57
+Kotak Silver ETF,Direct,Thematic-PSU,42858,-1.12,0.98,1.18,40.86,54.43,2.57
+Kotak Silver ETF FoF Dir,Direct,Thematic-PSU,43295,--,--,--,--,--,--
+Kotak Silver ETF FoF Reg,Regular,Thematic-PSU,43294,--,--,--,--,--,--
+Kotak Small Cap Dir,Direct,Small Cap,16382,-1.31,0.85,0.63,17.12,16.80,0.90
+Kotak Small Cap Reg,Regular,Small Cap,2597,-2.48,0.85,0.56,17.10,15.62,0.80
+Kotak Special Opportunities Dir,Direct,Thematic,44382,--,--,--,--,--,--
+Kotak Special Opportunities Reg,Regular,Thematic,44380,--,--,--,--,--,--
+Kotak Technology Dir,Direct,Sectoral-Technology,44164,--,--,--,--,--,--
+Kotak US Specific Equity Passive FoF Dir,Direct,International,41260,--,--,1.41,16.22,29.00,2.14
+Kotak US Specific Equity Passive FoF Reg,Regular,International,41259,--,--,1.39,16.22,28.61,2.10
+LIC MF Banking & Financial Services Dir,Direct,Sectoral-Auto,29707,0.13,0.97,0.69,12.71,14.90,1.72
+LIC MF Banking & Financial Services Reg,Regular,Sectoral-Auto,29705,-1.36,0.97,0.58,12.70,13.42,1.45
+LIC MF BSE Sensex ETF,Regular,Large Cap,31256,-2.56,0.92,0.57,11.05,12.42,0.93
+LIC MF BSE Sensex ETF,Direct,Large Cap,31256,-2.56,0.92,0.57,11.05,12.42,0.93
+LIC MF BSE Sensex Index Dir,Direct,Large Cap,16798,-2.93,0.92,0.54,11.04,12.05,0.87
+LIC MF BSE Sensex Index Reg,Regular,Large Cap,1479,-3.55,0.92,0.48,11.03,11.41,0.78
+LIC MF Children's Dir,Direct,Flexi Cap,17648,-3.99,0.93,0.48,12.94,12.35,0.53
+LIC MF Children's Reg,Regular,Flexi Cap,1135,-4.70,0.93,0.43,12.93,11.63,0.47
+LIC MF Consumption Dir,Direct,Thematic-Infrastructure,45568,--,--,--,--,--,--
+LIC MF Consumption Reg,Regular,Thematic-Infrastructure,45566,--,--,--,--,--,--
+LIC MF ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16868,0.27,0.90,0.84,12.21,16.31,1.19
+LIC MF ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),405,-0.93,0.90,0.74,12.18,15.10,1.05
+LIC MF Flexi Cap Dir,Direct,Flexi Cap,16756,-1.96,1.03,0.67,13.96,15.47,0.81
+LIC MF Flexi Cap Reg,Regular,Flexi Cap,134,-2.89,1.02,0.60,13.95,14.53,0.73
+LIC MF Focused Dir,Direct,Flexi Cap,34738,-4.56,0.99,0.47,13.41,12.44,0.64
+LIC MF Focused Reg,Regular,Flexi Cap,34736,-5.49,0.99,0.40,13.40,11.50,0.55
+LIC MF Healthcare Dir,Direct,Sectoral-Pharma,39051,-1.42,0.92,1.07,15.61,22.78,1.62
+LIC MF Healthcare Reg,Regular,Sectoral-Pharma,39049,-2.66,0.92,0.99,15.60,21.52,1.50
+LIC MF Large & Mid Cap Dir,Direct,Large & Mid Cap,29416,1.59,1.08,0.91,14.63,19.47,1.29
+LIC MF Large & Mid Cap Reg,Regular,Large & Mid Cap,29414,0.28,1.08,0.82,14.61,18.15,1.17
+LIC MF Large Cap Dir,Direct,Large Cap,16781,-2.16,1.03,0.63,12.38,13.85,0.86
+LIC MF Large Cap Reg,Regular,Large Cap,158,-3.17,1.03,0.55,12.39,12.85,0.75
+LIC MF Midcap Dir,Direct,Mid Cap,33333,-1.12,0.99,0.95,16.23,21.55,1.30
+LIC MF Midcap Reg,Regular,Mid Cap,33331,-2.12,0.99,0.89,16.23,20.55,1.22
+LIC MF Multi Cap Dir,Direct,Multi Cap,42629,2.87,1.00,1.03,15.10,21.68,1.34
+LIC MF Multi Cap Reg,Regular,Multi Cap,42627,1.27,1.00,0.93,15.07,20.05,1.20
+LIC MF Nifty 100 ETF,Regular,Large Cap,32018,-0.33,1.00,0.78,11.83,15.38,1.12
+LIC MF Nifty 100 ETF,Direct,Large Cap,32018,-0.33,1.00,0.78,11.83,15.38,1.12
+LIC MF Nifty 50 ETF,Regular,Large Cap,31217,-0.97,0.95,0.72,11.23,14.22,1.13
+LIC MF Nifty 50 ETF,Direct,Large Cap,31217,-0.97,0.95,0.72,11.23,14.22,1.13
+LIC MF Nifty 50 Index Dir,Direct,Large Cap,16763,-1.24,0.95,0.70,11.23,13.95,1.10
+LIC MF Nifty 50 Index Reg,Regular,Large Cap,1478,-1.94,0.94,0.64,11.22,13.24,1.00
+LIC MF Nifty Midcap 100 ETF,Regular,Mid Cap,44166,--,--,--,--,--,--
+LIC MF Nifty Midcap 100 ETF,Direct,Mid Cap,44166,--,--,--,--,--,--
+LIC MF Nifty Next 50 Index Dir,Direct,Large Cap,16528,4.43,1.26,1.00,16.53,22.63,1.32
+LIC MF Nifty Next 50 Index Reg,Regular,Large Cap,11500,3.86,1.26,0.97,16.52,22.05,1.27
+LIC MF Small Cap Dir,Direct,Small Cap,34272,-0.23,0.91,0.68,18.59,18.77,0.78
+LIC MF Small Cap Reg,Regular,Small Cap,34270,-1.40,0.91,0.62,18.59,17.61,0.71
+LIC MF Technology Dir,Direct,Sectoral-Technology,45855,N/A,N/A,N/A,N/A,N/A,N/A
+LIC MF Value Dir,Direct,Value Oriented,37212,0.08,1.09,0.77,15.77,18.23,0.82
+LIC MF Value Reg,Regular,Value Oriented,37210,-0.97,1.09,0.70,15.77,17.18,0.75
+Mahindra Manulife Asia Pacific REITs FoF Dir,Direct,International,41762,--,--,0.12,15.42,8.01,0.22
+Mahindra Manulife Asia Pacific REITs FoF Reg,Regular,International,41760,--,--,0.06,15.41,7.09,0.12
+Mahindra Manulife Banking & Financial Services Dir,Direct,Sectoral-Auto,45279,--,--,--,--,--,--
+Mahindra Manulife Banking & Financial Services Reg,Regular,Sectoral-Auto,45277,--,--,--,--,--,--
+Mahindra Manulife Consumption Dir,Direct,Thematic-Infrastructure,37847,-0.83,0.82,0.79,13.75,16.91,0.92
+Mahindra Manulife Consumption Reg,Regular,Thematic-Infrastructure,37845,-2.52,0.82,0.66,13.74,15.20,0.78
+Mahindra Manulife ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),32895,-0.13,0.92,0.85,11.79,16.09,1.26
+Mahindra Manulife ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),32893,-1.71,0.91,0.71,11.77,14.50,1.06
+Mahindra Manulife Flexi Cap Dir,Direct,Flexi Cap,41633,1.58,0.94,0.99,12.06,18.03,1.40
+Mahindra Manulife Flexi Cap Reg,Regular,Flexi Cap,41631,-0.10,0.93,0.85,12.04,16.33,1.20
+Mahindra Manulife Focused Dir,Direct,Flexi Cap,41169,4.85,0.92,1.21,12.38,21.12,1.71
+Mahindra Manulife Focused Reg,Regular,Flexi Cap,41167,3.20,0.92,1.08,12.36,19.46,1.52
+Mahindra Manulife Large & Mid Cap Dir,Direct,Large & Mid Cap,40397,1.95,1.01,0.96,13.50,19.03,1.37
+Mahindra Manulife Large & Mid Cap Reg,Regular,Large & Mid Cap,40395,0.40,1.01,0.84,13.48,17.46,1.20
+Mahindra Manulife Large Cap Dir,Direct,Large Cap,39224,1.14,0.98,0.89,11.85,16.66,1.38
+Mahindra Manulife Large Cap Reg,Regular,Large Cap,39222,-0.54,0.98,0.75,11.84,14.97,1.16
+Mahindra Manulife Mid Cap Dir,Direct,Mid Cap,34956,3.63,0.95,1.28,15.23,25.60,1.69
+Mahindra Manulife Mid Cap Reg,Regular,Mid Cap,34954,2.17,0.95,1.18,15.20,24.12,1.57
+Mahindra Manulife Multi Cap Dir,Direct,Multi Cap,33986,4.03,0.95,1.13,14.33,22.23,1.55
+Mahindra Manulife Multi Cap Reg,Regular,Multi Cap,33984,2.56,0.95,1.02,14.30,20.74,1.41
+Mahindra Manulife Small Cap Dir,Direct,Small Cap,42799,5.87,0.90,1.05,17.88,24.79,1.42
+Mahindra Manulife Small Cap Reg,Regular,Small Cap,42797,4.30,0.90,0.96,17.83,23.19,1.30
+Mahindra Manulife Value Dir,Direct,Value Oriented,44934,--,--,--,--,--,--
+Mahindra Manulife Value Reg,Regular,Value Oriented,44932,--,--,--,--,--,--
+Mirae Asset Banking and Fin Srvcs Dir,Direct,Sectoral-Auto,41190,5.99,0.94,1.17,12.32,20.49,2.61
+Mirae Asset Banking and Fin Srvcs Reg,Regular,Sectoral-Auto,41188,4.51,0.94,1.05,12.31,19.00,2.34
+Mirae Asset BSE 200 Equal Weight ETF,Regular,Large & Mid Cap,45027,--,--,--,--,--,--
+Mirae Asset BSE 200 Equal Weight ETF,Direct,Large & Mid Cap,45027,--,--,--,--,--,--
+Mirae Asset BSE 200 Equal Weight ETF FoF Dir,Direct,Large & Mid Cap,45030,--,--,--,--,--,--
+Mirae Asset BSE 200 Equal Weight ETF FoF Reg,Regular,Large & Mid Cap,45028,--,--,--,--,--,--
+Mirae Asset BSE India Defence ETF,Regular,Thematic,45790,--,--,--,--,--,--
+Mirae Asset BSE India Defence ETF,Direct,Thematic,45790,--,--,--,--,--,--
+Mirae Asset BSE India Defence ETF FoF Dir,Direct,Thematic,45811,--,--,--,--,--,--
+Mirae Asset BSE India Defence ETF FoF Reg,Regular,Thematic,45809,--,--,--,--,--,--
+Mirae Asset BSE Select IPO ETF,Regular,Thematic,45020,--,--,--,--,--,--
+Mirae Asset BSE Select IPO ETF,Direct,Thematic,45020,--,--,--,--,--,--
+Mirae Asset BSE Select IPO ETF FoF Dir,Direct,Thematic,45023,--,--,--,--,--,--
+Mirae Asset BSE Select IPO ETF FoF Reg,Regular,Thematic,45021,--,--,--,--,--,--
+Mirae Asset BSE Sensex ETF,Regular,Large Cap,43803,--,--,--,--,--,--
+Mirae Asset BSE Sensex ETF,Direct,Large Cap,43803,--,--,--,--,--,--
+Mirae Asset Diversified Equity Allocator Passive FoF Dir,Direct,Large Cap,41121,0.90,1.02,0.88,12.20,16.85,1.21
+Mirae Asset Diversified Equity Allocator Passive FoF Reg,Regular,Large Cap,41119,0.83,1.02,0.88,12.20,16.78,1.20
+Mirae Asset ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),31318,1.53,0.98,0.99,12.49,18.41,1.38
+Mirae Asset ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),31316,0.54,0.97,0.91,12.48,17.41,1.27
+Mirae Asset Flexi Cap Dir,Direct,Flexi Cap,43134,1.66,0.94,1.00,12.07,18.13,1.35
+Mirae Asset Flexi Cap Reg,Regular,Flexi Cap,43132,0.18,0.94,0.87,12.05,16.63,1.18
+Mirae Asset Focused Dir,Direct,Flexi Cap,39823,-4.52,0.87,0.42,12.19,11.20,0.62
+Mirae Asset Focused Reg,Regular,Flexi Cap,39821,-5.70,0.87,0.32,12.18,10.02,0.48
+Mirae Asset Global Electric & Autonomous Vehicles Eqt Passive FoF Dir,Direct,International,42460,N/A,N/A,N/A,N/A,N/A,N/A
+Mirae Asset Global Electric & Autonomous Vehicles Eqt Passive FoF Reg,Regular,International,42459,N/A,N/A,N/A,N/A,N/A,N/A
+Mirae Asset Global X Artificial Intelligence & Tech ETF FoF Dir,Direct,International,42458,--,--,1.37,18.83,31.86,2.38
+Mirae Asset Global X Artificial Intelligence & Tech ETF FoF Reg,Regular,International,42457,--,--,1.36,18.83,31.70,2.37
+Mirae Asset Great Consumer Dir,Direct,Thematic-Infrastructure,16584,-0.86,0.89,0.78,15.05,17.87,0.95
+Mirae Asset Great Consumer Reg,Regular,Thematic-Infrastructure,12342,-2.30,0.89,0.69,15.03,16.41,0.83
+Mirae Asset Hang Seng TECH ETF,Regular,International,41876,--,--,0.35,34.65,18.09,0.73
+Mirae Asset Hang Seng TECH ETF,Direct,International,41876,--,--,0.35,34.65,18.09,0.73
+Mirae Asset Hang Seng TECH ETF FoF Dir,Direct,International,41878,--,--,0.54,32.96,23.81,1.45
+Mirae Asset Hang Seng TECH ETF FoF Reg,Regular,International,41877,--,--,0.52,32.95,23.36,1.42
+Mirae Asset Healthcare Dir,Direct,Sectoral-Pharma,36382,0.10,0.99,1.19,16.44,25.62,1.89
+Mirae Asset Healthcare Reg,Regular,Sectoral-Pharma,36380,-1.37,0.99,1.10,16.42,24.13,1.75
+Mirae Asset Large & Midcap Dir,Direct,Large & Mid Cap,16563,1.09,1.06,0.94,13.40,18.72,1.26
+Mirae Asset Large & Midcap Reg,Regular,Large & Mid Cap,11213,0.15,1.06,0.87,13.39,17.77,1.17
+Mirae Asset Large Cap Dir,Direct,Large Cap,16575,-0.39,0.92,0.77,11.11,14.60,1.12
+Mirae Asset Large Cap Reg,Regular,Large Cap,6762,-1.37,0.92,0.68,11.10,13.61,0.99
+Mirae Asset Midcap Dir,Direct,Mid Cap,40048,-0.32,0.98,1.02,15.76,22.11,1.31
+Mirae Asset Midcap Reg,Regular,Mid Cap,40046,-1.42,0.98,0.95,15.75,21.00,1.22
+Mirae Asset Multi Factor Passive FOF Dir,Direct,Thematic,45436,--,--,--,--,--,--
+Mirae Asset Multi Factor Passive FOF Reg,Regular,Thematic,45434,--,--,--,--,--,--
+Mirae Asset Multicap Dir,Direct,Multi Cap,43578,--,--,--,--,--,--
+Mirae Asset Multicap Reg,Regular,Multi Cap,43576,--,--,--,--,--,--
+Mirae Asset Nifty 100 ESG Sector Leaders ETF,Regular,Thematic-ESG,41157,-0.93,0.95,0.72,11.39,14.34,1.09
+Mirae Asset Nifty 100 ESG Sector Leaders ETF,Direct,Thematic-ESG,41157,-0.93,0.95,0.72,11.39,14.34,1.09
+Mirae Asset Nifty 100 ESG Sector Leaders FoF Dir,Direct,Thematic-ESG,41160,-1.11,0.96,0.71,11.44,14.17,1.07
+Mirae Asset Nifty 100 ESG Sector Leaders FoF Reg,Regular,Thematic-ESG,41158,-1.49,0.95,0.67,11.43,13.79,1.02
+Mirae Asset Nifty 100 Low Volatility 30 ETF,Regular,Large Cap,43284,--,--,--,--,--,--
+Mirae Asset Nifty 100 Low Volatility 30 ETF,Direct,Large Cap,43284,--,--,--,--,--,--
+Mirae Asset Nifty 200 Alpha 30 ETF,Regular,Large & Mid Cap,43817,--,--,--,--,--,--
+Mirae Asset Nifty 200 Alpha 30 ETF,Direct,Large & Mid Cap,43817,--,--,--,--,--,--
+Mirae Asset Nifty 200 Alpha 30 ETF FoF Dir,Direct,Large & Mid Cap,44400,--,--,--,--,--,--
+Mirae Asset Nifty 200 Alpha 30 ETF FoF Reg,Regular,Large & Mid Cap,44398,--,--,--,--,--,--
+Mirae Asset Nifty 50 ETF,Regular,Large Cap,38323,-0.90,0.95,0.73,11.23,14.29,1.14
+Mirae Asset Nifty 50 ETF,Direct,Large Cap,38323,-0.90,0.95,0.73,11.23,14.29,1.14
+Mirae Asset Nifty 50 Index Dir,Direct,Large Cap,44620,--,--,--,--,--,--
+Mirae Asset Nifty 50 Index Reg,Regular,Large Cap,44618,--,--,--,--,--,--
+Mirae Asset Nifty 500 Healthcare ETF,Regular,Sectoral-Pharma,45788,--,--,--,--,--,--
+Mirae Asset Nifty 500 Healthcare ETF,Direct,Sectoral-Pharma,45788,--,--,--,--,--,--
+Mirae Asset Nifty 500 Value 50 ETF,Regular,Value Oriented,45914,N/A,N/A,N/A,N/A,N/A,N/A
+Mirae Asset Nifty 500 Value 50 ETF,Direct,Value Oriented,45914,N/A,N/A,N/A,N/A,N/A,N/A
+Mirae Asset Nifty Bank ETF,Regular,Sectoral-Auto,43616,--,--,--,--,--,--
+Mirae Asset Nifty Bank ETF,Direct,Sectoral-Auto,43616,--,--,--,--,--,--
+Mirae Asset Nifty Energy ETF,Regular,Thematic-Dividend Yield,45587,--,--,--,--,--,--
+Mirae Asset Nifty Energy ETF,Direct,Thematic-Dividend Yield,45587,--,--,--,--,--,--
+Mirae Asset Nifty Financial Services ETF,Regular,Sectoral-Auto,41622,1.86,0.92,0.88,11.39,16.17,1.70
+Mirae Asset Nifty Financial Services ETF,Direct,Sectoral-Auto,41622,1.86,0.92,0.88,11.39,16.17,1.70
+Mirae Asset Nifty India Internet ETF,Regular,Thematic,45250,--,--,--,--,--,--
+Mirae Asset Nifty India Internet ETF,Direct,Thematic,45250,--,--,--,--,--,--
+Mirae Asset Nifty India New Age Consumption ETF,Regular,Thematic-Infrastructure,44832,--,--,--,--,--,--
+Mirae Asset Nifty India New Age Consumption ETF,Direct,Thematic-Infrastructure,44832,--,--,--,--,--,--
+Mirae Asset Nifty India New Age Consumption ETF FoF Dir,Direct,Thematic-Infrastructure,44835,--,--,--,--,--,--
+Mirae Asset Nifty India New Age Consumption ETF FoF Reg,Regular,Thematic-Infrastructure,44833,--,--,--,--,--,--
+Mirae Asset Nifty IT ETF,Direct,Sectoral-Technology,43832,--,--,--,--,--,--
+Mirae Asset Nifty LargeMidcap 250 Index Dir,Direct,Large & Mid Cap,44624,--,--,--,--,--,--
+Mirae Asset Nifty LargeMidcap 250 Index Reg,Regular,Large & Mid Cap,44622,--,--,--,--,--,--
+Mirae Asset Nifty Metal ETF,Regular,Thematic,44588,--,--,--,--,--,--
+Mirae Asset Nifty Metal ETF,Direct,Thematic,44588,--,--,--,--,--,--
+Mirae Asset Nifty Metal ETF FoF Dir,Direct,Thematic,45833,--,--,--,--,--,--
+Mirae Asset Nifty Metal ETF FoF Reg,Regular,Thematic,45831,--,--,--,--,--,--
+Mirae Asset Nifty Midcap 150 ETF,Regular,Mid Cap,42146,0.95,0.99,1.11,15.66,23.54,1.48
+Mirae Asset Nifty Midcap 150 ETF,Direct,Mid Cap,42146,0.95,0.99,1.11,15.66,23.54,1.48
+Mirae Asset Nifty MidSmallcap400 Mom Qlty 100 ETF FoF Dir,Direct,Mid Cap,44305,--,--,--,--,--,--
+Mirae Asset Nifty MidSmallcap400 Mom Qlty 100 ETF FoF Reg,Regular,Mid Cap,44303,--,--,--,--,--,--
+Mirae Asset Nifty MidSmallcap400 Momentum Quality 100 ETF,Regular,Mid Cap,44302,--,--,--,--,--,--
+Mirae Asset Nifty MidSmallcap400 Momentum Quality 100 ETF,Direct,Mid Cap,44302,--,--,--,--,--,--
+Mirae Asset Nifty Next 50 ETF,Regular,Large Cap,40538,4.76,1.26,1.02,16.59,23.00,1.34
+Mirae Asset Nifty Next 50 ETF,Direct,Large Cap,40538,4.76,1.26,1.02,16.59,23.00,1.34
+Mirae Asset Nifty PSU Bank ETF,Regular,Sectoral-Auto,44589,--,--,--,--,--,--
+Mirae Asset Nifty PSU Bank ETF,Direct,Sectoral-Auto,44589,--,--,--,--,--,--
+Mirae Asset Nifty Smallcap 250 ETF,Regular,Small Cap,45590,--,--,--,--,--,--
+Mirae Asset Nifty Smallcap 250 ETF,Direct,Small Cap,45590,--,--,--,--,--,--
+Mirae Asset Nifty Smallcap 250 Momentum Quality 100 ETF,Regular,Small Cap,44091,--,--,--,--,--,--
+Mirae Asset Nifty Smallcap 250 Momentum Quality 100 ETF,Direct,Small Cap,44091,--,--,--,--,--,--
+Mirae Asset Nifty Smallcap 250 Momentum Quality 100 ETF FoF Dir,Direct,Small Cap,44094,--,--,--,--,--,--
+Mirae Asset Nifty Smallcap 250 Momentum Quality 100 ETF FoF Reg,Regular,Small Cap,44092,--,--,--,--,--,--
+Mirae Asset Nifty Top 20 Equal Wght ETF,Regular,Large Cap,45679,--,--,--,--,--,--
+Mirae Asset Nifty Top 20 Equal Wght ETF,Direct,Large Cap,45679,--,--,--,--,--,--
+Mirae Asset Nifty Total Market Index Dir,Direct,Flexi Cap,44601,--,--,--,--,--,--
+Mirae Asset Nifty Total Market Index Reg,Regular,Flexi Cap,44599,--,--,--,--,--,--
+Mirae Asset Nifty50 Equal Wght ETF,Regular,Large Cap,45149,--,--,--,--,--,--
+Mirae Asset Nifty50 Equal Wght ETF,Direct,Large Cap,45149,--,--,--,--,--,--
+Mirae Asset Nifty500 Multicap 50:25:25 ETF,Regular,Multi Cap,44491,--,--,--,--,--,--
+Mirae Asset Nifty500 Multicap 50:25:25 ETF,Direct,Multi Cap,44491,--,--,--,--,--,--
+Mirae Asset NYSE FANG+ ETF,Regular,International,41429,--,--,1.44,22.01,37.84,2.48
+Mirae Asset NYSE FANG+ ETF,Direct,International,41429,--,--,1.44,22.01,37.84,2.48
+Mirae Asset NYSE FANG+ ETF FoF Dir,Direct,International,41431,--,--,1.57,24.75,45.03,3.69
+Mirae Asset NYSE FANG+ ETF FoF Reg,Regular,International,41430,--,--,1.56,24.74,44.63,3.65
+Mirae Asset S&P 500 Top 50 ETF,Regular,International,41698,--,--,1.54,13.55,26.94,2.00
+Mirae Asset S&P 500 Top 50 ETF,Direct,International,41698,--,--,1.54,13.55,26.94,2.00
+Mirae Asset S&P 500 Top 50 ETF FoF Dir,Direct,International,41704,--,--,1.57,17.48,33.58,2.37
+Mirae Asset S&P 500 Top 50 ETF FoF Reg,Regular,International,41703,--,--,1.55,17.47,33.17,2.33
+Mirae Asset Silver ETF,Regular,Thematic-PSU,43544,--,--,--,--,--,--
+Mirae Asset Silver ETF,Direct,Thematic-PSU,43544,--,--,--,--,--,--
+Mirae Asset Silver ETF FoF Dir,Direct,Thematic-PSU,45902,N/A,N/A,N/A,N/A,N/A,N/A
+Mirae Asset Silver ETF FoF Reg,Regular,Thematic-PSU,45900,N/A,N/A,N/A,N/A,N/A,N/A
+Mirae Asset Small Cap Dir,Direct,Small Cap,44824,--,--,--,--,--,--
+Mirae Asset Small Cap Reg,Regular,Small Cap,44822,--,--,--,--,--,--
+Motilal Oswal Active Momentum Dir,Direct,Thematic,45002,--,--,--,--,--,--
+Motilal Oswal Active Momentum Reg,Regular,Thematic,45000,--,--,--,--,--,--
+Motilal Oswal BSE 1000 Index Dir,Direct,Flexi Cap,45219,--,--,--,--,--,--
+Motilal Oswal BSE 1000 Index Reg,Regular,Flexi Cap,45218,--,--,--,--,--,--
+Motilal Oswal BSE Enhanced Value ETF,Regular,Value Oriented,42441,15.97,1.21,1.57,18.74,35.43,2.70
+Motilal Oswal BSE Enhanced Value ETF,Direct,Value Oriented,42441,15.97,1.21,1.57,18.74,35.43,2.70
+Motilal Oswal BSE Enhanced Value Index Dir,Direct,Value Oriented,42443,15.56,1.20,1.55,18.65,34.97,2.67
+Motilal Oswal BSE Enhanced Value Index Reg,Regular,Value Oriented,42442,14.86,1.20,1.51,18.64,34.27,2.60
+Motilal Oswal BSE Fins ex Bank 30 Index Dir,Direct,Sectoral-Auto,42352,10.60,0.69,1.20,13.95,22.86,2.16
+Motilal Oswal BSE Fins ex Bank 30 Index Reg,Regular,Sectoral-Auto,42351,9.90,0.69,1.15,13.94,22.16,2.07
+Motilal Oswal BSE Healthcare ETF,Regular,Sectoral-Pharma,42344,-0.25,1.00,1.19,16.32,25.48,1.76
+Motilal Oswal BSE Healthcare ETF,Direct,Sectoral-Pharma,42344,-0.25,1.00,1.19,16.32,25.48,1.76
+Motilal Oswal BSE Low Volatility ETF,Regular,Large & Mid Cap,42147,0.32,0.90,0.86,11.83,16.24,1.17
+Motilal Oswal BSE Low Volatility ETF,Direct,Large & Mid Cap,42147,0.32,0.90,0.86,11.83,16.24,1.17
+Motilal Oswal BSE Low Volatility Index Dir,Direct,Large & Mid Cap,42155,0.05,0.90,0.83,11.79,15.93,1.15
+Motilal Oswal BSE Low Volatility Index Reg,Regular,Large & Mid Cap,42154,-0.63,0.90,0.78,11.80,15.26,1.07
+Motilal Oswal BSE Quality ETF,Regular,Large & Mid Cap,42438,-0.15,1.14,0.78,15.72,18.37,1.12
+Motilal Oswal BSE Quality ETF,Direct,Large & Mid Cap,42438,-0.15,1.14,0.78,15.72,18.37,1.12
+Motilal Oswal BSE Quality Index Dir,Direct,Large & Mid Cap,42440,-0.20,1.14,0.78,15.63,18.24,1.13
+Motilal Oswal BSE Quality Index Reg,Regular,Large & Mid Cap,42439,-0.90,1.14,0.73,15.63,17.54,1.06
+Motilal Oswal BSE Select IPO ETF,Regular,Thematic,45639,--,--,--,--,--,--
+Motilal Oswal BSE Select IPO ETF,Direct,Thematic,45639,--,--,--,--,--,--
+Motilal Oswal Consumption Dir,Direct,Thematic-Infrastructure,45543,--,--,--,--,--,--
+Motilal Oswal Consumption Reg,Regular,Thematic-Infrastructure,45541,--,--,--,--,--,--
+Motilal Oswal Developed Mkt Ex US ETFs Ovrses Eqt Pass FoF Dir,Direct,International,43802,--,--,--,--,--,--
+Motilal Oswal Developed Mkt Ex US ETFs Ovrses Eqt Pass FoF Reg,Regular,International,43801,--,--,--,--,--,--
+Motilal Oswal Digital India Dir,Direct,Sectoral-Technology,44642,--,--,--,--,--,--
+Motilal Oswal Diversified Equity Flexicap Passive FoF Dir,Direct,Flexi Cap,45729,--,--,--,--,--,--
+Motilal Oswal Diversified Equity Flexicap Passive FoF Reg,Regular,Flexi Cap,45728,--,--,--,--,--,--
+Motilal Oswal ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),29162,3.01,1.26,0.88,19.13,23.01,0.98
+Motilal Oswal ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),29160,1.81,1.26,0.82,19.11,21.80,0.91
+Motilal Oswal Financial Services Dir,Direct,Sectoral-Auto,45767,--,--,--,--,--,--
+Motilal Oswal Financial Services Reg,Regular,Sectoral-Auto,45765,--,--,--,--,--,--
+Motilal Oswal Flexi Cap Dir,Direct,Flexi Cap,26125,3.85,1.03,0.95,15.93,21.31,1.32
+Motilal Oswal Flexi Cap Reg,Regular,Flexi Cap,26123,3.00,1.03,0.90,15.92,20.45,1.25
+Motilal Oswal Focused Dir,Direct,Flexi Cap,19514,-5.76,1.15,0.40,17.17,13.03,0.51
+Motilal Oswal Focused Reg,Regular,Flexi Cap,19512,-6.90,1.15,0.34,17.16,11.88,0.43
+Motilal Oswal Large and Midcap Dir,Direct,Large & Mid Cap,40338,5.56,1.22,1.00,18.80,24.87,1.14
+Motilal Oswal Large and Midcap Reg,Regular,Large & Mid Cap,40336,4.32,1.21,0.93,18.77,23.61,1.06
+Motilal Oswal Large Cap Dir,Direct,Large Cap,44064,--,--,--,--,--,--
+Motilal Oswal Large Cap Reg,Regular,Large Cap,44062,--,--,--,--,--,--
+Motilal Oswal Midcap Dir,Direct,Mid Cap,24080,-0.53,0.98,0.84,18.79,21.84,1.09
+Motilal Oswal Midcap Reg,Regular,Mid Cap,24078,-1.53,0.97,0.78,18.76,20.82,1.02
+Motilal Oswal Multi Cap Dir,Direct,Multi Cap,44339,--,--,--,--,--,--
+Motilal Oswal Multi Cap Reg,Regular,Multi Cap,44337,--,--,--,--,--,--
+Motilal Oswal Multi Factor Passive FoF Dir,Direct,Thematic,45874,N/A,N/A,N/A,N/A,N/A,N/A
+Motilal Oswal Multi Factor Passive FoF Reg,Regular,Thematic,45873,N/A,N/A,N/A,N/A,N/A,N/A
+Motilal Oswal NASDAQ 100 ETF,Regular,International,12498,--,--,1.47,15.47,28.86,2.22
+Motilal Oswal NASDAQ 100 ETF,Direct,International,12498,--,--,1.47,15.47,28.86,2.22
+Motilal Oswal Nasdaq 100 FOF Dir,Direct,International,38228,--,--,1.11,21.37,29.81,2.06
+Motilal Oswal Nasdaq 100 FOF Reg,Regular,International,38227,--,--,1.09,21.36,29.42,2.03
+Motilal Oswal Nasdaq Q50 ETF,Regular,International,41923,--,--,0.79,16.75,19.26,1.43
+Motilal Oswal Nasdaq Q50 ETF,Direct,International,41923,--,--,0.79,16.75,19.26,1.43
+Motilal Oswal Nifty 100 ETF,Regular,Large Cap,45555,--,--,--,--,--,--
+Motilal Oswal Nifty 100 ETF,Direct,Large Cap,45555,--,--,--,--,--,--
+Motilal Oswal Nifty 200 Momentum 30 ETF,Regular,Large & Mid Cap,42039,0.68,1.27,0.83,17.37,20.54,1.11
+Motilal Oswal Nifty 200 Momentum 30 ETF,Direct,Large & Mid Cap,42039,0.68,1.27,0.83,17.37,20.54,1.11
+Motilal Oswal Nifty 200 Momentum 30 Index Dir,Direct,Large & Mid Cap,42041,0.68,1.26,0.83,17.34,20.52,1.11
+Motilal Oswal Nifty 200 Momentum 30 Index Reg,Regular,Large & Mid Cap,42040,0.00,1.26,0.79,17.33,19.83,1.06
+Motilal Oswal Nifty 50 Equal Weight ETF,Regular,Large Cap,45170,--,--,--,--,--,--
+Motilal Oswal Nifty 50 Equal Weight ETF,Direct,Large Cap,45170,--,--,--,--,--,--
+Motilal Oswal Nifty 50 ETF,Regular,Large Cap,11348,-0.90,0.95,0.73,11.23,14.29,1.14
+Motilal Oswal Nifty 50 ETF,Direct,Large Cap,11348,-0.90,0.95,0.73,11.23,14.29,1.14
+Motilal Oswal Nifty 50 Index Dir,Direct,Large Cap,40471,-1.02,0.95,0.72,11.24,14.17,1.13
+Motilal Oswal Nifty 50 Index Reg,Regular,Large Cap,40470,-1.42,0.95,0.68,11.23,13.77,1.07
+Motilal Oswal Nifty 500 ETF,Regular,Flexi Cap,43812,--,--,--,--,--,--
+Motilal Oswal Nifty 500 ETF,Direct,Flexi Cap,43812,--,--,--,--,--,--
+Motilal Oswal Nifty 500 Index Dir,Direct,Flexi Cap,40240,-0.03,1.00,0.87,12.64,17.13,1.22
+Motilal Oswal Nifty 500 Index Reg,Regular,Flexi Cap,40239,-0.73,1.00,0.82,12.63,16.43,1.15
+Motilal Oswal Nifty 500 Momentum 50 ETF,Regular,Flexi Cap,44555,--,--,--,--,--,--
+Motilal Oswal Nifty 500 Momentum 50 ETF,Direct,Flexi Cap,44555,--,--,--,--,--,--
+Motilal Oswal Nifty 500 Momentum 50 Index Dir,Direct,Flexi Cap,44554,--,--,--,--,--,--
+Motilal Oswal Nifty 500 Momentum 50 Index Reg,Regular,Flexi Cap,44553,--,--,--,--,--,--
+Motilal Oswal Nifty Alpha 50 ETF,Regular,Flexi Cap,45363,--,--,--,--,--,--
+Motilal Oswal Nifty Alpha 50 ETF,Direct,Flexi Cap,45363,--,--,--,--,--,--
+Motilal Oswal Nifty Bank Index  Reg,Regular,Sectoral-Auto,40245,-0.81,1.00,0.67,12.06,14.19,1.29
+Motilal Oswal Nifty Bank Index Dir,Direct,Sectoral-Auto,40246,-0.07,1.00,0.73,12.05,14.93,1.41
+Motilal Oswal Nifty Capital Market ETF,Regular,Thematic,45051,--,--,--,--,--,--
+Motilal Oswal Nifty Capital Market ETF,Direct,Thematic,45051,--,--,--,--,--,--
+Motilal Oswal Nifty Capital Market Index Dir,Direct,Thematic,44755,--,--,--,--,--,--
+Motilal Oswal Nifty Capital Market Index Reg,Regular,Thematic,44754,--,--,--,--,--,--
+Motilal Oswal Nifty Energy ETF,Regular,Thematic-Dividend Yield,45556,--,--,--,--,--,--
+Motilal Oswal Nifty Energy ETF,Direct,Thematic-Dividend Yield,45556,--,--,--,--,--,--
+Motilal Oswal Nifty India Defence ETF,Regular,Thematic,44517,--,--,--,--,--,--
+Motilal Oswal Nifty India Defence ETF,Direct,Thematic,44517,--,--,--,--,--,--
+Motilal Oswal Nifty India Defence Index Dir,Direct,Thematic,44397,--,--,--,--,--,--
+Motilal Oswal Nifty India Defence Index Reg,Regular,Thematic,44396,--,--,--,--,--,--
+Motilal Oswal Nifty India Tourism ETF,Regular,Thematic,45240,--,--,--,--,--,--
+Motilal Oswal Nifty India Tourism ETF,Direct,Thematic,45240,--,--,--,--,--,--
+Motilal Oswal Nifty Microcap 250 Index Dir,Direct,Small Cap,43575,--,--,--,--,--,--
+Motilal Oswal Nifty Microcap 250 Index Reg,Regular,Small Cap,43574,--,--,--,--,--,--
+Motilal Oswal Nifty Midcap 100 ETF,Regular,Mid Cap,12012,1.28,1.03,1.12,16.38,24.53,1.53
+Motilal Oswal Nifty Midcap 100 ETF,Direct,Mid Cap,12012,1.28,1.03,1.12,16.38,24.53,1.53
+Motilal Oswal Nifty Midcap 150 Dir,Direct,Mid Cap,40242,0.85,0.99,1.11,15.67,23.45,1.47
+Motilal Oswal Nifty Midcap 150 Reg,Regular,Mid Cap,40241,0.12,0.99,1.06,15.66,22.71,1.41
+Motilal Oswal Nifty Midcap150 Momentum 50 ETF,Regular,Mid Cap,45331,--,--,--,--,--,--
+Motilal Oswal Nifty Midcap150 Momentum 50 ETF,Direct,Mid Cap,45331,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall Financial Services Index Dir,Direct,Sectoral-Auto,44678,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall Financial Services Index Reg,Regular,Sectoral-Auto,44677,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall Helthcr Index Dir,Direct,Sectoral-Pharma,44676,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall Helthcr Index Reg,Regular,Sectoral-Pharma,44675,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall India Consumption Index Dir,Direct,Thematic-Infrastructure,44680,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall India Consumption Index Reg,Regular,Thematic-Infrastructure,44679,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall IT and Telecom Index Dir,Direct,Thematic,44682,--,--,--,--,--,--
+Motilal Oswal Nifty MidSmall IT and Telecom Index Reg,Regular,Thematic,44681,--,--,--,--,--,--
+Motilal Oswal Nifty MNC ETF,Regular,Thematic-Consumption,45678,--,--,--,--,--,--
+Motilal Oswal Nifty MNC ETF,Direct,Thematic-Consumption,45678,--,--,--,--,--,--
+Motilal Oswal Nifty Next 50 ETF,Regular,Large Cap,45175,--,--,--,--,--,--
+Motilal Oswal Nifty Next 50 ETF,Direct,Large Cap,45175,--,--,--,--,--,--
+Motilal Oswal Nifty Next 50 Index Dir,Direct,Large Cap,40469,4.61,1.26,1.01,16.57,22.84,1.33
+Motilal Oswal Nifty Next 50 Index Reg,Regular,Large Cap,40468,3.89,1.26,0.97,16.56,22.12,1.27
+Motilal Oswal Nifty PSE ETF,Regular,Thematic-Energy,45230,--,--,--,--,--,--
+Motilal Oswal Nifty PSE ETF,Direct,Thematic-Energy,45230,--,--,--,--,--,--
+Motilal Oswal Nifty Realty ETF,Regular,Thematic,44250,--,--,--,--,--,--
+Motilal Oswal Nifty Realty ETF,Direct,Thematic,44250,--,--,--,--,--,--
+Motilal Oswal Nifty Services Sector ETF,Regular,Thematic,45660,--,--,--,--,--,--
+Motilal Oswal Nifty Services Sector ETF,Direct,Thematic,45660,--,--,--,--,--,--
+Motilal Oswal Nifty Smallcap 250 ETF,Regular,Small Cap,44249,--,--,--,--,--,--
+Motilal Oswal Nifty Smallcap 250 ETF,Direct,Small Cap,44249,--,--,--,--,--,--
+Motilal Oswal Nifty Smallcap 250 Index Dir,Direct,Small Cap,40244,0.85,1.02,0.78,19.65,21.42,1.15
+Motilal Oswal Nifty Smallcap 250 Index Reg,Regular,Small Cap,40243,0.15,1.02,0.74,19.64,20.72,1.10
+Motilal Oswal S&P 500 Index Dir,Direct,International,40997,--,--,1.38,12.06,22.72,1.85
+Motilal Oswal S&P 500 Index Reg,Regular,International,40996,--,--,1.33,12.06,22.17,1.79
+Motilal Oswal Services Dir,Direct,Thematic,45186,--,--,--,--,--,--
+Motilal Oswal Services Reg,Regular,Thematic,45184,--,--,--,--,--,--
+Motilal Oswal Silver ETF,Regular,Thematic-PSU,45453,--,--,--,--,--,--
+Motilal Oswal Silver ETF,Direct,Thematic-PSU,45453,--,--,--,--,--,--
+Motilal Oswal Small Cap Dir,Direct,Small Cap,43945,--,--,--,--,--,--
+Motilal Oswal Small Cap Reg,Regular,Small Cap,43943,--,--,--,--,--,--
+Motilal Oswal Special Opportunities Dir,Direct,Thematic,45393,--,--,--,--,--,--
+Motilal Oswal Special Opportunities Reg,Regular,Thematic,45391,--,--,--,--,--,--
+Navi BSE Sensex Index Dir,Direct,Large Cap,43745,--,--,--,--,--,--
+Navi BSE Sensex Index Reg,Regular,Large Cap,43744,--,--,--,--,--,--
+Navi ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),31265,-2.10,0.97,0.68,12.79,14.74,1.02
+Navi ELSS Tax Saver Nifty 50 Index Dir,Direct,ELSS (Tax Saver),43191,--,--,--,--,--,--
+Navi ELSS Tax Saver Nifty 50 Index Reg,Regular,ELSS (Tax Saver),43189,--,--,--,--,--,--
+Navi ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),31263,-3.98,0.97,0.53,12.76,12.83,0.80
+Navi Flexi Cap Dir,Direct,Flexi Cap,36686,-0.74,0.96,0.77,12.75,15.93,1.08
+Navi Flexi Cap Reg,Regular,Flexi Cap,36680,-2.55,0.95,0.63,12.74,14.10,0.88
+Navi Large & Midcap Dir,Direct,Large & Mid Cap,31278,-1.46,1.04,0.71,13.81,15.92,1.02
+Navi Large & Midcap Reg,Regular,Large & Mid Cap,31276,-3.32,1.04,0.58,13.79,14.04,0.82
+Navi Nasdaq100 US Specific Equity Passive FoF Dir,Direct,International,42135,--,--,1.48,15.59,29.17,2.24
+Navi Nasdaq100 US Specific Equity Passive FoF Reg,Regular,International,42134,--,--,1.47,15.57,28.98,2.22
+Navi Nifty 50 Index Dir,Direct,Large Cap,41574,-1.02,0.94,0.72,11.23,14.16,1.13
+Navi Nifty 50 Index Reg,Regular,Large Cap,41573,-1.23,0.94,0.70,11.22,13.96,1.10
+Navi Nifty 500 Multicap 50:25:25 Index Dir,Direct,Multi Cap,44439,--,--,--,--,--,--
+Navi Nifty 500 Multicap 50:25:25 Index Reg,Regular,Multi Cap,44438,--,--,--,--,--,--
+Navi Nifty Bank Index Dir,Direct,Sectoral-Auto,42043,-0.13,1.00,0.73,12.10,14.91,1.40
+Navi Nifty Bank Index Reg,Regular,Sectoral-Auto,42042,-0.86,1.00,0.67,12.10,14.17,1.28
+Navi Nifty IT Index Dir,Direct,Sectoral-Technology,44234,--,--,--,--,--,--
+Navi Nifty Midcap 150 Index Dir,Direct,Mid Cap,42121,0.56,0.99,1.09,15.61,23.10,1.45
+Navi Nifty Midcap 150 Index Reg,Regular,Mid Cap,42120,-0.27,0.98,1.04,15.59,22.25,1.38
+Navi Nifty MidSmallcap 400 Index Dir,Direct,Mid Cap,45654,--,--,--,--,--,--
+Navi Nifty MidSmallcap 400 Index Reg,Regular,Mid Cap,45653,--,--,--,--,--,--
+Navi Nifty Next 50 Index Dir,Direct,Large Cap,41937,4.52,1.26,1.01,16.54,22.73,1.32
+Navi Nifty Next 50 Index Reg,Regular,Large Cap,41936,3.95,1.26,0.97,16.53,22.16,1.28
+Navi Nifty Smallcap250 Momentum Quality 100 Index Dir,Direct,Small Cap,45019,--,--,--,--,--,--
+Navi Nifty Smallcap250 Momentum Quality 100 Index Reg,Regular,Small Cap,45018,--,--,--,--,--,--
+Navi Total Stock Market US Specific Equity Passive FoF Dir,Direct,International,42069,--,--,1.28,12.93,22.65,1.75
+Navi Total Stock Market US Specific Equity Passive FoF Reg,Regular,International,42068,--,--,1.28,12.93,22.67,1.74
+Nippon India Active Momentum Dir,Direct,Thematic,44938,--,--,--,--,--,--
+Nippon India Active Momentum Reg,Regular,Thematic,44936,--,--,--,--,--,--
+Nippon India Banking & Financial Srvices Dir,Direct,Sectoral-Auto,16048,5.95,0.85,1.19,11.36,19.66,2.31
+Nippon India Banking & Financial Srvices Reg,Regular,Sectoral-Auto,1708,5.12,0.85,1.12,11.35,18.84,2.17
+Nippon India BSE Sensex Next 30 ETF,Regular,Large Cap,45190,--,--,--,--,--,--
+Nippon India BSE Sensex Next 30 ETF,Direct,Large Cap,45190,--,--,--,--,--,--
+Nippon India BSE Sensex Next 30 Index Dir,Direct,Large Cap,45197,--,--,--,--,--,--
+Nippon India BSE Sensex Next 30 Index Reg,Regular,Large Cap,45195,--,--,--,--,--,--
+Nippon India Consumption Dir,Direct,Thematic-Infrastructure,16131,-1.12,0.80,0.73,13.91,16.22,0.85
+Nippon India Consumption Reg,Regular,Thematic-Infrastructure,2474,-2.44,0.80,0.63,13.90,14.91,0.74
+Nippon India Diversified Equity Flexicap Passive FoF Dir,Direct,Flexi Cap,41241,-0.47,1.00,0.83,12.78,16.74,1.25
+Nippon India Diversified Equity Flexicap Passive FoF Reg,Regular,Flexi Cap,41239,-0.85,1.00,0.80,12.77,16.35,1.20
+Nippon India ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16186,1.83,0.99,1.00,12.85,18.92,1.43
+Nippon India ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),2816,1.16,0.99,0.94,12.85,18.24,1.35
+Nippon India ETF BSE Sensex,Regular,Large Cap,28136,-2.45,0.92,0.58,11.04,12.53,0.94
+Nippon India ETF BSE Sensex,Direct,Large Cap,28136,-2.45,0.92,0.58,11.04,12.53,0.94
+Nippon India ETF BSE Sensex Next 50,Regular,Large Cap,40191,5.19,1.21,1.12,15.01,22.88,1.50
+Nippon India ETF BSE Sensex Next 50,Direct,Large Cap,40191,5.19,1.21,1.12,15.01,22.88,1.50
+Nippon India ETF Hang Seng BeES,Regular,International,10905,--,--,0.59,20.60,18.18,1.20
+Nippon India ETF Hang Seng BeES,Direct,International,10905,--,--,0.59,20.60,18.18,1.20
+Nippon India ETF Nifty 100,Regular,Large Cap,18234,-0.52,1.00,0.77,11.82,15.18,1.10
+Nippon India ETF Nifty 100,Direct,Large Cap,18234,-0.52,1.00,0.77,11.82,15.18,1.10
+Nippon India ETF Nifty 50 BeES,Regular,Large Cap,1171,-0.89,0.95,0.73,11.23,14.30,1.15
+Nippon India ETF Nifty 50 BeES,Direct,Large Cap,1171,-0.89,0.95,0.73,11.23,14.30,1.15
+Nippon India ETF Nifty 50 Shariah BeES,Regular,Large Cap,10218,-8.73,1.04,0.09,15.29,7.41,0.12
+Nippon India ETF Nifty 50 Shariah BeES,Direct,Large Cap,10218,-8.73,1.04,0.09,15.29,7.41,0.12
+Nippon India ETF Nifty 50 Value 20,Regular,Value Oriented,30446,-2.04,0.86,0.61,12.21,13.55,0.84
+Nippon India ETF Nifty 50 Value 20,Direct,Value Oriented,30446,-2.04,0.86,0.61,12.21,13.55,0.84
+Nippon India ETF Nifty Bank BeES,Regular,Sectoral-Auto,2255,-0.01,1.00,0.74,12.08,15.00,1.42
+Nippon India ETF Nifty Bank BeES,Direct,Sectoral-Auto,2255,-0.01,1.00,0.74,12.08,15.00,1.42
+Nippon India ETF Nifty India Consumption,Regular,Thematic-Infrastructure,25700,0.07,0.82,0.82,14.29,17.75,0.99
+Nippon India ETF Nifty India Consumption,Direct,Thematic-Infrastructure,25700,0.07,0.82,0.82,14.29,17.75,0.99
+Nippon India ETF Nifty IT,Direct,Sectoral-Technology,41024,0.60,1.02,-0.03,22.41,5.48,-0.04
+Nippon India ETF Nifty Midcap 150,Regular,Mid Cap,38950,0.84,0.99,1.11,15.65,23.42,1.47
+Nippon India ETF Nifty Midcap 150,Direct,Mid Cap,38950,0.84,0.99,1.11,15.65,23.42,1.47
+Nippon India ETF Nifty Next 50 Junior BeES,Regular,Large Cap,1545,4.73,1.26,1.02,16.59,22.98,1.34
+Nippon India ETF Nifty Next 50 Junior BeES,Direct,Large Cap,1545,4.73,1.26,1.02,16.59,22.98,1.34
+Nippon India ETF Nifty PSU Bank BeES,Regular,Sectoral-Auto,6175,20.36,1.07,1.30,23.06,36.04,2.63
+Nippon India ETF Nifty PSU Bank BeES,Direct,Sectoral-Auto,6175,20.36,1.07,1.30,23.06,36.04,2.63
+Nippon India Flexi Cap Dir,Direct,Flexi Cap,41616,0.66,0.98,0.90,12.78,17.57,1.22
+Nippon India Flexi Cap Reg,Regular,Flexi Cap,41614,-0.64,0.98,0.80,12.76,16.26,1.08
+Nippon India Focused Dir,Direct,Flexi Cap,16129,0.56,0.90,0.87,12.01,16.56,1.54
+Nippon India Focused Reg,Regular,Flexi Cap,3900,-0.13,0.89,0.81,12.00,15.86,1.44
+Nippon India Growth Mid Cap Dir,Direct,Mid Cap,16083,4.34,0.94,1.31,15.34,26.19,1.87
+Nippon India Growth Mid Cap Inst,Regular,Mid Cap,5580,2.50,0.89,1.17,14.85,23.41,1.61
+Nippon India Growth Mid Cap Reg,Regular,Mid Cap,183,3.53,0.94,1.26,15.33,25.37,1.79
+Nippon India Index - Nifty 50 Plan Dir,Direct,Large Cap,16856,-1.04,0.94,0.72,11.21,14.13,1.12
+Nippon India Index - Nifty 50 Plan Reg,Regular,Large Cap,11536,-1.40,0.94,0.68,11.21,13.77,1.07
+Nippon India Index BSE Sensex Plan,Regular,Large Cap,11541,-2.99,0.92,0.53,11.02,11.97,0.86
+Nippon India Index BSE Sensex Plan Dir,Direct,Large Cap,16859,-2.65,0.92,0.56,11.03,12.32,0.91
+Nippon India Japan Equity Dir,Direct,International,27691,--,--,1.18,12.33,20.69,1.97
+Nippon India Japan Equity Reg,Regular,International,27688,--,--,1.08,12.32,19.45,1.81
+Nippon India Large Cap Dir,Direct,Large Cap,16192,4.57,0.93,1.19,11.37,19.65,1.73
+Nippon India Large Cap Reg,Regular,Large Cap,5270,3.72,0.93,1.12,11.37,18.79,1.62
+Nippon India MNC Dir,Direct,Thematic-Consumption,45296,--,--,--,--,--,--
+Nippon India MNC Reg,Regular,Thematic-Consumption,45294,--,--,--,--,--,--
+Nippon India Multi Cap Dir,Direct,Multi Cap,16068,4.83,0.87,1.20,13.22,21.97,1.75
+Nippon India Multi Cap Reg,Regular,Multi Cap,2640,4.04,0.87,1.14,13.21,21.18,1.66
+Nippon India Nifty 50 Value 20 Index Dir,Direct,Value Oriented,41291,-2.07,0.86,0.61,12.22,13.52,0.84
+Nippon India Nifty 50 Value 20 Index Reg,Regular,Value Oriented,41289,-2.60,0.86,0.56,12.22,13.00,0.78
+Nippon India Nifty 500 Equal Weight Index Dir,Direct,Multi Cap,44515,--,--,--,--,--,--
+Nippon India Nifty 500 Equal Weight Index Reg,Regular,Multi Cap,44513,--,--,--,--,--,--
+Nippon India Nifty 500 Low Volatility 50 Index Dir,Direct,Flexi Cap,45109,--,--,--,--,--,--
+Nippon India Nifty 500 Low Volatility 50 Index Reg,Regular,Flexi Cap,45107,--,--,--,--,--,--
+Nippon India Nifty 500 Momentum 50 Index Dir,Direct,Flexi Cap,44558,--,--,--,--,--,--
+Nippon India Nifty 500 Momentum 50 Index Reg,Regular,Flexi Cap,44556,--,--,--,--,--,--
+Nippon India Nifty 500 Quality 50 Index Dir,Direct,Flexi Cap,45105,--,--,--,--,--,--
+Nippon India Nifty 500 Quality 50 Index Reg,Regular,Flexi Cap,45103,--,--,--,--,--,--
+Nippon India Nifty Alpha Low Volatility 30 Index Dir,Direct,Large & Mid Cap,42413,-0.12,1.11,0.82,14.56,18.03,1.12
+Nippon India Nifty Alpha Low Volatility 30 Index Reg,Regular,Large & Mid Cap,42411,-0.67,1.11,0.78,14.56,17.48,1.07
+Nippon India Nifty Bank Index Dir,Direct,Sectoral-Auto,44106,--,--,--,--,--,--
+Nippon India Nifty Bank Index Reg,Regular,Sectoral-Auto,44104,--,--,--,--,--,--
+Nippon India Nifty IT Index Dir,Direct,Sectoral-Technology,44110,--,--,--,--,--,--
+Nippon India Nifty Midcap150 Dir,Direct,Mid Cap,41295,N/A,N/A,N/A,N/A,N/A,N/A
+Nippon India Nifty Midcap150 Reg,Regular,Mid Cap,41293,0.14,0.99,1.06,15.64,22.71,1.41
+Nippon India Nifty Next 50 Junior BeES FoF Dir,Direct,Large Cap,39157,4.78,1.24,1.02,16.32,22.78,1.34
+Nippon India Nifty Next 50 Junior BeES FoF Reg,Regular,Large Cap,39155,4.60,1.24,1.01,16.31,22.60,1.32
+Nippon India Nifty Pharma ETF,Regular,Sectoral-Pharma,41539,-0.99,0.98,1.10,16.58,24.33,1.90
+Nippon India Nifty Pharma ETF,Direct,Sectoral-Pharma,41539,-0.99,0.98,1.10,16.58,24.33,1.90
+Nippon India Nifty Realty Index Dir,Direct,Thematic,44712,--,--,--,--,--,--
+Nippon India Nifty Realty Index Reg,Regular,Thematic,44710,--,--,--,--,--,--
+Nippon India Nifty Smallcap 250 Index Dir,Direct,Small Cap,41131,0.51,1.01,0.76,19.53,21.00,1.12
+Nippon India Nifty Smallcap 250 Index Reg,Regular,Small Cap,41129,-0.10,1.01,0.73,19.52,20.38,1.08
+Nippon India Pharma Dir,Direct,Sectoral-Pharma,16150,0.25,0.91,1.19,15.21,24.16,1.73
+Nippon India Pharma Reg,Regular,Sectoral-Pharma,2241,-0.65,0.90,1.13,15.20,23.25,1.65
+Nippon India Retirement Wealth Creation Dir,Direct,Flexi Cap,29291,1.92,0.97,1.00,12.62,18.72,1.35
+Nippon India Retirement Wealth Creation Reg,Regular,Flexi Cap,29289,0.96,0.97,0.92,12.61,17.74,1.25
+Nippon India Silver ETF,Regular,Thematic-PSU,41984,-0.95,0.98,1.19,40.89,54.66,2.60
+Nippon India Silver ETF,Direct,Thematic-PSU,41984,-0.95,0.98,1.19,40.89,54.66,2.60
+Nippon India Silver ETF FoF Dir,Direct,Thematic-PSU,41987,-1.62,0.99,1.17,41.06,54.14,2.51
+Nippon India Silver ETF FoF Reg,Regular,Thematic-PSU,41985,-1.94,0.99,1.16,41.05,53.80,2.50
+Nippon India Small Cap Dir,Direct,Small Cap,16182,3.50,0.85,0.93,16.75,21.71,1.30
+Nippon India Small Cap Reg,Regular,Small Cap,11463,2.72,0.85,0.89,16.73,20.92,1.24
+Nippon India Taiwan Equity Dir,Direct,International,41838,--,--,--,--,--,--
+Nippon India Taiwan Equity Reg,Regular,International,41836,--,--,--,--,--,--
+Nippon India US Equity Opportunities Dir,Direct,International,30567,--,--,1.01,13.11,19.38,1.46
+Nippon India US Equity Opportunities Reg,Regular,International,30564,--,--,0.93,13.10,18.25,1.34
+Nippon India Value Dir,Direct,Value Oriented,16175,5.44,1.01,1.25,13.26,22.73,1.97
+Nippon India Value Reg,Regular,Value Oriented,2790,4.71,1.01,1.20,13.25,22.00,1.88
+Nippon India Vision Large & Mid Cap Dir,Direct,Large & Mid Cap,16194,4.17,1.02,1.19,12.82,21.32,1.49
+Nippon India Vision Large & Mid Cap Reg,Regular,Large & Mid Cap,182,3.61,1.02,1.14,12.82,20.76,1.43
+NJ ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),43365,--,--,--,--,--,--
+NJ ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),43363,--,--,--,--,--,--
+NJ Flexi Cap Dir,Direct,Flexi Cap,43714,--,--,--,--,--,--
+NJ Flexi Cap Reg,Regular,Flexi Cap,43712,--,--,--,--,--,--
+Old Bridge Flexi Cap Dir,Direct,Flexi Cap,45846,--,--,--,--,--,--
+Old Bridge Flexi Cap Reg,Regular,Flexi Cap,45844,--,--,--,--,--,--
+Old Bridge Focused Dir,Direct,Flexi Cap,44038,--,--,--,--,--,--
+Old Bridge Focused Reg,Regular,Flexi Cap,44036,--,--,--,--,--,--
+Parag Parikh ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),40105,2.02,0.70,1.02,9.54,15.88,1.66
+Parag Parikh ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),40104,0.92,0.70,0.91,9.53,14.78,1.47
+Parag Parikh Flexi Cap Dir,Direct,Flexi Cap,19701,N/A,N/A,N/A,N/A,N/A,N/A
+Parag Parikh Flexi Cap Reg,Regular,Flexi Cap,19699,6.04,0.60,1.50,8.45,18.79,2.32
+Parag Parikh Large Cap Dir,Direct,Large Cap,45775,--,--,--,--,--,--
+Parag Parikh Large Cap Reg,Regular,Large Cap,45773,--,--,--,--,--,--
+PGIM India ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),31167,-2.49,0.88,0.62,11.85,13.39,0.90
+PGIM India ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),31165,-4.00,0.88,0.49,11.84,11.87,0.72
+PGIM India Emerging Markets Equity FoF Dir,Direct,International,17349,--,--,1.29,13.67,23.68,2.52
+PGIM India Emerging Markets Equity FoF Reg,Regular,International,5558,--,--,1.21,13.67,22.65,2.48
+PGIM India Flexi Cap Dir,Direct,Flexi Cap,29473,-1.55,0.91,0.70,12.28,14.66,1.03
+PGIM India Flexi Cap Reg,Regular,Flexi Cap,29471,-2.91,0.91,0.59,12.26,13.28,0.87
+PGIM India Global Equity Opportunities FoF Dir,Direct,International,17348,--,--,0.77,16.27,18.58,1.06
+PGIM India Global Equity Opportunities FoF Reg,Regular,International,11136,--,--,0.71,16.26,17.61,0.98
+PGIM India Global Select Real Estate Sec FoF Dir,Direct,International,41818,--,--,0.56,14.10,14.05,1.02
+PGIM India Global Select Real Estate Sec FoF Reg,Regular,International,41816,--,--,0.50,14.08,13.18,0.91
+PGIM India Healthcare Dir,Direct,Sectoral-Pharma,44693,--,--,--,--,--,--
+PGIM India Healthcare Reg,Regular,Sectoral-Pharma,44691,--,--,--,--,--,--
+PGIM India Large and Mid Cap Dir,Direct,Large & Mid Cap,44085,--,--,--,--,--,--
+PGIM India Large and Mid Cap Reg,Regular,Large & Mid Cap,44083,--,--,--,--,--,--
+PGIM India Large Cap Dir,Direct,Large Cap,15574,-1.93,0.96,0.63,11.60,13.41,0.88
+PGIM India Large Cap Reg,Regular,Large Cap,1513,-3.45,0.96,0.50,11.58,11.88,0.70
+PGIM India Midcap Dir,Direct,Mid Cap,22367,-4.20,0.81,0.67,13.78,15.35,0.90
+PGIM India Midcap Reg,Regular,Mid Cap,22365,-5.46,0.81,0.58,13.76,14.08,0.78
+PGIM India Multi Cap Dir,Direct,Multi Cap,44505,--,--,--,--,--,--
+PGIM India Multi Cap Reg,Regular,Multi Cap,44503,--,--,--,--,--,--
+PGIM India Retirement Dir,Direct,Multi Cap,44253,--,--,--,--,--,--
+PGIM India Retirement Reg,Regular,Multi Cap,44251,--,--,--,--,--,--
+PGIM India Small Cap Dir,Direct,Small Cap,41577,-0.34,0.73,0.67,15.04,16.11,0.98
+PGIM India Small Cap Reg,Regular,Small Cap,41575,-1.88,0.73,0.56,15.02,14.56,0.83
+Quant BFSI Dir,Direct,Sectoral-Auto,43555,--,--,--,--,--,--
+Quant BFSI Reg,Regular,Sectoral-Auto,43553,--,--,--,--,--,--
+Quant Commodities Dir,Direct,Thematic,43966,--,--,--,--,--,--
+Quant Commodities Reg,Regular,Thematic,43964,--,--,--,--,--,--
+Quant Consumption Dir,Direct,Thematic-Infrastructure,44053,--,--,--,--,--,--
+Quant Consumption Reg,Regular,Thematic-Infrastructure,44051,--,--,--,--,--,--
+Quant ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),17381,0.34,1.15,0.83,15.78,19.20,1.38
+Quant ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),818,-0.75,1.15,0.76,15.76,18.10,1.27
+Quant ESG Integration Strategy Dir,Direct,Thematic-ESG,41165,1.02,1.18,0.76,16.32,18.45,1.12
+Quant ESG Integration Strategy Reg,Regular,Thematic-ESG,41163,-0.57,1.18,0.66,16.30,16.84,0.98
+Quant Flexi Cap Dir,Direct,Flexi Cap,17377,0.31,1.18,0.82,16.36,19.49,1.27
+Quant Flexi Cap Reg,Regular,Flexi Cap,8827,-0.89,1.18,0.74,16.33,18.27,1.16
+Quant Focused Dir,Direct,Large Cap,17373,0.35,1.13,0.75,14.95,17.35,1.17
+Quant Focused Reg,Regular,Large Cap,8216,-1.19,1.13,0.65,14.93,15.80,1.01
+Quant Healthcare Dir,Direct,Sectoral-Pharma,43610,--,--,--,--,--,--
+Quant Healthcare Reg,Regular,Sectoral-Pharma,43608,--,--,--,--,--,--
+Quant Large & Mid Cap Dir,Direct,Large & Mid Cap,17363,-1.85,1.23,0.70,16.54,17.62,0.98
+Quant Large & Mid Cap Reg,Regular,Large & Mid Cap,4111,-3.18,1.23,0.62,16.52,16.27,0.87
+Quant Large Cap Dir,Direct,Large Cap,42367,2.03,1.10,0.87,14.43,18.67,1.42
+Quant Large Cap Reg,Regular,Large Cap,42365,0.49,1.10,0.76,14.41,17.13,1.25
+Quant Mid Cap Dir,Direct,Mid Cap,17375,-5.73,0.99,0.63,17.36,16.96,0.86
+Quant Mid Cap Reg,Regular,Mid Cap,958,-6.86,0.99,0.56,17.34,15.80,0.77
+Quant Momentum Dir,Direct,Thematic,43882,--,--,--,--,--,--
+Quant Momentum Reg,Regular,Thematic,43880,--,--,--,--,--,--
+Quant Multi Cap Dir,Direct,Multi Cap,17361,-5.58,1.05,0.49,15.94,13.85,0.72
+Quant Multi Cap Reg,Regular,Multi Cap,952,-6.69,1.05,0.42,15.93,12.74,0.62
+Quant PSU Dir,Direct,Thematic-Energy,44142,--,--,--,--,--,--
+Quant PSU Reg,Regular,Thematic-Energy,44140,--,--,--,--,--,--
+Quant Small Cap Dir,Direct,Small Cap,17366,1.72,0.90,0.80,18.06,20.53,1.25
+Quant Small Cap Reg,Regular,Small Cap,66,0.75,0.89,0.75,18.03,19.55,1.17
+Quant Teck Dir,Direct,Sectoral-Technology,43762,--,--,--,--,--,--
+Quant Value Dir,Direct,Value Oriented,41848,3.08,1.26,0.93,18.22,23.06,1.63
+Quant Value Reg,Regular,Value Oriented,41846,1.55,1.25,0.85,18.21,21.51,1.48
+Quantum Diversified Equity All Cap Active FoF Dir*,Direct,Flexi Cap,10550,0.91,0.91,0.94,11.65,17.09,1.28
+Quantum Diversified Equity All Cap Active FoF Reg*,Regular,Flexi Cap,33962,0.65,0.91,0.92,11.65,16.83,1.26
+Quantum ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),10080,1.93,0.82,1.01,10.92,17.09,1.67
+Quantum ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),33972,0.87,0.82,0.91,10.92,16.04,1.51
+Quantum ESG Best In Class Strategy Dir,Direct,Thematic-ESG,40010,-1.37,0.98,0.66,12.25,14.14,0.90
+Quantum ESG Best In Class Strategy Reg,Regular,Thematic-ESG,40009,-2.62,0.98,0.55,12.25,12.88,0.76
+Quantum Ethical Dir,Direct,Thematic,44771,--,--,--,--,--,--
+Quantum Ethical Reg,Regular,Thematic,44770,--,--,--,--,--,--
+Quantum Nifty 50 ETF,Regular,Large Cap,7834,-0.95,0.95,0.72,11.23,14.24,1.14
+Quantum Nifty 50 ETF,Direct,Large Cap,7834,-0.95,0.95,0.72,11.23,14.24,1.14
+Quantum Nifty 50 ETF FoF Reg*,Regular,Large Cap,42345,-1.07,0.93,0.71,11.10,14.02,1.10
+Quantum Nifty 50 ETF FoF-Dir*,Direct,Large Cap,42346,-0.95,0.93,0.72,11.10,14.14,1.12
+Quantum Small Cap Dir,Direct,Small Cap,43814,--,--,--,--,--,--
+Quantum Small Cap Reg,Regular,Small Cap,43813,--,--,--,--,--,--
+Quantum Value Dir,Direct,Value Oriented,3181,1.84,0.83,1.00,11.02,17.08,1.65
+Quantum Value Reg,Regular,Value Oriented,33968,0.95,0.83,0.92,11.02,16.20,1.52
+Samco Active Momentum Dir,Direct,Thematic,43515,--,--,--,--,--,--
+Samco Active Momentum Reg,Regular,Thematic,43514,--,--,--,--,--,--
+Samco ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),42760,-8.92,1.15,0.22,17.54,9.87,0.26
+Samco ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),42759,-10.34,1.15,0.13,17.51,8.43,0.16
+Samco Flexi Cap Dir,Direct,Flexi Cap,41935,-12.86,1.15,-0.01,17.74,5.89,-0.01
+Samco Flexi Cap Reg,Regular,Flexi Cap,41934,-14.23,1.14,-0.09,17.72,4.51,-0.10
+Samco Large & Mid Cap Dir,Direct,Large & Mid Cap,45201,--,--,--,--,--,--
+Samco Large & Mid Cap Reg,Regular,Large & Mid Cap,45200,--,--,--,--,--,--
+Samco Large Cap Dir,Direct,Large Cap,45017,--,--,--,--,--,--
+Samco Large Cap Reg,Regular,Large Cap,45016,--,--,--,--,--,--
+Samco Mid Cap Dir,Direct,Mid Cap,45740,--,--,--,--,--,--
+Samco Mid Cap Reg,Regular,Mid Cap,45739,--,--,--,--,--,--
+Samco Multi Cap Dir,Direct,Multi Cap,44527,--,--,--,--,--,--
+Samco Multi Cap Reg,Regular,Multi Cap,44526,--,--,--,--,--,--
+Samco Small Cap Dir,Direct,Small Cap,45540,--,--,--,--,--,--
+Samco Small Cap Reg,Regular,Small Cap,45539,--,--,--,--,--,--
+Samco Special Opportunities Dir,Direct,Thematic,44280,--,--,--,--,--,--
+Samco Special Opportunities Reg,Regular,Thematic,44279,--,--,--,--,--,--
+SBI Banking & Financial Services Dir,Direct,Sectoral-Auto,29463,9.17,0.81,1.51,10.81,22.46,2.94
+SBI Banking & Financial Services Reg,Regular,Sectoral-Auto,29461,8.07,0.81,1.41,10.80,21.36,2.74
+SBI BSE 100 ETF,Regular,Large Cap,29714,-0.14,1.00,0.80,11.80,15.56,1.16
+SBI BSE 100 ETF,Direct,Large Cap,29714,-0.14,1.00,0.80,11.80,15.56,1.16
+SBI BSE PSU Bank ETF,Regular,Sectoral-Auto,45068,--,--,--,--,--,--
+SBI BSE PSU Bank ETF,Direct,Sectoral-Auto,45068,N/A,N/A,N/A,N/A,N/A,N/A
+SBI BSE PSU Bank Index Dir,Direct,Sectoral-Auto,45071,--,--,--,--,--,--
+SBI BSE PSU Bank Index Reg,Regular,Sectoral-Auto,45069,--,--,--,--,--,--
+SBI BSE Sensex ETF,Regular,Large Cap,18077,-2.49,0.92,0.58,11.05,12.49,0.94
+SBI BSE Sensex ETF,Direct,Large Cap,18077,-2.49,0.92,0.58,11.05,12.49,0.94
+SBI BSE Sensex Index Dir,Direct,Large Cap,43526,--,--,--,--,--,--
+SBI BSE Sensex Index Reg,Regular,Large Cap,43524,--,--,--,--,--,--
+SBI BSE Sensex Next 50 ETF,Regular,Large Cap,37639,5.31,1.21,1.13,15.05,23.04,1.51
+SBI BSE Sensex Next 50 ETF,Direct,Large Cap,37639,5.31,1.21,1.13,15.05,23.04,1.51
+SBI Comma Dir,Direct,Thematic,17523,4.50,1.01,1.06,14.70,21.73,1.63
+SBI Comma Reg,Regular,Thematic,2812,3.88,1.01,1.02,14.69,21.11,1.57
+SBI Consumption Opportunities Dir,Direct,Thematic-Infrastructure,17525,-3.38,0.84,0.59,14.40,14.53,0.76
+SBI Consumption Opportunities Reg,Regular,Thematic-Infrastructure,630,-4.46,0.83,0.51,14.38,13.44,0.66
+SBI Contra Dir,Direct,Value Oriented,16322,3.83,0.93,1.17,12.07,20.17,1.78
+SBI Contra Reg,Regular,Value Oriented,633,2.92,0.93,1.09,12.05,19.26,1.67
+SBI ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16244,6.50,0.97,1.34,12.82,23.33,2.07
+SBI ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),198,5.83,0.97,1.29,12.81,22.65,1.99
+SBI Energy Opportunities Dir,Direct,Thematic-Dividend Yield,44146,--,--,--,--,--,--
+SBI Energy Opportunities Reg,Regular,Thematic-Dividend Yield,44144,--,--,--,--,--,--
+SBI Equity Minimum Variance Dir,Direct,Thematic,39364,-1.66,0.92,0.67,12.70,14.56,0.88
+SBI Equity Minimum Variance Reg,Regular,Thematic,39362,-1.99,0.92,0.64,12.70,14.23,0.85
+SBI ESG Exclusionary Strategy Dir,Direct,Thematic-ESG,16219,0.15,0.93,0.80,11.35,15.15,1.15
+SBI ESG Exclusionary Strategy Reg,Regular,Thematic-ESG,190,-0.47,0.92,0.74,11.34,14.53,1.07
+SBI Flexicap Dir,Direct,Flexi Cap,17514,-0.57,0.85,0.80,11.01,14.91,1.08
+SBI Flexicap Reg,Regular,Flexi Cap,2859,-1.42,0.85,0.72,11.00,14.06,0.98
+SBI Focused Dir,Direct,Flexi Cap,16324,5.47,0.71,1.31,10.14,19.42,2.06
+SBI Focused Reg,Regular,Flexi Cap,2415,4.63,0.71,1.23,10.13,18.57,1.93
+SBI Healthcare Opportunities Dir,Direct,Sectoral-Pharma,16327,2.81,0.86,1.37,14.35,25.75,2.13
+SBI Healthcare Opportunities Reg,Regular,Sectoral-Pharma,632,1.75,0.86,1.30,14.34,24.67,2.02
+SBI Large & Midcap Dir,Direct,Large & Mid Cap,16240,3.99,0.85,1.22,10.84,19.36,1.89
+SBI Large & Midcap Reg,Regular,Large & Mid Cap,197,3.11,0.85,1.14,10.84,18.47,1.77
+SBI Large Cap Dir,Direct,Large Cap,16198,0.76,0.91,0.86,10.99,15.58,1.36
+SBI Large Cap Reg,Regular,Large Cap,3083,0.06,0.91,0.80,10.98,14.88,1.26
+SBI Long Term Advantage Sr III Dir,Direct,ELSS (Tax Saver),31547,-0.34,0.99,0.78,13.71,16.75,1.12
+SBI Long Term Advantage Sr III Reg,Regular,ELSS (Tax Saver),31545,-0.75,0.99,0.75,13.71,16.34,1.08
+SBI Long Term Advantage Sr IV Dir,Direct,ELSS (Tax Saver),33323,2.09,0.84,0.88,12.96,17.45,1.45
+SBI Long Term Advantage Sr IV Reg,Regular,ELSS (Tax Saver),33321,1.65,0.84,0.84,12.96,17.01,1.39
+SBI Long Term Advantage Sr V Dir,Direct,ELSS (Tax Saver),34960,6.56,0.91,1.26,13.25,22.75,1.93
+SBI Long Term Advantage Sr V Reg,Regular,ELSS (Tax Saver),34958,6.18,0.91,1.23,13.24,22.37,1.89
+SBI Long Term Advantage Sr VI Dir,Direct,ELSS (Tax Saver),35971,0.99,1.04,0.86,14.51,18.54,1.16
+SBI Long Term Advantage Sr VI Reg,Regular,ELSS (Tax Saver),35969,0.63,1.04,0.83,14.50,18.18,1.13
+SBI Midcap Dir,Direct,Mid Cap,16235,-1.68,0.80,0.88,13.27,17.74,1.15
+SBI Midcap Reg,Regular,Mid Cap,2662,-2.54,0.80,0.81,13.25,16.86,1.07
+SBI MNC Dir,Direct,Thematic-Consumption,16224,-4.14,0.70,0.34,10.69,9.73,0.48
+SBI MNC Reg,Regular,Thematic-Consumption,201,-4.82,0.70,0.28,10.68,9.04,0.39
+SBI Multicap Dir,Direct,Multi Cap,42108,1.84,0.77,1.00,11.74,17.79,1.48
+SBI Multicap Reg,Regular,Multi Cap,42106,0.99,0.77,0.92,11.73,16.93,1.37
+SBI Nifty 200 Quality 30 ETF,Regular,Large & Mid Cap,38348,-3.19,1.03,0.58,13.90,14.15,0.70
+SBI Nifty 200 Quality 30 ETF,Direct,Large & Mid Cap,38348,-3.19,1.03,0.58,13.90,14.15,0.70
+SBI Nifty 50 Equal Weight ETF,Regular,Large Cap,44433,--,--,--,--,--,--
+SBI Nifty 50 Equal Weight ETF,Direct,Large Cap,44433,--,--,--,--,--,--
+SBI Nifty 50 ETF,Regular,Large Cap,30710,-0.90,0.95,0.73,11.23,14.29,1.14
+SBI Nifty 50 ETF,Direct,Large Cap,30710,-0.90,0.95,0.73,11.23,14.29,1.14
+SBI Nifty 500 Index Dir,Direct,Flexi Cap,44567,--,--,--,--,--,--
+SBI Nifty 500 Index Reg,Regular,Flexi Cap,44565,--,--,--,--,--,--
+SBI Nifty Bank ETF,Regular,Sectoral-Auto,29709,0.00,1.00,0.74,12.08,15.01,1.42
+SBI Nifty Bank ETF,Direct,Sectoral-Auto,29709,0.00,1.00,0.74,12.08,15.01,1.42
+SBI Nifty Bank Index Dir,Direct,Sectoral-Auto,44894,--,--,--,--,--,--
+SBI Nifty Bank Index Reg,Regular,Sectoral-Auto,44892,--,--,--,--,--,--
+SBI Nifty Consumption ETF,Regular,Thematic-Infrastructure,41572,0.12,0.82,0.82,14.31,17.81,1.00
+SBI Nifty Consumption ETF,Direct,Thematic-Infrastructure,41572,0.12,0.82,0.82,14.31,17.81,1.00
+SBI Nifty Index Dir,Direct,Large Cap,16233,-1.10,0.95,0.71,11.24,14.10,1.12
+SBI Nifty Index Reg,Regular,Large Cap,1164,-1.37,0.95,0.69,11.23,13.82,1.08
+SBI Nifty India Consmpn Index Dir,Direct,Thematic-Infrastructure,44672,--,--,--,--,--,--
+SBI Nifty India Consmpn Index Reg,Regular,Thematic-Infrastructure,44670,--,--,--,--,--,--
+SBI Nifty IT ETF,Direct,Sectoral-Technology,41150,0.59,1.02,-0.03,22.42,5.48,-0.04
+SBI Nifty IT Index Dir,Direct,Sectoral-Technology,44960,--,--,--,--,--,--
+SBI Nifty Midcap 150 Index Dir,Direct,Mid Cap,42585,0.61,0.99,1.09,15.65,23.19,1.45
+SBI Nifty Midcap 150 Index Reg,Regular,Mid Cap,42583,0.10,0.99,1.06,15.64,22.67,1.41
+SBI Nifty Midcap 150 Momentum 50 ETF,Regular,Mid Cap,45872,--,--,--,--,--,--
+SBI Nifty Midcap 150 Momentum 50 ETF,Direct,Mid Cap,45872,--,--,--,--,--,--
+SBI Nifty Next 50 ETF,Regular,Large Cap,29715,4.77,1.26,1.02,16.59,23.02,1.34
+SBI Nifty Next 50 ETF,Direct,Large Cap,29715,4.77,1.26,1.02,16.59,23.02,1.34
+SBI Nifty Next 50 Index Dir,Direct,Large Cap,41492,4.54,1.26,1.01,16.59,22.79,1.32
+SBI Nifty Next 50 Index Reg,Regular,Large Cap,41490,4.09,1.26,0.98,16.58,22.33,1.29
+SBI Nifty Private Bank ETF,Regular,Sectoral-Auto,41149,-2.48,0.97,0.51,12.13,12.24,0.95
+SBI Nifty Private Bank ETF,Direct,Sectoral-Auto,41149,-2.48,0.97,0.51,12.13,12.24,0.95
+SBI Nifty Smallcap 250 Index Dir,Direct,Small Cap,42581,0.67,1.02,0.77,19.63,21.23,1.14
+SBI Nifty Smallcap 250 Index Reg,Regular,Small Cap,42579,0.15,1.02,0.74,19.61,20.69,1.10
+SBI Nifty100 Low Volatility 30 Index Dir,Direct,Large Cap,45361,--,--,--,--,--,--
+SBI Nifty100 Low Volatility 30 Index Reg,Regular,Large Cap,45359,--,--,--,--,--,--
+SBI Nifty200 Momentum 30 Index Dir,Direct,Large & Mid Cap,45267,--,--,--,--,--,--
+SBI Nifty200 Momentum 30 Index Reg,Regular,Large & Mid Cap,45265,--,--,--,--,--,--
+SBI Nifty200 Quality 30 Index Dir,Direct,Large & Mid Cap,45182,--,--,--,--,--,--
+SBI Nifty200 Quality 30 Index Reg,Regular,Large & Mid Cap,45180,--,--,--,--,--,--
+SBI Nifty50 Equal Weight Index Dir,Direct,Large Cap,44075,--,--,--,--,--,--
+SBI Nifty50 Equal Weight Index Reg,Regular,Large Cap,44073,--,--,--,--,--,--
+SBI PSU Dir,Direct,Thematic-Energy,16311,1.82,0.93,1.35,20.96,34.41,2.31
+SBI PSU Reg,Regular,Thematic-Energy,11198,0.72,0.93,1.30,20.95,33.30,2.22
+SBI Quality Dir,Direct,Thematic,45793,--,--,--,--,--,--
+SBI Quality Reg,Regular,Thematic,45791,--,--,--,--,--,--
+SBI Retirement Benefit Aggressive Dir,Direct,Flexi Cap,41271,-1.74,0.91,0.70,11.84,14.37,0.98
+SBI Retirement Benefit Aggressive Reg,Regular,Flexi Cap,41269,-2.87,0.90,0.60,11.82,13.23,0.85
+SBI Silver ETF,Regular,Thematic-PSU,44407,--,--,--,--,--,--
+SBI Silver ETF,Direct,Thematic-PSU,44407,--,--,--,--,--,--
+SBI Silver ETF FoF Dir,Direct,Thematic-PSU,44422,--,--,--,--,--,--
+SBI Silver ETF FoF Reg,Regular,Thematic-PSU,44420,--,--,--,--,--,--
+SBI Small Cap Dir,Direct,Small Cap,15787,-1.84,0.74,0.59,14.54,14.71,0.82
+SBI Small Cap Reg,Regular,Small Cap,10603,-2.76,0.73,0.53,14.52,13.78,0.73
+SBI Technology Opportunities Dir,Direct,Sectoral-Technology,17526,6.96,0.76,0.35,17.22,12.16,0.50
+SBI US Specific Equity Active FoF FoF Dir,Direct,International,41352,--,--,1.42,13.73,25.66,2.16
+SBI US Specific Equity Active FoF FoF Reg,Regular,International,41350,--,--,1.37,13.72,24.96,2.09
+Shriram ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),38439,-3.87,1.05,0.52,14.85,13.81,0.62
+Shriram ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),38437,-5.51,1.05,0.41,14.83,12.15,0.49
+Shriram Flexi Cap Dir,Direct,Flexi Cap,37581,-3.96,1.05,0.51,14.96,13.69,0.61
+Shriram Flexi Cap Reg,Regular,Flexi Cap,37579,-5.63,1.04,0.39,14.93,12.00,0.48
+Shriram Multi Sector Rotation Dir,Direct,Thematic,44669,--,--,--,--,--,--
+Shriram Multi Sector Rotation Reg,Regular,Thematic,44668,--,--,--,--,--,--
+Sundaram  Long Term Tax Advantage IV Reg,Regular,ELSS (Tax Saver),35871,2.34,1.01,0.88,15.38,19.58,1.30
+Sundaram Consumption Dir,Direct,Thematic-Infrastructure,16163,-1.49,0.81,0.71,14.05,16.02,0.87
+Sundaram Consumption Reg,Regular,Thematic-Infrastructure,3268,-2.37,0.81,0.64,14.04,15.14,0.80
+Sundaram ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16650,0.60,0.86,0.90,11.19,16.19,1.32
+Sundaram ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),89,0.05,0.86,0.85,11.19,15.64,1.25
+Sundaram Financial Services Opportunities Dir,Direct,Sectoral-Auto,16148,6.48,0.92,1.18,12.42,20.78,2.19
+Sundaram Financial Services Opportunities Reg,Regular,Sectoral-Auto,7611,5.10,0.92,1.07,12.41,19.40,1.99
+Sundaram Flexi Cap Dir,Direct,Flexi Cap,42504,0.91,0.87,0.92,11.40,16.63,1.37
+Sundaram Flexi Cap Reg,Regular,Flexi Cap,42502,-0.58,0.87,0.79,11.38,15.12,1.21
+Sundaram Focused Dir,Direct,Flexi Cap,16614,0.16,0.82,0.84,10.97,15.33,1.22
+Sundaram Focused Reg,Regular,Flexi Cap,2916,-0.86,0.82,0.75,10.96,14.31,1.08
+Sundaram Global Brand Theme - Equity Active FoF Dir*,Direct,International,17200,--,--,1.17,11.40,19.39,1.55
+Sundaram Global Brand Theme - Equity Active FoF Reg*,Regular,International,5449,--,--,1.08,11.39,18.43,1.44
+Sundaram Large & Midcap Dir,Direct,Large & Mid Cap,16086,1.19,1.04,0.94,13.32,18.56,1.18
+Sundaram Large & Midcap Reg,Regular,Large & Mid Cap,4152,0.11,1.04,0.85,13.31,17.47,1.08
+Sundaram Large Cap Dir,Direct,Large Cap,41104,-0.37,0.89,0.76,10.69,14.26,1.18
+Sundaram Large Cap Reg,Regular,Large Cap,41102,-1.66,0.89,0.64,10.68,12.96,0.99
+Sundaram Long Term Micro Cap Tax Advantage III Dir,Direct,ELSS (Tax Saver),32783,0.77,1.04,0.76,16.11,18.41,1.10
+Sundaram Long Term Micro Cap Tax Advantage III Reg,Regular,ELSS (Tax Saver),32781,0.58,1.04,0.75,16.11,18.21,1.09
+Sundaram Long Term Micro Cap Tax Advantage IV Dir,Direct,ELSS (Tax Saver),33066,1.18,1.03,0.79,15.95,18.67,1.16
+Sundaram Long Term Micro Cap Tax Advantage IV Reg,Regular,ELSS (Tax Saver),33064,1.07,1.03,0.78,15.95,18.55,1.15
+Sundaram Long Term Micro Cap Tax Advantage V Dir,Direct,ELSS (Tax Saver),34226,1.22,1.04,0.80,15.93,18.79,1.17
+Sundaram Long Term Micro Cap Tax Advantage V Reg,Regular,ELSS (Tax Saver),34224,0.98,1.04,0.78,15.93,18.55,1.15
+Sundaram Long Term Micro Cap Tax Advantage VI Dir,Direct,ELSS (Tax Saver),34431,1.06,1.03,0.78,15.91,18.57,1.16
+Sundaram Long Term Micro Cap Tax Advantage VI Reg,Regular,ELSS (Tax Saver),34429,0.79,1.03,0.77,15.90,18.30,1.14
+Sundaram Long Term Tax Advantage II Dir,Direct,ELSS (Tax Saver),31220,0.34,0.87,0.88,11.33,16.11,1.29
+Sundaram Long Term Tax Advantage II Reg,Regular,ELSS (Tax Saver),31218,0.12,0.87,0.86,11.33,15.88,1.26
+Sundaram Long Term Tax Advantage III Dir,Direct,ELSS (Tax Saver),35008,2.04,1.02,0.86,15.57,19.45,1.26
+Sundaram Long Term Tax Advantage III Reg,Regular,ELSS (Tax Saver),35006,1.88,1.02,0.85,15.56,19.28,1.24
+Sundaram Long Term Tax Advantage IV Dir,Direct,ELSS (Tax Saver),35873,2.58,1.01,0.89,15.38,19.83,1.32
+Sundaram Midcap Dir,Direct,Mid Cap,16125,3.31,0.93,1.25,14.97,24.88,1.55
+Sundaram Midcap Reg,Regular,Mid Cap,1386,2.47,0.93,1.20,14.95,24.03,1.48
+Sundaram Multi Cap Dir,Direct,Multi Cap,16580,1.17,0.90,0.95,13.20,18.68,1.31
+Sundaram Multi Cap Reg,Regular,Multi Cap,866,0.08,0.89,0.87,13.19,17.58,1.20
+Sundaram Multi-Factor Dir,Direct,Thematic,45285,--,--,--,--,--,--
+Sundaram Multi-Factor Reg,Regular,Thematic,45283,--,--,--,--,--,--
+Sundaram Nifty 100 Equal Weight Dir,Direct,Large Cap,16608,3.40,1.10,1.03,13.59,20.10,1.45
+Sundaram Nifty 100 Equal Weight Reg,Regular,Large Cap,637,2.92,1.10,0.99,13.58,19.61,1.40
+Sundaram Services Dir,Direct,Thematic,37577,2.53,0.89,1.00,12.36,18.51,1.64
+Sundaram Services Reg,Regular,Thematic,37575,1.37,0.89,0.91,12.35,17.35,1.49
+Sundaram Small Cap Dir,Direct,Small Cap,16112,3.27,0.80,0.92,15.87,20.70,1.27
+Sundaram Small Cap Reg,Regular,Small Cap,2599,2.17,0.80,0.85,15.85,19.59,1.18
+Sundaram Value Dir,Direct,Value Oriented,16169,-1.01,0.86,0.76,11.16,14.58,1.08
+Sundaram Value Reg,Regular,Value Oriented,687,-1.56,0.86,0.71,11.16,14.03,1.01
+Tata Banking & Financial Services Dir,Direct,Sectoral-Auto,31356,5.21,0.90,1.09,12.21,19.38,2.61
+Tata Banking & Financial Services Reg,Regular,Sectoral-Auto,31354,3.72,0.90,0.97,12.19,17.88,2.32
+Tata BSE Multicap Consmpn 50:30:20 Index Dir,Direct,Thematic-Infrastructure,45705,--,--,--,--,--,--
+Tata BSE Multicap Consmpn 50:30:20 Index Reg,Regular,Thematic-Infrastructure,45703,--,--,--,--,--,--
+Tata BSE Quality Index Dir,Direct,Large & Mid Cap,45062,--,--,--,--,--,--
+Tata BSE Quality Index Reg,Regular,Large & Mid Cap,45060,--,--,--,--,--,--
+Tata BSE Select Business Groups Index Dir,Direct,Thematic,44792,--,--,--,--,--,--
+Tata BSE Select Business Groups Index Reg,Regular,Thematic,44790,--,--,--,--,--,--
+Tata BSE Sensex Index Dir,Direct,Large Cap,16955,-2.79,0.92,0.55,11.04,12.18,0.89
+Tata BSE Sensex Index Reg,Regular,Large Cap,1551,-3.10,0.92,0.52,11.04,11.87,0.85
+Tata Children's Dir,Direct,Flexi Cap,16957,-3.50,0.95,0.56,12.43,13.08,0.85
+Tata Children's Reg,Regular,Flexi Cap,210,-4.03,0.95,0.52,12.43,12.55,0.78
+Tata Digital India Dir,Direct,Sectoral-Technology,31368,5.67,0.88,0.23,19.65,10.72,0.31
+Tata ELSS Dir,Direct,ELSS (Tax Saver),16739,0.96,0.98,0.91,12.93,17.92,1.33
+Tata ELSS Reg,Regular,ELSS (Tax Saver),212,-0.16,0.98,0.83,12.92,16.79,1.21
+Tata Ethical Dir,Direct,Thematic,16683,-4.30,0.94,0.47,12.91,12.22,0.62
+Tata Ethical Reg,Regular,Thematic,213,-5.53,0.94,0.38,12.90,10.98,0.50
+Tata Flexi Cap Dir,Direct,Flexi Cap,37437,2.76,0.83,1.08,11.04,18.00,1.83
+Tata Flexi Cap Reg,Regular,Flexi Cap,37435,1.48,0.83,0.96,11.03,16.71,1.63
+Tata Focused Dir,Direct,Flexi Cap,40405,1.12,0.90,0.92,12.06,17.21,1.23
+Tata Focused Reg,Regular,Flexi Cap,40403,-0.34,0.90,0.80,12.05,15.74,1.07
+Tata Housing Opportunities Dir,Direct,Thematic,42447,-1.92,1.09,0.67,15.09,16.18,0.96
+Tata Housing Opportunities Reg,Regular,Thematic,42445,-3.59,1.08,0.56,15.07,14.50,0.80
+Tata India Consumer Dir,Direct,Thematic-Infrastructure,31360,0.71,0.81,0.85,14.37,18.29,1.04
+Tata India Consumer Reg,Regular,Thematic-Infrastructure,31358,-0.56,0.81,0.76,14.35,17.01,0.93
+Tata India Pharma & Healthcare Dir,Direct,Sectoral-Pharma,31352,-0.65,0.98,1.15,16.16,24.64,1.74
+Tata India Pharma & Healthcare Reg,Regular,Sectoral-Pharma,31350,-2.13,0.97,1.06,16.14,23.13,1.61
+Tata Large & Midcap Dir,Direct,Large & Mid Cap,16679,-2.66,0.99,0.64,12.75,14.26,0.96
+Tata Large & Midcap Reg,Regular,Large & Mid Cap,102,-3.75,0.99,0.55,12.74,13.15,0.83
+Tata Large Cap Dir,Direct,Large Cap,16729,1.18,0.98,0.90,11.77,16.69,1.30
+Tata Large Cap Reg,Regular,Large Cap,509,0.18,0.98,0.81,11.76,15.68,1.18
+Tata Mid Cap Dir,Direct,Mid Cap,16717,1.73,0.90,1.15,14.48,22.82,1.54
+Tata Mid Cap Reg,Regular,Mid Cap,103,0.55,0.90,1.07,14.47,21.62,1.43
+Tata Multicap Dir,Direct,Multi Cap,43038,-2.13,0.88,0.69,13.08,15.18,0.90
+Tata Multicap Reg,Regular,Multi Cap,43036,-3.53,0.88,0.59,13.03,13.74,0.76
+Tata Nifty 50 ETF,Regular,Large Cap,38578,-0.96,0.94,0.72,11.23,14.23,1.13
+Tata Nifty 50 ETF,Direct,Large Cap,38578,-0.96,0.94,0.72,11.23,14.23,1.13
+Tata Nifty 50 Index Dir,Direct,Large Cap,16954,-1.17,0.94,0.70,11.23,14.01,1.10
+Tata Nifty 50 Index Reg,Regular,Large Cap,1550,-1.50,0.94,0.68,11.23,13.68,1.06
+Tata Nifty Capital Markets Index Fund Dir,Direct,Thematic,44638,--,--,--,--,--,--
+Tata Nifty Capital Markets Index Fund Reg,Regular,Thematic,44636,--,--,--,--,--,--
+Tata Nifty Financial Services Index Dir,Direct,Sectoral-Auto,44257,--,--,--,--,--,--
+Tata Nifty Financial Services Index Reg,Regular,Sectoral-Auto,44255,--,--,--,--,--,--
+Tata Nifty India Digital ETF,Direct,Sectoral-Technology,42165,N/A,N/A,N/A,N/A,N/A,N/A
+Tata Nifty India Digital ETF FoF Dir,Direct,Sectoral-Technology,42256,9.82,0.72,0.50,17.80,15.07,0.66
+Tata Nifty India Tourism Index Dir,Direct,Thematic,44426,--,--,--,--,--,--
+Tata Nifty India Tourism Index Reg,Regular,Thematic,44424,--,--,--,--,--,--
+Tata Nifty Midcap 150 Index Dir,Direct,Mid Cap,45222,--,--,--,--,--,--
+Tata Nifty Midcap 150 Index Reg,Regular,Mid Cap,45220,--,--,--,--,--,--
+Tata Nifty Midcap 150 Momentum 50 Index Dir,Direct,Mid Cap,42655,0.08,1.06,1.00,17.67,23.84,1.27
+Tata Nifty Midcap 150 Momentum 50 Index Reg,Regular,Mid Cap,42653,-0.60,1.06,0.96,17.65,23.14,1.22
+Tata Nifty MidSmall Healthcare Index Dir,Direct,Sectoral-Pharma,44275,--,--,--,--,--,--
+Tata Nifty MidSmall Healthcare Index Reg,Regular,Sectoral-Pharma,44273,--,--,--,--,--,--
+Tata Nifty Next 50 Index Dir,Direct,Large Cap,45494,--,--,--,--,--,--
+Tata Nifty Next 50 Index Reg,Regular,Large Cap,45492,--,--,--,--,--,--
+Tata Nifty Private Bank ETF,Regular,Sectoral-Auto,40257,-2.43,0.97,0.51,12.16,12.30,0.95
+Tata Nifty Private Bank ETF,Direct,Sectoral-Auto,40257,-2.43,0.97,0.51,12.16,12.30,0.95
+Tata Nifty Realty Index Dir,Direct,Thematic,44261,--,--,--,--,--,--
+Tata Nifty Realty Index Reg,Regular,Thematic,44259,--,--,--,--,--,--
+Tata Nifty200 Alpha 30 Index Dir,Direct,Large & Mid Cap,44509,--,--,--,--,--,--
+Tata Nifty200 Alpha 30 Index Reg,Regular,Large & Mid Cap,44507,--,--,--,--,--,--
+Tata Resources & Energy Dir,Direct,Thematic-Dividend Yield,31364,5.06,0.64,1.04,14.85,21.54,1.57
+Tata Resources & Energy Reg,Regular,Thematic-Dividend Yield,31362,3.46,0.64,0.93,14.83,19.92,1.41
+Tata Retirement Savings Progressive Dir,Direct,Flexi Cap,17020,-0.18,0.98,0.80,13.29,16.78,1.06
+Tata Retirement Savings Progressive Reg,Regular,Flexi Cap,13413,-1.65,0.98,0.69,13.27,15.30,0.92
+Tata Silver ETF,Regular,Thematic-PSU,44020,--,--,--,--,--,--
+Tata Silver ETF,Direct,Thematic-PSU,44020,--,--,--,--,--,--
+Tata Silver ETF FoF Dir,Direct,Thematic-PSU,44026,--,--,--,--,--,--
+Tata Silver ETF FoF Reg,Regular,Thematic-PSU,44024,--,--,--,--,--,--
+Tata Small Cap Dir,Direct,Small Cap,37991,-2.02,0.82,0.57,16.85,15.70,0.83
+Tata Small Cap Reg,Regular,Small Cap,37989,-3.42,0.82,0.49,16.82,14.28,0.71
+Tata Value Dir,Direct,Value Oriented,16952,2.56,1.06,1.03,13.80,20.35,1.45
+Tata Value Reg,Regular,Value Oriented,2267,1.57,1.06,0.96,13.79,19.36,1.35
+Taurus Banking & Financial Services Dir,Direct,Sectoral-Auto,17023,0.64,0.92,0.75,11.70,14.93,1.55
+Taurus Banking & Financial Services Reg,Regular,Sectoral-Auto,14718,-0.14,0.92,0.69,11.69,14.14,1.41
+Taurus ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16713,-0.82,0.85,0.72,11.91,14.72,1.19
+Taurus ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),83,-1.47,0.85,0.67,11.92,14.08,1.10
+Taurus Ethical Dir,Direct,Thematic,16658,0.23,0.99,0.81,13.78,17.33,1.09
+Taurus Ethical Reg,Regular,Thematic,10244,-1.11,1.00,0.72,13.80,15.99,0.96
+Taurus Flexi Cap Dir,Direct,Flexi Cap,16705,-0.97,0.98,0.75,13.06,15.94,1.02
+Taurus Flexi Cap Reg,Regular,Flexi Cap,214,-1.03,0.98,0.75,13.06,15.87,1.02
+Taurus Large Cap Dir,Direct,Large Cap,17027,2.02,0.99,0.92,12.60,17.67,1.27
+Taurus Large Cap Reg,Regular,Large Cap,43,1.89,0.99,0.91,12.60,17.54,1.26
+Taurus Mid Cap Dir,Direct,Mid Cap,16656,-5.91,1.00,0.65,16.50,16.85,1.10
+Taurus Mid Cap Reg,Regular,Mid Cap,215,-6.31,1.00,0.63,16.50,16.45,1.05
+Taurus Nifty 50 Index Dir,Direct,Large Cap,17039,-1.84,0.94,0.64,11.13,13.27,1.01
+Taurus Nifty 50 Index Reg,Regular,Large Cap,11215,-2.12,0.94,0.62,11.13,12.99,0.97
+Templeton India Value Dir,Direct,Value Oriented,16824,2.76,0.91,1.07,12.07,18.96,1.65
+Templeton India Value Reg,Regular,Value Oriented,221,1.56,0.91,0.97,12.05,17.74,1.50
+The Wealth Company Ethical Dir,Direct,Thematic,45525,--,--,--,--,--,--
+The Wealth Company Ethical Reg,Regular,Thematic,45523,--,--,--,--,--,--
+The Wealth Company Flexi Cap Dir,Direct,Flexi Cap,45499,--,--,--,--,--,--
+The Wealth Company Flexi Cap Reg,Regular,Flexi Cap,45497,--,--,--,--,--,--
+The Wealth Company Small Cap Dir,Direct,Small Cap,45896,N/A,N/A,N/A,N/A,N/A,N/A
+The Wealth Company Small Cap Reg,Regular,Small Cap,45894,N/A,N/A,N/A,N/A,N/A,N/A
+TRUST MF Flexi Cap Dir,Direct,Flexi Cap,44271,--,--,--,--,--,--
+TRUST MF Flexi Cap Reg,Regular,Flexi Cap,44269,--,--,--,--,--,--
+TRUST MF Small Cap Dir,Direct,Small Cap,44593,--,--,--,--,--,--
+TRUST MF Small Cap Reg,Regular,Small Cap,44591,--,--,--,--,--,--
+TRUSTMF Mid Cap Dir,Direct,Mid Cap,45814,N/A,N/A,N/A,N/A,N/A,N/A
+TRUSTMF Mid Cap Reg,Regular,Mid Cap,45813,N/A,N/A,N/A,N/A,N/A,N/A
+TRUSTMF Multi Cap Dir,Direct,Multi Cap,45282,--,--,--,--,--,--
+TRUSTMF Multi Cap Reg,Regular,Multi Cap,45281,--,--,--,--,--,--
+Unifi Flexi Cap Dir,Direct,Flexi Cap,45189,--,--,--,--,--,--
+Unifi Flexi Cap Reg,Regular,Flexi Cap,45188,--,--,--,--,--,--
+Union Active Momentum Dir,Direct,Thematic,44784,--,--,--,--,--,--
+Union Active Momentum Reg,Regular,Thematic,44782,--,--,--,--,--,--
+Union Children's Dir,Direct,Flexi Cap,43924,--,--,--,--,--,--
+Union Children's Reg,Regular,Flexi Cap,43922,--,--,--,--,--,--
+Union Consumption Dir,Direct,Thematic-Infrastructure,45669,--,--,--,--,--,--
+Union Consumption Reg,Regular,Thematic-Infrastructure,45667,--,--,--,--,--,--
+Union Diversified Equity All Cap Active FoF Dir,Direct,Flexi Cap,45473,--,--,--,--,--,--
+Union Diversified Equity All Cap Active FoF Reg,Regular,Flexi Cap,45471,--,--,--,--,--,--
+Union ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),16436,0.30,0.91,0.87,12.01,16.50,1.18
+Union ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),13521,-0.60,0.91,0.79,11.99,15.59,1.08
+Union Flexi Cap Dir,Direct,Flexi Cap,16412,0.65,0.92,0.89,12.18,16.97,1.13
+Union Flexi Cap Reg,Regular,Flexi Cap,12817,-0.47,0.92,0.80,12.15,15.83,1.01
+Union Focused Dir,Direct,Flexi Cap,40108,-0.67,0.86,0.74,12.03,14.95,0.92
+Union Focused Reg,Regular,Flexi Cap,40106,-1.66,0.86,0.65,12.01,13.94,0.81
+Union Large & Midcap Dir,Direct,Large & Mid Cap,40385,1.75,0.96,0.94,12.95,18.24,1.11
+Union Large & Midcap Reg,Regular,Large & Mid Cap,40383,0.39,0.95,0.83,12.93,16.86,0.98
+Union Largecap Dir,Direct,Large Cap,34082,-0.25,0.90,0.76,10.97,14.48,1.10
+Union Largecap Reg,Regular,Large Cap,34080,-1.11,0.90,0.68,10.98,13.62,0.98
+Union Midcap Dir,Direct,Mid Cap,40769,0.69,0.92,1.05,15.28,22.22,1.30
+Union Midcap Reg,Regular,Mid Cap,40767,-0.75,0.92,0.96,15.25,20.75,1.18
+Union Multicap Dir,Direct,Multi Cap,42779,2.45,0.89,1.04,13.31,19.90,1.33
+Union Multicap Reg,Regular,Multi Cap,42777,1.13,0.89,0.94,13.29,18.57,1.20
+Union Retirement Dir,Direct,Flexi Cap,42492,2.75,0.92,1.07,12.03,19.02,1.41
+Union Retirement Reg,Regular,Flexi Cap,42490,1.41,0.92,0.96,11.99,17.65,1.26
+Union Small Cap Dir,Direct,Small Cap,26860,3.15,0.84,0.86,17.40,21.13,1.09
+Union Small Cap Reg,Regular,Small Cap,26858,1.98,0.84,0.80,17.38,19.94,1.01
+Union Value Dir,Direct,Value Oriented,38207,3.70,0.91,1.13,12.08,19.82,1.69
+Union Value Reg,Regular,Value Oriented,38205,2.60,0.91,1.04,12.08,18.71,1.55
+UTI Banking and Financial Services Dir,Direct,Sectoral-Auto,15967,5.29,0.85,1.11,11.65,18.98,2.20
+UTI Banking and Financial Services Reg,Regular,Sectoral-Auto,2144,4.24,0.85,1.02,11.64,17.93,2.02
+UTI BSE Housing Index Dir,Direct,Thematic,43521,--,--,--,--,--,--
+UTI BSE Housing Index Reg,Regular,Thematic,43520,--,--,--,--,--,--
+UTI BSE Low Volatility Index Dir,Direct,Large & Mid Cap,42111,0.14,0.90,0.84,11.81,16.05,1.16
+UTI BSE Low Volatility Index Reg,Regular,Large & Mid Cap,42110,-0.33,0.90,0.80,11.81,15.57,1.10
+UTI BSE Sensex ETF,Regular,Large Cap,30885,-2.48,0.92,0.58,11.05,12.50,0.94
+UTI BSE Sensex ETF,Direct,Large Cap,30885,-2.48,0.92,0.58,11.05,12.50,0.94
+UTI BSE Sensex Index Dir,Direct,Large Cap,42038,-2.69,0.92,0.56,11.05,12.29,0.91
+UTI BSE Sensex Index Reg,Regular,Large Cap,42037,-2.79,0.92,0.55,11.05,12.19,0.90
+UTI BSE Sensex Next 50 ETF,Regular,Large Cap,39221,5.37,1.21,1.13,15.05,23.09,1.52
+UTI BSE Sensex Next 50 ETF,Direct,Large Cap,39221,5.37,1.21,1.13,15.05,23.09,1.52
+UTI Children's Equity Dir,Direct,Flexi Cap,15867,-2.08,0.96,0.68,12.57,14.63,1.02
+UTI Children's Equity Reg,Regular,Flexi Cap,2090,-3.14,0.96,0.59,12.56,13.56,0.89
+UTI ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),15723,-1.49,0.97,0.73,12.64,15.29,1.07
+UTI ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),724,-2.48,0.97,0.65,12.63,14.29,0.95
+UTI Flexi Cap Dir,Direct,Flexi Cap,15714,-4.55,0.87,0.41,12.31,11.19,0.64
+UTI Flexi Cap Reg,Regular,Flexi Cap,247,N/A,N/A,N/A,N/A,N/A,N/A
+UTI Focused Dir,Direct,Flexi Cap,41629,0.18,0.96,0.85,12.71,16.87,1.18
+UTI Focused Reg,Regular,Flexi Cap,41627,-1.20,0.96,0.74,12.69,15.47,1.03
+UTI Healthcare Dir,Direct,Sectoral-Pharma,15932,0.92,0.94,1.24,15.80,25.62,1.90
+UTI Healthcare Reg,Regular,Sectoral-Pharma,654,-0.06,0.94,1.17,15.79,24.62,1.81
+UTI India Consumer Dir,Direct,Thematic-Infrastructure,15894,-1.95,0.84,0.70,14.21,16.01,0.85
+UTI India Consumer Reg,Regular,Thematic-Infrastructure,5437,-2.83,0.84,0.63,14.21,15.12,0.77
+UTI Large & Mid Cap Dir,Direct,Large & Mid Cap,15845,5.20,1.02,1.25,13.04,22.42,1.77
+UTI Large & Mid Cap Reg,Regular,Large & Mid Cap,258,4.36,1.02,1.19,13.04,21.57,1.68
+UTI Large Cap Dir,Direct,Large Cap,15789,-0.97,0.92,0.71,11.10,13.96,1.03
+UTI Large Cap Reg,Regular,Large Cap,22,-1.82,0.92,0.63,11.09,13.10,0.92
+UTI MEPUS Reg,Regular,ELSS (Tax Saver),1621,-2.11,0.83,0.64,11.05,13.22,0.92
+UTI Midcap Dir,Direct,Mid Cap,15920,-3.71,0.97,0.79,15.65,18.52,1.08
+UTI Midcap Reg,Regular,Mid Cap,2138,-4.59,0.97,0.74,15.64,17.63,1.00
+UTI MNC Dir,Direct,Thematic-Consumption,15820,-1.67,0.89,0.66,12.32,14.28,0.85
+UTI MNC Reg,Regular,Thematic-Consumption,544,-2.51,0.89,0.60,12.31,13.44,0.76
+UTI Multi Cap Dir,Direct,Multi Cap,45143,--,--,--,--,--,--
+UTI Multi Cap Reg,Regular,Multi Cap,45141,--,--,--,--,--,--
+UTI Nifty 50 ETF,Regular,Large Cap,30886,-0.89,0.95,0.73,11.23,14.30,1.15
+UTI Nifty 50 ETF,Direct,Large Cap,30886,-0.89,0.95,0.73,11.23,14.30,1.15
+UTI Nifty 50 Index Dir,Direct,Large Cap,15830,-1.07,0.95,0.71,11.23,14.12,1.12
+UTI Nifty 50 Index Reg,Regular,Large Cap,757,-1.18,0.94,0.70,11.23,14.00,1.11
+UTI Nifty 500 Value 50 Index Dir,Direct,Value Oriented,43495,--,--,--,--,--,--
+UTI Nifty 500 Value 50 Index Reg,Regular,Value Oriented,43494,--,--,--,--,--,--
+UTI Nifty Alpha Low-Volatility 30 Index Dir,Direct,Large & Mid Cap,44727,--,--,--,--,--,--
+UTI Nifty Alpha Low-Volatility 30 Index Reg,Regular,Large & Mid Cap,44726,--,--,--,--,--,--
+UTI Nifty Bank ETF,Regular,Sectoral-Auto,41106,0.06,1.00,0.74,12.08,15.08,1.43
+UTI Nifty Bank ETF,Direct,Sectoral-Auto,41106,0.06,1.00,0.74,12.08,15.08,1.43
+UTI Nifty IT ETF,Direct,Sectoral-Technology,44072,--,--,--,--,--,--
+UTI Nifty Midcap 150 ETF,Regular,Mid Cap,43743,--,--,--,--,--,--
+UTI Nifty Midcap 150 ETF,Direct,Mid Cap,43743,--,--,--,--,--,--
+UTI Nifty Midcap 150 Index Dir,Direct,Mid Cap,44725,--,--,--,--,--,--
+UTI Nifty Midcap 150 Index Reg,Regular,Mid Cap,44724,--,--,--,--,--,--
+UTI Nifty Midcap 150 Quality 50 Index Dir,Direct,Mid Cap,42253,-6.05,0.89,0.60,14.67,14.88,0.87
+UTI Nifty Midcap 150 Quality 50 Index Reg,Regular,Mid Cap,42252,-6.50,0.89,0.57,14.66,14.42,0.82
+UTI Nifty Midsmallcap 400 Momentum Quality 100 Index Dir,Direct,Mid Cap,44913,--,--,--,--,--,--
+UTI Nifty Midsmallcap 400 Momentum Quality 100 Index Reg,Regular,Mid Cap,44912,--,--,--,--,--,--
+UTI Nifty Next 50 ETF,Regular,Large Cap,34503,4.82,1.26,1.02,16.59,23.07,1.35
+UTI Nifty Next 50 ETF,Direct,Large Cap,34503,4.82,1.26,1.02,16.59,23.07,1.35
+UTI Nifty Next 50 Index Dir,Direct,Large Cap,36491,4.56,1.26,1.01,16.58,22.81,1.33
+UTI Nifty Next 50 Index Reg,Regular,Large Cap,36490,N/A,N/A,N/A,N/A,N/A,N/A
+UTI Nifty Private Bank Index Dir,Direct,Sectoral-Auto,44546,--,--,--,--,--,--
+UTI Nifty Private Bank Index Reg,Regular,Sectoral-Auto,44545,--,--,--,--,--,--
+UTI Nifty200 Momentum 30 Index Dir,Direct,Large & Mid Cap,41312,0.93,1.27,0.85,17.35,20.83,1.14
+UTI Nifty200 Momentum 30 Index Reg,Regular,Large & Mid Cap,41311,0.45,1.27,0.82,17.34,20.35,1.10
+UTI Nifty200 Quality 30 Index Dir,Direct,Large & Mid Cap,44548,--,--,--,--,--,--
+UTI Nifty200 Quality 30 Index Reg,Regular,Large & Mid Cap,44547,--,--,--,--,--,--
+UTI NIFTY50 Equal Wght Index Dir,Direct,Large Cap,43523,--,--,--,--,--,--
+UTI NIFTY50 Equal Wght Index Reg,Regular,Large Cap,43522,--,--,--,--,--,--
+UTI Nifty500 Shariah Index Dir,Direct,Flexi Cap,45821,--,--,--,--,--,--
+UTI Nifty500 Shariah Index Reg,Regular,Flexi Cap,45820,--,--,--,--,--,--
+UTI Silver ETF,Regular,Thematic-PSU,43485,--,--,--,--,--,--
+UTI Silver ETF,Direct,Thematic-PSU,43485,--,--,--,--,--,--
+UTI Silver ETF FoF Dir,Direct,Thematic-PSU,43487,--,--,--,--,--,--
+UTI Silver ETF FoF Reg,Regular,Thematic-PSU,43486,--,--,--,--,--,--
+UTI Small Cap Dir,Direct,Small Cap,41233,-0.05,0.86,0.70,17.42,18.31,1.06
+UTI Small Cap Reg,Regular,Small Cap,41231,-1.34,0.86,0.63,17.39,17.00,0.95
+UTI Value Dir,Direct,Value Oriented,15927,2.44,0.93,1.04,12.25,18.87,1.60
+UTI Value Reg,Regular,Value Oriented,2820,1.75,0.93,0.99,12.24,18.18,1.51
+WhiteOak Capital Banking & Financial Services Dir,Direct,Sectoral-Auto,44045,--,--,--,--,--,--
+WhiteOak Capital Banking & Financial Services Reg,Regular,Sectoral-Auto,44044,--,--,--,--,--,--
+WhiteOak Capital Consumption Opportunities Dir,Direct,Thematic-Infrastructure,45780,--,--,--,--,--,--
+WhiteOak Capital Consumption Opportunities Reg,Regular,Thematic-Infrastructure,45779,--,--,--,--,--,--
+WhiteOak Capital Digital Bharat Dir,Direct,Sectoral-Technology,44576,--,--,--,--,--,--
+WhiteOak Capital ELSS Tax Saver Dir,Direct,ELSS (Tax Saver),42487,4.67,0.94,1.19,12.63,21.15,1.67
+WhiteOak Capital ELSS Tax Saver Reg,Regular,ELSS (Tax Saver),42485,2.99,0.94,1.06,12.62,19.47,1.49
+WhiteOak Capital ESG Best-In-Class Strategy Dir,Direct,Thematic-ESG,44645,--,--,--,--,--,--
+WhiteOak Capital ESG Best-In-Class Strategy Reg,Regular,Thematic-ESG,44644,--,--,--,--,--,--
+WhiteOak Capital Flexi Cap Dir,Direct,Flexi Cap,42320,3.88,0.93,1.15,12.28,20.21,1.62
+WhiteOak Capital Flexi Cap Reg,Regular,Flexi Cap,42318,2.43,0.92,1.03,12.26,18.75,1.46
+WhiteOak Capital Large & Mid Cap Dir,Direct,Large & Mid Cap,43932,--,--,--,--,--,--
+WhiteOak Capital Large & Mid Cap Reg,Regular,Large & Mid Cap,43931,--,--,--,--,--,--
+WhiteOak Capital Large Cap Dir,Direct,Large Cap,42713,3.86,0.94,1.14,11.31,18.96,1.67
+WhiteOak Capital Large Cap Reg,Regular,Large Cap,42711,2.19,0.93,0.99,11.30,17.27,1.45
+WhiteOak Capital Mid Cap Fund Dir,Direct,Mid Cap,42483,4.79,0.93,1.33,15.25,26.32,1.75
+WhiteOak Capital Mid Cap Reg,Regular,Mid Cap,42481,3.25,0.92,1.23,15.22,24.76,1.62
+WhiteOak Capital Multi Cap Dir,Direct,Multi Cap,43759,--,--,--,--,--,--
+WhiteOak Capital Multi Cap Reg,Regular,Multi Cap,43758,--,--,--,--,--,--
+WhiteOak Capital Pharma and Healthcare Dir,Direct,Sectoral-Pharma,44061,--,--,--,--,--,--
+WhiteOak Capital Pharma and Healthcare Reg,Regular,Sectoral-Pharma,44060,--,--,--,--,--,--
+WhiteOak Capital Quality Equity Dir,Direct,Thematic,44853,--,--,--,--,--,--
+WhiteOak Capital Quality Equity Reg,Regular,Thematic,44852,--,--,--,--,--,--
+WhiteOak Capital Special Opportunities Dir,Direct,Thematic,44333,--,--,--,--,--,--
+WhiteOak Capital Special Opportunities Reg,Regular,Thematic,44332,--,--,--,--,--,--
+Zerodha BSE SENSEX Index Dir,Direct,Large Cap,45565,--,--,--,--,--,--
+Zerodha ELSS Tax Saver Nifty Large Midcap 250 Index Dir,Direct,ELSS (Tax Saver),43847,--,--,--,--,--,--
+Zerodha Nifty 100 ETF,Regular,Large Cap,44358,--,--,--,--,--,--
+Zerodha Nifty 100 ETF,Direct,Large Cap,44358,--,--,--,--,--,--
+Zerodha Nifty 50 ETF,Regular,Large Cap,45534,--,--,--,--,--,--
+Zerodha Nifty 50 ETF,Direct,Large Cap,45534,--,--,--,--,--,--
+Zerodha Nifty 50 Index Dir,Direct,Large Cap,45533,--,--,--,--,--,--
+Zerodha Nifty Large Midcap 250 Index Dir,Direct,Large & Mid Cap,43846,--,--,--,--,--,--
+Zerodha Nifty Midcap 150 ETF,Regular,Mid Cap,44359,--,--,--,--,--,--
+Zerodha Nifty Midcap 150 ETF,Direct,Mid Cap,44359,--,--,--,--,--,--
+Zerodha Nifty Smallcap 100 ETF,Regular,Small Cap,45480,--,--,--,--,--,--
+Zerodha Nifty Smallcap 100 ETF,Direct,Small Cap,45480,--,--,--,--,--,--
+Zerodha Silver ETF,Regular,Thematic-PSU,45052,--,--,--,--,--,--
+Zerodha Silver ETF,Direct,Thematic-PSU,45052,--,--,--,--,--,--
+Zerodha Silver ETF FoF Dir,Direct,Thematic-PSU,45264,--,--,--,--,--,--
