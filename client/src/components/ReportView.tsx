@@ -1881,11 +1881,8 @@ export function ReportView({ report }: ReportViewProps) {
               const typeLower = (tx.type || "").toLowerCase();
               const schemeLower = (tx.scheme_name || "").toLowerCase();
               
-              // Skip "Switch In" or "STP In" transactions as per user request
-              // Usually Switch In/STP In are identified by keywords or being the destination of a transfer
-              const isSwitchIn = typeLower.includes("switch in") || 
-                                 typeLower.includes("stp in") || 
-                                 (category === "STP" && !typeLower.includes("out") && !typeLower.includes("withdrawal"));
+              // Skip "Switch In" transactions (receiving end of a transfer, not an outflow)
+              const isSwitchIn = typeLower.includes("switch in");
 
               if (isSwitchIn) return;
 
