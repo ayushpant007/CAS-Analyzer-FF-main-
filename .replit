@@ -46,5 +46,5 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_gemini_ai
 [userenv]
 
 [userenv.shared]
-GEMINI_API_KEY = "AIzaSyADwLe-0mFSYbpPfXa9U_-eAFbGvVcPAy8"
+GEMINI_API_KEY = "AIzaSyBi642xyg3OhxausqdTw9v3Ib3NUeznDnw"
 GEMINI_MODEL = "gemini-2.5-flash-lite"
