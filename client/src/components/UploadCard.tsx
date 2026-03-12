@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useAnalyzeReport } from "@/hooks/use-reports";
 import { Upload, FileText, Lock, Loader2, AlertCircle, Sparkles } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadCardProps {
@@ -18,21 +18,6 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
 
   const { mutate: analyze, isPending, error } = useAnalyzeReport();
   const { toast } = useToast();
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useTransform(mouseY, [-150, 150], [6, -6]);
-  const rotateY = useTransform(mouseX, [-150, 150], [-6, 6]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left - rect.width / 2);
-    mouseY.set(e.clientY - rect.top - rect.height / 2);
-  };
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -74,9 +59,6 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
       className="w-full max-w-xl mx-auto"
     >
       <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
         className="rounded-3xl overflow-hidden relative"
       >
         {/* Animated glow border */}
@@ -155,8 +137,8 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
               <motion.div
                 className="p-3 rounded-xl flex items-center justify-center"
                 style={{ background: "rgba(59,111,255,0.2)", color: "#60a5fa" }}
-                animate={{ rotate: [0, 5, -5, 0], y: [0, -3, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
                 <FileText className="w-6 h-6" />
               </motion.div>
@@ -385,16 +367,9 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
                         background: isPending
                           ? "rgba(30,40,80,0.8)"
                           : "linear-gradient(135deg, #3b6fff 0%, #9333ea 50%, #06b6d4 100%)",
-                        backgroundSize: "200% 200%",
                         color: isPending ? "rgba(148,163,184,0.5)" : "white",
                         cursor: isPending ? "not-allowed" : "pointer",
                       }}
-                      animate={
-                        !isPending
-                          ? { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }
-                          : {}
-                      }
-                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                       whileHover={!isPending ? { scale: 1.02, y: -2 } : {}}
                       whileTap={!isPending ? { scale: 0.98 } : {}}
                     >
