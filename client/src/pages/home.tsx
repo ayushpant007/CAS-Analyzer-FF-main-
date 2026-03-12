@@ -5,34 +5,59 @@ import { useReport, useReports } from "@/hooks/use-reports";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap } from "lucide-react";
 import { format } from "date-fns";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function Home() {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
-  
-  // Fetch specific report if selected
+
   const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
-  
-  // Fetch list of past reports
   const { data: reportsList } = useReports();
 
   return (
-    <div className="min-h-screen bg-slate-50/50 font-sans pb-20">
+    <div className="min-h-screen font-sans pb-20 relative">
+      <AnimatedBackground />
+
       {/* Navbar */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+      <nav
+        className="sticky top-0 z-50 border-b"
+        style={{
+          background: "rgba(10, 14, 46, 0.6)",
+          backdropFilter: "blur(16px)",
+          borderColor: "rgba(96, 165, 250, 0.15)",
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2" onClick={() => setActiveReportId(null)}>
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20 cursor-pointer">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setActiveReportId(null)}
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #3b6fff, #9333ea)",
+                boxShadow: "0 0 16px rgba(59,111,255,0.5)",
+              }}
+            >
               <BarChart2 className="w-5 h-5" />
             </div>
-            <span className="text-xl font-bold font-display text-slate-900 cursor-pointer">FinAnalyze</span>
+            <span
+              className="text-xl font-bold font-display"
+              style={{
+                background: "linear-gradient(90deg, #60a5fa, #c084fc)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              FinAnalyze
+            </span>
           </div>
-          <div className="text-sm text-slate-500 font-medium">
+          <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
             AI-Powered Portfolio Insights
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 relative z-10">
         <AnimatePresence mode="wait">
           {!activeReportId ? (
             <motion.div
@@ -44,66 +69,159 @@ export default function Home() {
             >
               {/* Hero Section */}
               <div className="text-center space-y-6 max-w-3xl mx-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-primary text-sm font-medium border border-blue-100 mb-2">
-                  <Zap className="w-4 h-4 fill-primary" />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border mb-2"
+                  style={{
+                    background: "rgba(59,111,255,0.15)",
+                    borderColor: "rgba(59,111,255,0.4)",
+                    color: "#93c5fd",
+                  }}
+                >
+                  <Zap className="w-4 h-4" style={{ fill: "#60a5fa", color: "#60a5fa" }} />
                   <span>Instant Portfolio X-Ray</span>
-                </div>
-                <h1 className="text-4xl md:text-6xl font-bold font-display text-slate-900 tracking-tight leading-tight">
-                  Unlock hidden insights in your <span className="gradient-text">Investment Portfolio</span>
-                </h1>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                  Upload your CAS (Consolidated Account Statement) PDF securely. Our AI analyzes your holdings, asset allocation, and provides actionable insights in seconds.
-                </p>
-                
-                <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500 pt-4">
+                </motion.div>
+
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-4xl md:text-6xl font-bold font-display tracking-tight leading-tight"
+                  style={{ color: "#f1f5f9" }}
+                >
+                  Unlock hidden insights in your{" "}
+                  <span
+                    style={{
+                      background: "linear-gradient(90deg, #60a5fa, #c084fc, #34d399)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    Investment Portfolio
+                  </span>
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-lg max-w-2xl mx-auto leading-relaxed"
+                  style={{ color: "rgba(148,163,184,0.9)" }}
+                >
+                  Upload your CAS (Consolidated Account Statement) PDF securely. Our AI analyzes
+                  your holdings, asset allocation, and provides actionable insights in seconds.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex flex-wrap justify-center gap-8 text-sm font-medium pt-4"
+                  style={{ color: "rgba(148,163,184,0.8)" }}
+                >
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <ShieldCheck className="w-5 h-5" style={{ color: "#34d399" }} />
                     Secure Analysis
                   </div>
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-blue-500" />
+                    <FileText className="w-5 h-5" style={{ color: "#60a5fa" }} />
                     PDF Support
                   </div>
                   <div className="flex items-center gap-2">
-                    <BarChart2 className="w-5 h-5 text-violet-500" />
+                    <BarChart2 className="w-5 h-5" style={{ color: "#c084fc" }} />
                     Visual Reports
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* Upload Component */}
-              <div className="relative z-10">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/50 to-transparent -z-10 blur-3xl scale-150 transform opacity-50" />
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="relative z-10"
+              >
+                <div
+                  className="absolute inset-0 -z-10 blur-3xl scale-150 transform opacity-20"
+                  style={{
+                    background: "radial-gradient(ellipse, #3b6fff 0%, transparent 70%)",
+                  }}
+                />
                 <UploadCard onSuccess={setActiveReportId} />
-              </div>
+              </motion.div>
 
               {/* Recent Reports List */}
               {reportsList && reportsList.length > 0 && (
-                <div className="max-w-4xl mx-auto pt-10 border-t border-slate-200">
-                  <h3 className="text-xl font-bold font-display text-slate-900 mb-6">Recent Analyses</h3>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="max-w-4xl mx-auto pt-10"
+                  style={{ borderTop: "1px solid rgba(96,165,250,0.15)" }}
+                >
+                  <h3
+                    className="text-xl font-bold font-display mb-6"
+                    style={{ color: "#e2e8f0" }}
+                  >
+                    Recent Analyses
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {reportsList.map((report) => (
-                      <div 
+                      <div
                         key={report.id}
                         onClick={() => setActiveReportId(report.id)}
-                        className="group bg-white p-5 rounded-xl border border-slate-200 hover:border-primary/50 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between"
+                        className="group p-5 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300"
+                        style={{
+                          background: "rgba(15, 20, 50, 0.6)",
+                          borderColor: "rgba(96,165,250,0.2)",
+                          backdropFilter: "blur(12px)",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.borderColor =
+                            "rgba(96,165,250,0.6)";
+                          (e.currentTarget as HTMLDivElement).style.boxShadow =
+                            "0 0 20px rgba(59,111,255,0.2)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.borderColor =
+                            "rgba(96,165,250,0.2)";
+                          (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+                        }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-primary transition-colors">
+                          <div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
+                            style={{
+                              background: "rgba(59,111,255,0.15)",
+                              color: "#60a5fa",
+                            }}
+                          >
                             <FileText className="w-5 h-5" />
                           </div>
                           <div>
-                            <h4 className="font-semibold text-slate-900 group-hover:text-primary transition-colors">{report.filename}</h4>
-                            <p className="text-xs text-slate-500">
-                              {report.createdAt ? format(new Date(report.createdAt), "MMM d, yyyy • h:mm a") : "Unknown Date"}
+                            <h4
+                              className="font-semibold transition-colors"
+                              style={{ color: "#e2e8f0" }}
+                            >
+                              {report.filename}
+                            </h4>
+                            <p className="text-xs" style={{ color: "rgba(148,163,184,0.7)" }}>
+                              {report.createdAt
+                                ? format(new Date(report.createdAt), "MMM d, yyyy • h:mm a")
+                                : "Unknown Date"}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary transition-colors" />
+                        <ChevronRight
+                          className="w-5 h-5 transition-colors"
+                          style={{ color: "rgba(96,165,250,0.4)" }}
+                        />
                       </div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
             </motion.div>
           ) : (
@@ -113,9 +231,16 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              <button 
+              <button
                 onClick={() => setActiveReportId(null)}
-                className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+                className="mb-6 flex items-center gap-2 text-sm font-medium transition-colors"
+                style={{ color: "rgba(148,163,184,0.8)" }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLButtonElement).style.color = "#60a5fa")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.8)")
+                }
               >
                 <ChevronRight className="w-4 h-4 rotate-180" />
                 Back to Upload
@@ -123,14 +248,19 @@ export default function Home() {
 
               {isLoadingReport ? (
                 <div className="flex flex-col items-center justify-center h-64">
-                  <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-                  <p className="text-slate-500 font-medium">Loading report data...</p>
+                  <div
+                    className="w-12 h-12 border-4 rounded-full animate-spin mb-4"
+                    style={{ borderColor: "rgba(59,111,255,0.3)", borderTopColor: "#3b6fff" }}
+                  />
+                  <p className="font-medium" style={{ color: "rgba(148,163,184,0.8)" }}>
+                    Loading report data...
+                  </p>
                 </div>
               ) : activeReport ? (
                 <ReportView report={activeReport} />
               ) : (
                 <div className="text-center py-20">
-                  <p className="text-slate-500">Report not found.</p>
+                  <p style={{ color: "rgba(148,163,184,0.7)" }}>Report not found.</p>
                 </div>
               )}
             </motion.div>
