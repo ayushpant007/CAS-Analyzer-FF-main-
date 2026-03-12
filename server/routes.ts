@@ -15,7 +15,7 @@ import { fetchNavForScheme, findSchemeCode, searchSchemeCodes } from "./mfapi";
 import { extractMetricsFromFactsheet } from "./factsheet";
 import { getMetricsFromJson } from "./json_factsheet";
 import { getBenchmarkReturns } from "./benchmarks";
-import { lookupByIsin, getScoringDb } from "./scoring";
+import { lookupByIsinOrName } from "./scoring";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -359,8 +359,10 @@ Return ONLY JSON. No markdown.`;
 
   app.get("/api/scoring/:isin", async (req, res) => {
     const isin = req.params.isin.trim();
+    const schemeName = (req.query.schemeName as string | undefined) || undefined;
+    const plan = (req.query.plan as string | undefined) || undefined;
     try {
-      const record = lookupByIsin(isin);
+      const record = lookupByIsinOrName(isin, schemeName, plan);
       if (!record) {
         return res.status(404).json({ message: "No scoring data found for ISIN: " + isin });
       }

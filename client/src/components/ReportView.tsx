@@ -591,13 +591,15 @@ export function ReportView({ report }: ReportViewProps) {
     };
   };
 
-  const analyzePerformance = async (isin: string) => {
+  const analyzePerformance = async (isin: string, schemeName?: string) => {
     if (!isin) return;
     setAnalyzingIsin(isin);
     try {
+      const plan = schemeName?.toLowerCase().includes("direct") ? "Direct" : "Regular";
+      const scoringParams = new URLSearchParams({ ...(schemeName ? { schemeName } : {}), plan });
       const [perfRes, scoringRes] = await Promise.allSettled([
         fetch(`/api/scrape-performance/${isin}?reportId=${report.id}`),
-        fetch(`/api/scoring/${encodeURIComponent(isin)}`)
+        fetch(`/api/scoring/${encodeURIComponent(isin)}?${scoringParams}`)
       ]);
 
       if (perfRes.status === "fulfilled" && perfRes.value.ok) {
@@ -1439,7 +1441,7 @@ export function ReportView({ report }: ReportViewProps) {
                 <Button 
                   size="sm" 
                   variant="outline"
-                  onClick={() => analyzePerformance(mf.isin)}
+                  onClick={() => analyzePerformance(mf.isin, mf.scheme_name)}
                   disabled={analyzingIsin === mf.isin || !mf.isin}
                   className="hover-elevate"
                 >
