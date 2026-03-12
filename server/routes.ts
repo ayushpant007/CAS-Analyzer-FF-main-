@@ -15,6 +15,7 @@ import { fetchNavForScheme, findSchemeCode, searchSchemeCodes } from "./mfapi";
 import { extractMetricsFromFactsheet } from "./factsheet";
 import { getMetricsFromJson } from "./json_factsheet";
 import { getBenchmarkReturns } from "./benchmarks";
+import { lookupByIsin, getScoringDb } from "./scoring";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -353,6 +354,20 @@ Return ONLY JSON. No markdown.`;
     } catch (err: any) {
       console.error(`Scheme performance error:`, err.message);
       res.status(500).json({ message: "Failed to fetch scheme performance" });
+    }
+  });
+
+  app.get("/api/scoring/:isin", async (req, res) => {
+    const isin = req.params.isin.trim();
+    try {
+      const record = lookupByIsin(isin);
+      if (!record) {
+        return res.status(404).json({ message: "No scoring data found for ISIN: " + isin });
+      }
+      res.json(record);
+    } catch (err: any) {
+      console.error("Scoring lookup error:", err.message);
+      res.status(500).json({ message: "Scoring lookup failed" });
     }
   });
 

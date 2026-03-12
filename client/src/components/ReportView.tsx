@@ -423,6 +423,7 @@ export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
+  const [scoringRecords, setScoringRecords] = useState<Record<string, any>>({});
   const [manualRemarks, setManualRemarks] = useState<Record<string, string>>({});
   const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
@@ -594,13 +595,23 @@ export function ReportView({ report }: ReportViewProps) {
     if (!isin) return;
     setAnalyzingIsin(isin);
     try {
-      const res = await fetch(`/api/scrape-performance/${isin}?reportId=${report.id}`);
-      if (!res.ok) {
-        const errorData = await res.json();
+      const [perfRes, scoringRes] = await Promise.allSettled([
+        fetch(`/api/scrape-performance/${isin}?reportId=${report.id}`),
+        fetch(`/api/scoring/${encodeURIComponent(isin)}`)
+      ]);
+
+      if (perfRes.status === "fulfilled" && perfRes.value.ok) {
+        const data = await perfRes.value.json();
+        setPerformances(prev => ({ ...prev, [isin]: data }));
+      } else if (perfRes.status === "fulfilled") {
+        const errorData = await perfRes.value.json();
         throw new Error(errorData.message || "Failed to fetch performance data");
       }
-      const data = await res.json();
-      setPerformances(prev => ({ ...prev, [isin]: data }));
+
+      if (scoringRes.status === "fulfilled" && scoringRes.value.ok) {
+        const scoringData = await scoringRes.value.json();
+        setScoringRecords(prev => ({ ...prev, [isin]: scoringData }));
+      }
     } catch (err: any) {
       toast({
         title: "Error",
@@ -1558,132 +1569,164 @@ export function ReportView({ report }: ReportViewProps) {
                         })()}
                       </div>
 
-                      {/* Financial Metrics Section */}
-                      <div className="space-y-3 pt-4 border-t border-slate-100">
-                        <div className="flex justify-between items-center">
-                          <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Financial Metrics (Factsheet)</h5>
-                          {(() => {
-                            const risk = calculateRiskScore(performances[mf.isin]);
-                            if (!risk) return (
-                              <div className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">
-                                Score: {calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns).total}/40
-                              </div>
-                            );
-                            return (
-                              <div className="flex gap-2">
-                                <div className={`${risk.rating.bg} ${risk.rating.color} px-2 py-0.5 rounded text-[10px] font-bold border border-current/20`}>
-                                  Risk Rating: {risk.rating.text} ({risk.totalScore}/40)
-                                </div>
-                                <div className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">
-                                  Perf Score: {calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns).total}/40
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center relative group">
-                            <p className="text-[9px] text-slate-500 uppercase">Alpha</p>
-                            {(() => {
-                                const risk = calculateRiskScore(performances[mf.isin]);
-                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
-                                return (
-                                  <div className="space-y-0.5">
-                                    <p className={`text-xs font-bold ${risk.alphaDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                      {risk.alphaDiff >= 0 ? '+' : ''}{risk.alphaDiff.toFixed(2)}%
-                                    </p>
-                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.alphaScore}/12</p>
-                                  </div>
-                                );
-                            })()}
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Beta</p>
-                            {(() => {
-                                const risk = calculateRiskScore(performances[mf.isin]);
-                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
-                                return (
-                                  <div className="space-y-0.5">
-                                    <p className="text-xs font-bold text-slate-900">{risk.beta.toFixed(2)}</p>
-                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.betaScore}/6</p>
-                                  </div>
-                                );
-                            })()}
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Sharpe</p>
-                            {(() => {
-                                const risk = calculateRiskScore(performances[mf.isin]);
-                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
-                                return (
-                                  <div className="space-y-0.5">
-                                    <p className="text-xs font-bold text-slate-900">{risk.sharpe.toFixed(2)}</p>
-                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.sharpeScore}/15</p>
-                                  </div>
-                                );
-                            })()}
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Std Dev / Gap</p>
-                            {(() => {
-                                const risk = calculateRiskScore(performances[mf.isin]);
-                                if (!risk) return <p className="text-xs font-bold text-slate-900">N/A</p>;
-                                return (
-                                  <div className="space-y-0.5">
-                                    <p className="text-xs font-bold text-slate-900">Gap: {risk.riskGap >= 0 ? '+' : ''}{risk.riskGap.toFixed(2)}</p>
-                                    <p className="text-[8px] font-bold text-slate-400">Score: {risk.stdDevScore}/7</p>
-                                  </div>
-                                );
-                            })()}
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Exp. Ratio</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).expense_ratio}</p>
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">AUM (Cr)</p>
-                            <p className="text-xs font-bold text-slate-900">₹{(performances[mf.isin].stats as any).aum_crores}</p>
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Month</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).factsheet_month}</p>
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[9px] text-slate-500 uppercase">Updated</p>
-                            <p className="text-xs font-bold text-slate-900">{(performances[mf.isin].stats as any).last_updated}</p>
-                          </div>
-                        </div>
+                      {/* Financial Metrics Section — from Scoring files */}
+                      {(() => {
+                        const sc = scoringRecords[mf.isin];
+                        if (!sc) return null;
 
-                        {/* Total Fund Rating Section */}
-                        {(() => {
-                          const perfScore = calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns);
-                          const riskScore = calculateRiskScore(performances[mf.isin]);
-                          if (!riskScore) return null;
-                          const fundRating = riskScore.getFundRating(perfScore.total, riskScore.totalScore);
-                          
-                          return (
-                            <div className={`mt-6 p-4 rounded-xl border-2 ${fundRating.bg} ${fundRating.border} shadow-sm`}>
-                              <div className="flex flex-col items-center text-center space-y-2">
-                                <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Overall Fund Analysis</h5>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-center">
-                                    <p className="text-[8px] text-slate-400 uppercase">Total Combined Score</p>
-                                    <p className="text-lg font-black text-slate-900">{perfScore.total + riskScore.totalScore}/80</p>
-                                  </div>
-                                  <div className="h-8 w-px bg-slate-200" />
-                                  <div className="text-center">
-                                    <p className="text-[8px] text-slate-400 uppercase">Fund Rating</p>
-                                    <p className={`text-lg font-black ${fundRating.color} uppercase tracking-tight`}>{fundRating.text}</p>
-                                  </div>
-                                </div>
-                                <p className="text-[10px] text-slate-500 italic">
-                                  Combined Score = Performance Score ({perfScore.total}) + Risk Metrics Score ({riskScore.totalScore})
-                                </p>
+                        const fmtNum = (v: any, decimals = 2) => v != null && v !== "" ? Number(v).toFixed(decimals) : "N/A";
+                        const fmtVal = (v: any) => v != null && v !== "" ? String(v) : "N/A";
+
+                        const ratingColors: Record<string, { bg: string; text: string; border: string }> = {
+                          "Excellent": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300" },
+                          "Good":      { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-300" },
+                          "Average":   { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-300" },
+                          "Poor":      { bg: "bg-rose-50",    text: "text-rose-700",    border: "border-rose-300" },
+                        };
+                        const ratingStyle = ratingColors[sc.fundRating] ?? ratingColors["Average"];
+
+                        const MetricCard = ({ label, value, score, scoreMax, highlight }: { label: string; value: string; score?: number | null; scoreMax?: number; highlight?: "positive" | "negative" | "neutral" }) => (
+                          <div className="bg-white p-2 rounded-lg border border-slate-100 text-center space-y-0.5">
+                            <p className="text-[9px] text-slate-500 uppercase font-medium">{label}</p>
+                            <p className={`text-xs font-bold ${highlight === "positive" ? "text-emerald-600" : highlight === "negative" ? "text-rose-600" : "text-slate-900"}`}>{value}</p>
+                            {score != null && scoreMax != null && (
+                              <p className="text-[8px] font-bold text-slate-400">Score: {score}/{scoreMax}</p>
+                            )}
+                          </div>
+                        );
+
+                        const m = sc.metrics;
+                        const s = sc.scores;
+
+                        const renderEquityMetrics = () => (
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                            <MetricCard label="Alpha (%)" value={fmtNum(m["Alpha(%)"])} score={s["Alpha Score(12)"]} scoreMax={12} highlight={Number(m["Alpha(%)"]) >= 0 ? "positive" : "negative"} />
+                            <MetricCard label="Beta (%)" value={fmtNum(m["Beta(%)"])} score={s["Beta Score(6)"]} scoreMax={6} />
+                            <MetricCard label="Sharpe (%)" value={fmtNum(m["Sharpe(%)"])} score={s["Sharpe Score(12)"]} scoreMax={12} highlight={Number(m["Sharpe(%)"]) >= 0 ? "positive" : "negative"} />
+                            <MetricCard label="Std Dev (%)" value={fmtNum(m["Standard Deviation(%)"])} score={s["StdDev Score(6)"]} scoreMax={6} />
+                            <MetricCard label="Mean Return (%)" value={fmtNum(m["Mean Return(%)"])} />
+                            <MetricCard label="Sortino (%)" value={fmtNum(m["Sortino(%)"])} score={s["Sortino Score(4)"]} scoreMax={4} />
+                          </div>
+                        );
+
+                        const renderHybridMetrics = () => (
+                          <div className="space-y-3">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Risk & Return</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="Alpha (%)" value={fmtNum(m["Alpha (%)"])} highlight={Number(m["Alpha (%)"]) >= 0 ? "positive" : "negative"} />
+                              <MetricCard label="Beta (%)" value={fmtNum(m["Beta (%)"])} />
+                              <MetricCard label="Sharpe (%)" value={fmtNum(m["Sharpe (%)"])} score={s["Sharpe Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Sortino (%)" value={fmtNum(m["Sortino (%)"])} score={s["Sortino Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Std Dev (%)" value={fmtNum(m["Std Dev (%)"])} score={s["StdDev Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Mean Return (%)" value={fmtNum(m["Mean Return (%)"])} score={s["MeanRet Score(3)"]} scoreMax={3} />
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Diversification</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="No. of Stocks" value={fmtVal(m["No. of Stocks"])} score={s["NumStocks Score(2.5)"]} scoreMax={2.5} />
+                              <MetricCard label="Top 10 Holdings (%)" value={fmtNum(m["Top 10 Holdings (%)"])} score={s["Top10 Score(2.5)"]} scoreMax={2.5} />
+                              <MetricCard label="Top 5 Stocks (%)" value={fmtNum(m["Top 5 Stocks (%)"])} score={s["Top5 Score(2.5)"]} scoreMax={2.5} />
+                              <MetricCard label="Top 3 Sectors (%)" value={fmtNum(m["Top 3 Sectors (%)"])} score={s["Top3Sec Score(2.5)"]} scoreMax={2.5} />
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Valuation</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="P/E Ratio" value={fmtNum(m["Portfolio P/E Ratio"])} score={s["PE Score(2)"]} scoreMax={2} />
+                              <MetricCard label="P/B Ratio" value={fmtNum(m["Portfolio P/B Ratio"])} score={s["PB Score(2)"]} scoreMax={2} />
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Debt Quality</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="YTM (%)" value={fmtNum(m["Yield to Maturity (%)"])} score={s["YTM Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Macaulay Duration (yrs)" value={fmtNum(m["Macaulay Duration (yrs)"])} score={s["Duration Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Avg Maturity (yrs)" value={fmtNum(m["Average Maturity (yrs)"])} score={s["Maturity Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Avg Credit Rating" value={fmtVal(m["Avg Credit Rating"])} score={s["Credit Score(3)"]} scoreMax={3} />
+                              <MetricCard label="Num. Securities" value={fmtVal(m["Number of Securities"])} score={s["NumSec Score(2)"]} scoreMax={2} />
+                            </div>
+                          </div>
+                        );
+
+                        const renderDebtMetrics = () => (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <MetricCard label="YTM (%)" value={fmtNum(m["Yield to Maturity (%)"])} score={s["YTM Score(10)"]} scoreMax={10} />
+                            <MetricCard label="Macaulay Duration (yrs)" value={fmtNum(m["Macaulay Duration (yrs)"])} score={s["Duration Score(10)"]} scoreMax={10} />
+                            <MetricCard label="Avg Maturity (yrs)" value={fmtNum(m["Average Maturity (yrs)"])} score={s["Maturity Score(10)"]} scoreMax={10} />
+                            <MetricCard label="Avg Credit Rating" value={fmtVal(m["Avg Credit Rating"])} score={s["Credit Score(10)"]} scoreMax={10} />
+                          </div>
+                        );
+
+                        const renderSolutionMetrics = () => (
+                          <div className="space-y-3">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Risk-Adjusted Performance</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="Alpha (%)" value={fmtNum(m["Alpha(%)"])} score={s["Alpha Score(4)"]} scoreMax={4} highlight={Number(m["Alpha(%)"]) >= 0 ? "positive" : "negative"} />
+                              <MetricCard label="Sharpe (%)" value={fmtNum(m["Sharpe(%)"])} score={s["Sharpe Score(4)"]} scoreMax={4} />
+                              <MetricCard label="Sortino (%)" value={fmtNum(m["Sortino(%)"])} score={s["Sortino Score(4)"]} scoreMax={4} />
+                              <MetricCard label="Std Dev (%)" value={fmtNum(m["Standard Deviation(%)"])} score={s["StdDev Score(4)"]} scoreMax={4} />
+                              <MetricCard label="Mean Return (%)" value={fmtNum(m["Mean Return(%)"])} score={s["MeanRet Score(4)"]} scoreMax={4} />
+                              <MetricCard label="Beta (%)" value={fmtNum(m["Beta(%)"])} score={s["Beta Score(2)"]} scoreMax={2} />
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Diversification</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="No. of Stocks" value={fmtVal(m["No. of Stocks"])} score={s["NumStocks Score(2)"]} scoreMax={2} />
+                              <MetricCard label="Top 10 Stocks (%)" value={fmtNum(m["Top 10 Stocks (%)"])} score={s["Top10 Score(2)"]} scoreMax={2} />
+                              <MetricCard label="Top 5 Stocks (%)" value={fmtNum(m["Top 5 Stocks (%)"])} score={s["Top5 Score(2)"]} scoreMax={2} />
+                              <MetricCard label="Top 3 Sectors (%)" value={fmtNum(m["Top 3 Sectors (%)"])} score={s["Top3Sec Score(2)"]} scoreMax={2} />
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Valuation</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="P/E Ratio" value={fmtNum(m["P/E Ratio"])} score={s["PE Score(3)"]} scoreMax={3} />
+                              <MetricCard label="P/B Ratio" value={fmtNum(m["P/B Ratio"])} score={s["PB Score(3)"]} scoreMax={3} />
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Debt Quality</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <MetricCard label="YTM (%)" value={fmtNum(m["Yield to Maturity (%)"])} score={s["YTM Score(1)"]} scoreMax={1} />
+                              <MetricCard label="Macaulay Duration (yrs)" value={fmtNum(m["Macaulay Duration (yrs)"])} score={s["Duration Score(1)"]} scoreMax={1} />
+                              <MetricCard label="Avg Maturity (yrs)" value={fmtNum(m["Average Maturity (yrs)"])} score={s["Maturity Score(1)"]} scoreMax={1} />
+                              <MetricCard label="Avg Credit Rating" value={fmtVal(m["Avg Credit Rating"])} score={s["Credit Score(1)"]} scoreMax={1} />
+                            </div>
+                          </div>
+                        );
+
+                        return (
+                          <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <div className="flex justify-between items-center flex-wrap gap-2">
+                              <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                Financial Metrics — {sc.fundType === "equity" ? "Equity" : sc.fundType === "hybrid" ? "Hybrid" : sc.fundType === "debt" ? "Debt" : "Solution Oriented"}
+                              </h5>
+                              <div className="flex gap-2 flex-wrap">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${ratingStyle.bg} ${ratingStyle.text} ${ratingStyle.border}`}>
+                                  Risk: {sc.riskCategory}
+                                </span>
                               </div>
                             </div>
-                          );
-                        })()}
-                      </div>
+
+                            {sc.fundType === "equity" && renderEquityMetrics()}
+                            {sc.fundType === "hybrid" && renderHybridMetrics()}
+                            {sc.fundType === "debt" && renderDebtMetrics()}
+                            {sc.fundType === "solution" && renderSolutionMetrics()}
+
+                            <div className={`mt-4 p-4 rounded-xl border-2 ${ratingStyle.bg} ${ratingStyle.border} shadow-sm`}>
+                              <div className="flex flex-col items-center text-center space-y-2">
+                                <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Overall Fund Analysis</h5>
+                                <div className="flex items-center gap-6 flex-wrap justify-center">
+                                  <div className="text-center">
+                                    <p className="text-[8px] text-slate-400 uppercase">Final Score</p>
+                                    <p className="text-2xl font-black text-slate-900">{sc.totalScore}<span className="text-sm font-bold text-slate-400">/40</span></p>
+                                  </div>
+                                  <div className="h-10 w-px bg-slate-200 hidden md:block" />
+                                  <div className="text-center">
+                                    <p className="text-[8px] text-slate-400 uppercase">Fund Rating</p>
+                                    <p className={`text-2xl font-black ${ratingStyle.text} uppercase tracking-tight`}>{sc.fundRating}</p>
+                                  </div>
+                                  <div className="h-10 w-px bg-slate-200 hidden md:block" />
+                                  <div className="text-center">
+                                    <p className="text-[8px] text-slate-400 uppercase">Risk Category</p>
+                                    <p className="text-sm font-bold text-slate-700">{sc.riskCategory}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </motion.div>
