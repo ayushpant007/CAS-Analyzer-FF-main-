@@ -2,9 +2,9 @@
   {
     "benchmark": "Nifty 50 TRI",
     "returns": {
-      "1Y": "12.21%",
-      "3Y": "14.59%",
-      "5Y": "12.76%"
+      "1Y": "15.07%",
+      "3Y": "14.64%",
+      "5Y": "12.94%"
     }
   },
   {
@@ -26,9 +26,9 @@
   {
     "benchmark": "Nifty 100 TRI",
     "returns": {
-      "1Y": "12.40%",
-      "3Y": "15.80%",
-      "5Y": "13.40%"
+      "1Y": "10.24%",
+      "3Y": "14.69%",
+      "5Y": "14.91%"
     }
   },
   {
@@ -42,9 +42,9 @@
   {
     "benchmark": "Nifty 500 TRI",
     "returns": {
-      "1Y": "13.80%",
-      "3Y": "17.50%",
-      "5Y": "15.10%"
+      "1Y": "7.98%",
+      "3Y": "13.56%",
+      "5Y": "16.54%"
     }
   },
   {
@@ -90,9 +90,9 @@
   {
     "benchmark": "Nifty Midcap 150 TRI",
     "returns": {
-      "1Y": "13.10%",
-      "3Y": "24.90%",
-      "5Y": "21.40%"
+      "1Y": "23.87%",
+      "3Y": "18.70%",
+      "5Y": "20.77%"
     }
   },
   {
@@ -114,17 +114,17 @@
   {
     "benchmark": "Nifty Smallcap 250 TRI",
     "returns": {
-      "1Y": "11.20%",
-      "3Y": "26.50%",
-      "5Y": "23.10%"
+      "1Y": "15.36%",
+      "3Y": "21.70%",
+      "5Y": "19.04%"
     }
   },
   {
     "benchmark": "Nifty LargeMidcap 250 TRI",
     "returns": {
-      "1Y": "12.80%",
-      "3Y": "18.60%",
-      "5Y": "15.20%"
+      "1Y": "8.98%",
+      "3Y": "16.92%",
+      "5Y": "19.01%"
     }
   },
   {
@@ -133,6 +133,14 @@
       "1Y": "14.50%",
       "3Y": "29.80%",
       "5Y": "25.60%"
+    }
+  },
+  {
+    "benchmark": "Nifty500 Multicap 50:25:25 TRI",
+    "returns": {
+      "1Y": "18.03%",
+      "3Y": "17.45%",
+      "5Y": "16.75%"
     }
   },
   {
@@ -148,151 +156,151 @@
     "returns": {
       "1Y": "-8.74%",
       "3Y": "10.91%",
-      "5Y": "11.35%"
+      "5Y": "19.43%"
     }
   },
   {
     "benchmark": "Nifty Pharma TRI",
     "returns": {
-      "1Y": "1.98%",
-      "3Y": "21.57%",
-      "5Y": "13.11%"
+      "1Y": "18.50%",
+      "3Y": "22.30%",
+      "5Y": "20.80%"
     }
   },
   {
     "benchmark": "Nifty FMCG TRI",
     "returns": {
-      "1Y": "-7.87%",
-      "3Y": "6.66%",
-      "5Y": "11.20%"
+      "1Y": "8.30%",
+      "3Y": "14.20%",
+      "5Y": "12.60%"
     }
   },
   {
     "benchmark": "Nifty Auto TRI",
     "returns": {
-      "1Y": "18.06%",
-      "3Y": "27.18%",
-      "5Y": "23.36%"
+      "1Y": "22.10%",
+      "3Y": "30.40%",
+      "5Y": "25.70%"
     }
   },
   {
     "benchmark": "Nifty Metal TRI",
     "returns": {
-      "1Y": "41.68%",
-      "3Y": "23.00%",
-      "5Y": "32.71%"
+      "1Y": "15.30%",
+      "3Y": "28.60%",
+      "5Y": "27.40%"
     }
   },
   {
     "benchmark": "Nifty Realty TRI",
     "returns": {
-      "1Y": "-14.73%",
-      "3Y": "24.32%",
-      "5Y": "21.08%"
+      "1Y": "35.40%",
+      "3Y": "48.20%",
+      "5Y": "38.90%"
     }
   },
   {
     "benchmark": "Nifty PSU Bank TRI",
     "returns": {
-      "1Y": "43.80%",
-      "3Y": "32.01%",
-      "5Y": "39.15%"
+      "1Y": "31.20%",
+      "3Y": "35.60%",
+      "5Y": "28.30%"
     }
   },
   {
     "benchmark": "Nifty Financial Services TRI",
     "returns": {
-      "1Y": "18.85%",
-      "3Y": "15.86%",
-      "5Y": "14.36%"
+      "1Y": "18.40%",
+      "3Y": "13.80%",
+      "5Y": "14.20%"
     }
   },
   {
     "benchmark": "Nifty Energy TRI",
     "returns": {
-      "1Y": "12.50%",
-      "3Y": "15.20%",
-      "5Y": "17.80%"
+      "1Y": "20.50%",
+      "3Y": "29.40%",
+      "5Y": "24.60%"
     }
   },
   {
     "benchmark": "Nifty Infrastructure TRI",
     "returns": {
-      "1Y": "14.20%",
-      "3Y": "18.40%",
-      "5Y": "16.90%"
+      "1Y": "28.30%",
+      "3Y": "34.10%",
+      "5Y": "29.80%"
     }
   },
   {
     "benchmark": "Nifty Consumer Durables TRI",
     "returns": {
-      "1Y": "-8.18%",
-      "3Y": "12.97%",
-      "5Y": "11.75%"
+      "1Y": "14.20%",
+      "3Y": "18.90%",
+      "5Y": "16.40%"
     }
   },
   {
     "benchmark": "Nifty Oil & Gas TRI",
     "returns": {
-      "1Y": "12.57%",
-      "3Y": "16.80%",
-      "5Y": "18.68%"
+      "1Y": "16.80%",
+      "3Y": "24.30%",
+      "5Y": "22.10%"
     }
   },
   {
     "benchmark": "Nifty Healthcare Index TRI",
     "returns": {
-      "1Y": "1.34%",
-      "3Y": "21.79%",
-      "5Y": "14.92%"
+      "1Y": "19.60%",
+      "3Y": "23.80%",
+      "5Y": "21.50%"
     }
   },
   {
     "benchmark": "Nifty Alpha 50 TRI",
     "returns": {
-      "1Y": "12.76%",
-      "3Y": "24.60%",
-      "5Y": "18.40%"
+      "1Y": "22.30%",
+      "3Y": "31.40%",
+      "5Y": "28.60%"
     }
   },
   {
     "benchmark": "Nifty Quality 30 TRI",
     "returns": {
-      "1Y": "18.20%",
-      "3Y": "17.80%",
-      "5Y": "16.90%"
+      "1Y": "14.80%",
+      "3Y": "17.60%",
+      "5Y": "15.90%"
     }
   },
   {
     "benchmark": "Nifty Low Volatility 30 TRI",
     "returns": {
-      "1Y": "9.40%",
-      "3Y": "13.20%",
-      "5Y": "13.80%"
+      "1Y": "12.40%",
+      "3Y": "15.30%",
+      "5Y": "14.20%"
     }
   },
   {
     "benchmark": "Nifty Dividend Opportunities 50 TRI",
     "returns": {
-      "1Y": "16.75%",
-      "3Y": "18.60%",
-      "5Y": "17.10%"
+      "1Y": "16.90%",
+      "3Y": "20.40%",
+      "5Y": "18.70%"
     }
   },
   {
     "benchmark": "Nifty Growth Sectors 15 TRI",
     "returns": {
-      "1Y": "14.10%",
-      "3Y": "16.40%",
-      "5Y": "15.30%"
+      "1Y": "18.70%",
+      "3Y": "22.80%",
+      "5Y": "19.60%"
     }
   },
   {
     "benchmark": "Nifty Value 20 TRI",
     "returns": {
-      "1Y": "19.35%",
-      "3Y": "20.10%",
-      "5Y": "18.75%"
+      "1Y": "20.10%",
+      "3Y": "25.60%",
+      "5Y": "22.30%"
     }
   },
   {
@@ -342,6 +350,189 @@
       "3Y": "28.20%",
       "5Y": "24.50%"
     }
+  },
+  {
+    "benchmark": "Nifty 50 Hybrid Composite Debt 70:30 TRI",
+    "returns": {
+      "1Y": "12.17%",
+      "3Y": "12.50%",
+      "5Y": "N/A"
+    }
+  },
+  {
+    "benchmark": "Nifty 50 Hybrid Composite Debt 50:50 TRI",
+    "returns": {
+      "1Y": "10.24%",
+      "3Y": "11.04%",
+      "5Y": "N/A"
+    }
+  },
+  {
+    "benchmark": "Nifty 50 Hybrid Composite Debt 15:85 TRI",
+    "returns": {
+      "1Y": "6.87%",
+      "3Y": "8.41%",
+      "5Y": "N/A"
+    }
+  },
+  {
+    "benchmark": "Nifty 50 Hybrid Composite Debt 65:35 TRI",
+    "returns": {
+      "1Y": "11.69%",
+      "3Y": "12.14%",
+      "5Y": "N/A"
+    }
+  },
+  {
+    "benchmark": "Nifty 50 Arbitrage Index",
+    "returns": {
+      "1Y": "7.55%",
+      "3Y": "N/A",
+      "5Y": "6.45%"
+    }
+  },
+  {
+    "benchmark": "Nifty Equity Savings Index",
+    "returns": {
+      "1Y": "8.08%",
+      "3Y": "N/A",
+      "5Y": "9.39%"
+    }
+  },
+  {
+    "benchmark": "Nifty 1D Rate Index",
+    "returns": {
+      "1Y": "6.52%",
+      "3Y": "5.97%",
+      "5Y": "5.12%"
+    }
+  },
+  {
+    "benchmark": "Nifty Ultra Short Duration G-Sec Index",
+    "returns": {
+      "1Y": "6.39%",
+      "3Y": "2.73%",
+      "5Y": "6.07%"
+    }
+  },
+  {
+    "benchmark": "Nifty Low Duration G-Sec Index",
+    "returns": {
+      "1Y": "6.99%",
+      "3Y": "2.59%",
+      "5Y": "6.58%"
+    }
+  },
+  {
+    "benchmark": "Nifty Short Duration G-Sec Index",
+    "returns": {
+      "1Y": "7.07%",
+      "3Y": "2.34%",
+      "5Y": "7.21%"
+    }
+  },
+  {
+    "benchmark": "Nifty Medium Duration G-Sec Index",
+    "returns": {
+      "1Y": "7.22%",
+      "3Y": "2.15%",
+      "5Y": "7.54%"
+    }
+  },
+  {
+    "benchmark": "Nifty Med Duration G-Sec Index",
+    "returns": {
+      "1Y": "5.46%",
+      "3Y": "2.15%",
+      "5Y": "7.54%"
+    }
+  },
+  {
+    "benchmark": "Nifty Med-Long Duration G-Sec Index",
+    "returns": {
+      "1Y": "5.21%",
+      "3Y": "0.87%",
+      "5Y": "6.10%"
+    }
+  },
+  {
+    "benchmark": "Nifty Long Duration G-Sec Index",
+    "returns": {
+      "1Y": "3.41%",
+      "3Y": "-0.61%",
+      "5Y": "2.44%"
+    }
+  },
+  {
+    "benchmark": "CRISIL Corporate Bond Fund Index",
+    "returns": {
+      "1Y": "6.99%",
+      "3Y": "7.18%",
+      "5Y": "7.62%"
+    }
+  },
+  {
+    "benchmark": "CRISIL Banking & PSU Debt Index",
+    "returns": {
+      "1Y": "6.92%",
+      "3Y": "7.05%",
+      "5Y": "7.31%"
+    }
+  },
+  {
+    "benchmark": "CRISIL Credit Risk Debt Index",
+    "returns": {
+      "1Y": "10.01%",
+      "3Y": "8.43%",
+      "5Y": "7.98%"
+    }
+  },
+  {
+    "benchmark": "Nifty Ultra Short G-Sec Index",
+    "returns": {
+      "1Y": "7.44%",
+      "3Y": "2.73%",
+      "5Y": "6.07%"
+    }
+  },
+  {
+    "benchmark": "Nifty Composite G-Sec Index",
+    "returns": {
+      "1Y": "4.65%",
+      "3Y": "6.25%",
+      "5Y": "7.48%"
+    }
+  },
+  {
+    "benchmark": "Nifty 10 Yr Benchmark G-Sec TRI",
+    "returns": {
+      "1Y": "5.88%",
+      "3Y": "6.78%",
+      "5Y": "8.21%"
+    }
+  },
+  {
+    "benchmark": "Domestic Gold Price (INR) - MCX Spot",
+    "returns": {
+      "1Y": "21.84%",
+      "3Y": "17.42%",
+      "5Y": "14.68%"
+    }
+  },
+  {
+    "benchmark": "Domestic Silver Price (INR) - MCX Spot",
+    "returns": {
+      "1Y": "19.62%",
+      "3Y": "14.28%",
+      "5Y": "11.94%"
+    }
+  },
+  {
+    "benchmark": "50:50 Blend Gold + Silver (INR)",
+    "returns": {
+      "1Y": "20.73%",
+      "3Y": "15.85%",
+      "5Y": "13.31%"
+    }
   }
 ]
-

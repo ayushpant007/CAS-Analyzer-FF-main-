@@ -7,6 +7,7 @@ interface BenchmarkData {
   "1y": string;
   "3y": string;
   "5y": string;
+  resolvedName?: string;
 }
 
 interface BenchmarkEntry {
@@ -36,13 +37,39 @@ function getCategoryBenchmark(schemeName: string): string | null {
   const lower = schemeName.toLowerCase();
   if (lower.includes("small cap")) return "Nifty Smallcap 250 TRI";
   if (lower.includes("mid cap")) return "Nifty Midcap 150 TRI";
-  if (lower.includes("large cap")) return "Nifty 100 TRI";
   if (lower.includes("large & mid cap") || lower.includes("largemidcap")) return "Nifty LargeMidcap 250 TRI";
-  if (lower.includes("flexi cap")) return "Nifty 500 TRI";
-  if (lower.includes("multi cap")) return "Nifty 500 TRI";
-  if (lower.includes("focused")) return "Nifty 500 TRI";
+  if (lower.includes("large cap")) return "Nifty 100 TRI";
+  if (lower.includes("multi cap") || lower.includes("multicap")) return "Nifty500 Multicap 50:25:25 TRI";
+  if (lower.includes("flexi cap") || lower.includes("flexicap")) return "Nifty 500 TRI";
+  if (lower.includes("focused")) return "Nifty 50 TRI";
   if (lower.includes("value") || lower.includes("contra")) return "Nifty 500 TRI";
   if (lower.includes("elss") || lower.includes("tax saver")) return "Nifty 500 TRI";
+  if (lower.includes("dividend yield")) return "Nifty 500 TRI";
+  if (lower.includes("aggressive hybrid")) return "Nifty 50 Hybrid Composite Debt 70:30 TRI";
+  if (lower.includes("balanced hybrid")) return "Nifty 50 Hybrid Composite Debt 50:50 TRI";
+  if (lower.includes("conservative hybrid")) return "Nifty 50 Hybrid Composite Debt 15:85 TRI";
+  if (lower.includes("dynamic asset allocation") || lower.includes("balanced advantage")) return "Nifty 50 Hybrid Composite Debt 65:35 TRI";
+  if (lower.includes("multi asset")) return "Nifty 50 Hybrid Composite Debt 65:35 TRI";
+  if (lower.includes("arbitrage")) return "Nifty 50 Arbitrage Index";
+  if (lower.includes("equity savings")) return "Nifty Equity Savings Index";
+  if (lower.includes("overnight")) return "Nifty 1D Rate Index";
+  if (lower.includes("liquid")) return "Nifty Ultra Short Duration G-Sec Index";
+  if (lower.includes("money market")) return "Nifty Low Duration G-Sec Index";
+  if (lower.includes("ultra short")) return "Nifty Ultra Short Duration G-Sec Index";
+  if (lower.includes("low duration")) return "Nifty Low Duration G-Sec Index";
+  if (lower.includes("short duration")) return "Nifty Short Duration G-Sec Index";
+  if (lower.includes("medium to long") || lower.includes("med to long")) return "Nifty Med-Long Duration G-Sec Index";
+  if (lower.includes("medium duration")) return "Nifty Medium Duration G-Sec Index";
+  if (lower.includes("long duration")) return "Nifty Long Duration G-Sec Index";
+  if (lower.includes("dynamic bond")) return "Nifty Med Duration G-Sec Index";
+  if (lower.includes("corporate bond")) return "CRISIL Corporate Bond Fund Index";
+  if (lower.includes("banking & psu") || lower.includes("banking and psu")) return "CRISIL Banking & PSU Debt Index";
+  if (lower.includes("credit risk")) return "CRISIL Credit Risk Debt Index";
+  if (lower.includes("floater")) return "Nifty Ultra Short G-Sec Index";
+  if (lower.includes("gilt with 10") || lower.includes("10 yr") || lower.includes("10yr")) return "Nifty 10 Yr Benchmark G-Sec TRI";
+  if (lower.includes("gilt")) return "Nifty Composite G-Sec Index";
+  if (lower.includes("gold etf") || lower.includes("gold fof") || lower.includes("gold fund")) return "Domestic Gold Price (INR) - MCX Spot";
+  if (lower.includes("silver etf") || lower.includes("silver fof") || lower.includes("silver fund")) return "Domestic Silver Price (INR) - MCX Spot";
   if (lower.includes("banking") || lower.includes("financial")) return "Nifty Financial Services TRI";
   if (lower.includes("it ") || lower.includes("technology")) return "Nifty IT TRI";
   if (lower.includes("pharma") || lower.includes("healthcare")) return "Nifty Pharma TRI";
@@ -53,7 +80,7 @@ function getCategoryBenchmark(schemeName: string): string | null {
   if (lower.includes("auto")) return "Nifty Auto TRI";
   if (lower.includes("fmcg")) return "Nifty FMCG TRI";
   if (lower.includes("bank")) return "Nifty Bank TRI";
-  
+
   return "Nifty 50 TRI";
 }
 
@@ -82,7 +109,8 @@ export async function getBenchmarkReturns(schemeName: string, reportedBenchmarkN
     return {
       "1y": entry.returns["1Y"],
       "3y": entry.returns["3Y"],
-      "5y": entry.returns["5Y"]
+      "5y": entry.returns["5Y"],
+      resolvedName: entry.benchmark
     };
   }
 

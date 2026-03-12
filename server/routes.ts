@@ -227,8 +227,9 @@ ${text}`;
       ]);
 
       const mergedMetrics = jsonMetrics;
-      const benchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
-      const benchmarkReturns = await getBenchmarkReturns(fundName, benchmarkName);
+      const reportedBenchmarkName = mergedMetrics?.benchmark_name || "Data unavailable";
+      const benchmarkReturns = await getBenchmarkReturns(fundName, reportedBenchmarkName);
+      const benchmarkName = benchmarkReturns?.resolvedName || reportedBenchmarkName;
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
       
@@ -323,8 +324,9 @@ Return ONLY JSON. No markdown.`;
         extractMetricsFromFactsheet(fundName),
       ]);
 
-      const benchmarkName = factsheetMetrics?.benchmark_name || "Data unavailable";
-      const benchmarkReturns = await getBenchmarkReturns(fundName, benchmarkName);
+      const reportedBenchmarkName2 = factsheetMetrics?.benchmark_name || "Data unavailable";
+      const benchmarkReturns2 = await getBenchmarkReturns(fundName, reportedBenchmarkName2);
+      const benchmarkName2 = benchmarkReturns2?.resolvedName || reportedBenchmarkName2;
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
 
@@ -334,8 +336,8 @@ Return ONLY JSON. No markdown.`;
           "3y": formatCagr(navData?.cagr_3y ?? null),
           "5y": formatCagr(navData?.cagr_5y ?? null),
         },
-        benchmark_name: benchmarkName,
-        benchmark_returns: benchmarkReturns || {
+        benchmark_name: benchmarkName2,
+        benchmark_returns: benchmarkReturns2 || {
           "1y": "N/A",
           "3y": "N/A",
           "5y": "N/A",
