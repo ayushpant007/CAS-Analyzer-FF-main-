@@ -505,32 +505,64 @@ export function ReportView({ report }: ReportViewProps) {
       element.style.maxHeight = "none";
       element.style.overflow = "visible";
 
+      const captureWidth = element.scrollWidth;
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#f8fafc",
-        windowWidth: element.scrollWidth,
+        windowWidth: captureWidth,
         windowHeight: element.scrollHeight,
+        width: captureWidth,
+        scrollX: 0,
         scrollY: 0,
         onclone: (_doc, clonedElement) => {
+          // 1. Fix all overflow clipping and positioning issues
+          const allEls = Array.from(clonedElement.querySelectorAll("*")) as HTMLElement[];
+          allEls.forEach((el) => {
+            const cs = window.getComputedStyle(el);
+            if (cs.overflow === "hidden" || cs.overflowY === "hidden" || cs.overflowX === "hidden") {
+              el.style.overflow = "visible";
+              el.style.overflowX = "visible";
+              el.style.overflowY = "visible";
+            }
+            if (cs.maxHeight && cs.maxHeight !== "none" && cs.maxHeight !== "") {
+              el.style.maxHeight = "none";
+            }
+            if (cs.position === "fixed") {
+              el.style.position = "absolute";
+            }
+          });
+
+          // 2. Lock the cloned root to the capture width
+          clonedElement.style.width = captureWidth + "px";
+          clonedElement.style.minWidth = captureWidth + "px";
+
+          // 3. Replace input elements with spans that show the live value
           const originalInputs = Array.from(element.querySelectorAll("input"));
           const clonedInputs = Array.from(clonedElement.querySelectorAll("input"));
           originalInputs.forEach((orig, i) => {
             const cloned = clonedInputs[i] as HTMLInputElement | undefined;
             if (!cloned) return;
             const liveValue = orig.value;
-            cloned.value = liveValue;
-            cloned.setAttribute("value", liveValue);
             const span = _doc.createElement("span");
             span.textContent = liveValue;
-            span.style.cssText = window.getComputedStyle(orig).cssText;
             span.style.display = "inline-block";
             span.style.width = orig.offsetWidth + "px";
+            span.style.minWidth = orig.offsetWidth + "px";
+            span.style.height = orig.offsetHeight + "px";
+            span.style.lineHeight = orig.offsetHeight + "px";
             span.style.textAlign = "right";
-            span.style.fontFamily = "monospace";
+            span.style.fontFamily = "ui-monospace, monospace";
             span.style.fontSize = "12px";
-            span.style.padding = "0 4px";
+            span.style.padding = "0 6px";
+            span.style.verticalAlign = "middle";
+            span.style.border = "1px solid #e2e8f0";
+            span.style.borderRadius = "6px";
+            span.style.background = "#fff";
+            span.style.color = "#1e293b";
+            span.style.boxSizing = "border-box";
             cloned.replaceWith(span);
           });
         },
