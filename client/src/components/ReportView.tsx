@@ -513,6 +513,27 @@ export function ReportView({ report }: ReportViewProps) {
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
         scrollY: 0,
+        onclone: (_doc, clonedElement) => {
+          const originalInputs = Array.from(element.querySelectorAll("input"));
+          const clonedInputs = Array.from(clonedElement.querySelectorAll("input"));
+          originalInputs.forEach((orig, i) => {
+            const cloned = clonedInputs[i] as HTMLInputElement | undefined;
+            if (!cloned) return;
+            const liveValue = orig.value;
+            cloned.value = liveValue;
+            cloned.setAttribute("value", liveValue);
+            const span = _doc.createElement("span");
+            span.textContent = liveValue;
+            span.style.cssText = window.getComputedStyle(orig).cssText;
+            span.style.display = "inline-block";
+            span.style.width = orig.offsetWidth + "px";
+            span.style.textAlign = "right";
+            span.style.fontFamily = "monospace";
+            span.style.fontSize = "12px";
+            span.style.padding = "0 4px";
+            cloned.replaceWith(span);
+          });
+        },
       });
 
       element.style.height = savedStyle.height;
