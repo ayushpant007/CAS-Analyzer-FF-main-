@@ -16,7 +16,6 @@ export default function Home() {
   return (
     <div className="min-h-screen font-sans pb-20 relative">
       <AnimatedBackground />
-
       {/* Navbar */}
       <nav
         className="border-b"
@@ -56,7 +55,6 @@ export default function Home() {
           </div>
         </div>
       </nav>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 relative z-10">
         <AnimatePresence mode="wait">
           {!activeReportId ? (
@@ -230,7 +228,7 @@ export default function Home() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-            >
+              className="text-[#00ddff]">
               <button
                 onClick={() => setActiveReportId(null)}
                 className="mb-6 flex items-center gap-2 text-sm font-medium transition-colors"
