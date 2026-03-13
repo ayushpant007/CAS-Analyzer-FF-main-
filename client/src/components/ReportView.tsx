@@ -492,61 +492,62 @@ export function ReportView({ report }: ReportViewProps) {
   const downloadPDF = async () => {
     if (!reportRef.current) return;
     setIsDownloading(true);
-    
+
     try {
       const element = reportRef.current;
-      
-      // Temporary style to ensure full visibility for capture
-      const originalStyle = element.style.height;
-      element.style.height = 'auto';
-      
+
+      const savedStyle = {
+        height: element.style.height,
+        maxHeight: element.style.maxHeight,
+        overflow: element.style.overflow,
+      };
+      element.style.height = "auto";
+      element.style.maxHeight = "none";
+      element.style.overflow = "visible";
+
       const canvas = await html2canvas(element, {
-        scale: 1.5, // Reduced scale for smaller file size
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#f8fafc",
         windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowHeight: element.scrollHeight,
+        scrollY: 0,
       });
-      
-      element.style.height = originalStyle;
-      
-      const imgData = canvas.toDataURL("image/jpeg", 0.7); // Use JPEG with 70% quality for significant size reduction
-      const pdf = new jsPDF("p", "mm", "a4");
-      
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight, undefined, 'FAST');
-      heightLeft -= pageHeight;
-      
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight, undefined, 'FAST');
-        heightLeft -= pageHeight;
-      }
-      
+
+      element.style.height = savedStyle.height;
+      element.style.maxHeight = savedStyle.maxHeight;
+      element.style.overflow = savedStyle.overflow;
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
+
+      const pxToMm = 0.264583;
+      const pageWidthMm = canvas.width * pxToMm;
+      const pageHeightMm = canvas.height * pxToMm;
+
+      const pdf = new jsPDF({
+        orientation: pageWidthMm > pageHeightMm ? "l" : "p",
+        unit: "mm",
+        format: [pageWidthMm, pageHeightMm],
+        compress: true,
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, pageHeightMm, undefined, "FAST");
+
       pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
-      
+
       toast({
         title: "Success",
-        description: "PDF report downloaded successfully",
+        description: "Report downloaded as a single continuous document.",
       });
     } catch (err: any) {
       console.error("PDF Export Error:", err);
       toast({
         title: "Download Failed",
-        description: "There was an error generating your PDF report.",
-        variant: "destructive"
+        description: "There was an error generating your report.",
+        variant: "destructive",
       });
     } finally {
-      setIsDownloading(null as any); // Reset to false
       setIsDownloading(false);
     }
   };
