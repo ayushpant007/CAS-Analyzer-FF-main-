@@ -20,56 +20,79 @@ interface SchemePerformanceData {
   data_sources?: { returns: string; benchmark: string };
 }
 
+const CATEGORY_META: Record<string, { color: string; subtitle: string }> = {
+  "Equity":     { color: "#3b82f6", subtitle: "Large, mid & small cap" },
+  "Debt":       { color: "#f59e0b", subtitle: "Bonds & fixed income" },
+  "Hybrid":     { color: "#94a3b8", subtitle: "Balanced & multi-asset" },
+  "Gold/Silver":{ color: "#d97706", subtitle: "Commodity & precious metals" },
+  "Others":     { color: "#10b981", subtitle: "REITs, InvITs & alternatives" },
+};
+
 function AssetCategoryRow({ 
   category, 
   actual, 
-  ideal, 
-  subCategories, 
-  actualSubMap 
+  ideal,
 }: { 
   category: string; 
   actual: number; 
-  ideal: string; 
-  subCategories: Record<string, string>;
-  actualSubMap: Record<string, number>;
+  ideal: number;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const meta = CATEGORY_META[category] || { color: "#64748b", subtitle: "" };
+  const max = Math.max(actual, ideal, 1);
+  const actWidth = (actual / max) * 100;
+  const idealWidth = (ideal / max) * 100;
+
+  let dotColor = "#10b981";
+  const diff = actual - ideal;
+  if (Math.abs(diff) < 1) dotColor = "#10b981";
+  else if (diff > 0) dotColor = "#ef4444";
+  else dotColor = "#f59e0b";
 
   return (
-    <>
-      <tr 
-        className="hover:bg-slate-50/50 transition-colors cursor-pointer group"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <td className="px-6 py-4 font-bold text-slate-900 flex items-center gap-2">
-          {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          {category}
-        </td>
-        <td className="px-6 py-4 text-right font-bold text-blue-600">
-          {actual.toFixed(2)}%
-        </td>
-        <td className="px-6 py-4 text-right font-bold text-slate-900">
-          {ideal}
-        </td>
-      </tr>
-      {isOpen && (
-        <>
-          {Object.entries(subCategories).map(([type, targetPct]) => (
-            <tr key={type} className="bg-slate-50/30">
-              <td className="px-6 py-3 pl-12 text-slate-600 italic">
-                {type}
-              </td>
-              <td className="px-6 py-3 text-right text-slate-600">
-                {(actualSubMap[type] || 0).toFixed(2)}%
-              </td>
-              <td className="px-6 py-3 text-right text-slate-400">
-                {targetPct}
-              </td>
-            </tr>
-          ))}
-        </>
-      )}
-    </>
+    <tr className="border-b border-slate-100 last:border-0">
+      <td className="px-5 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: meta.color }} />
+          <div>
+            <div className="font-semibold text-slate-800 text-sm">{category}</div>
+            <div className="text-xs text-slate-400">{meta.subtitle}</div>
+          </div>
+        </div>
+      </td>
+      <td className="px-5 py-3.5 text-sm font-semibold" style={{ color: actual === 0 ? "#ef4444" : "#1e293b" }}>
+        {actual.toFixed(2)}%
+      </td>
+      <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">
+        {Number(ideal).toFixed(0)}%
+      </td>
+      <td className="px-5 py-3.5 w-56">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-slate-400 w-6 flex-shrink-0">Act</span>
+            <div className="flex-1 bg-slate-100 rounded-full h-2 relative">
+              <div
+                className="h-2 rounded-full"
+                style={{ width: `${actWidth}%`, backgroundColor: meta.color }}
+              />
+            </div>
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: dotColor }}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-slate-400 w-6 flex-shrink-0">Ideal</span>
+            <div className="flex-1 bg-slate-100 rounded-full h-2 relative">
+              <div
+                className="h-2 rounded-full bg-slate-300"
+                style={{ width: `${idealWidth}%` }}
+              />
+            </div>
+            <span className="w-2 h-2 rounded-full flex-shrink-0 bg-slate-300" />
+          </div>
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -1009,99 +1032,137 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Asset Allocation Check */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Asset Allocation Check</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Profile: {report.investorType} | Age: {report.ageGroup}</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Fund Category / Type</th>
-                <th className="px-6 py-4 text-right">Actual</th>
-                <th className="px-6 py-4 text-right">Ideal</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(() => {
-                const ideal = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
-                const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
-                
-                // Detailed breakdown from CSV (Moderate 20-35 as fallback)
-                const detailedIdeal: Record<string, Record<string, string>> = {
-                  "Equity": {
-                    "Multi Cap": "9.00%", "Large Cap": "12.00%", "Large & Mid": "9.00%", "Mid Cap": "3.00%", 
-                    "Small Cap": "3.00%", "Value Fund": "3.00%", "ELSS": "6.00%", "Flexi Cap": "12.00%", "Dividend Yield": "3.00%"
-                  },
-                  "Debt": {
-                    "Liquid": "2.00%", "Money Market": "3.00%", "Short Duration": "5.00%", "Corporate Bond": "4.00%", 
-                    "Banking & PSU": "4.00%", "Gilt Fund": "2.00%"
-                  },
-                  "Hybrid": {
-                    "Aggressive Hybrid": "3.00%", "Multi Asset Allocation": "5.00%", "Equity Savings Fund": "2.00%"
-                  },
-                  "Gold/Silver": {
-                    "Gold ETF/Fund": "4.00%", "Silver ETF/Fund": "1.00%"
-                  },
-                  "Others": {
-                    "Index Funds": "2.50%", "REITs/InvITs": "1.00%", "International": "1.00%", "Other Assets": "0.50%"
-                  }
-                };
+        {(() => {
+          const idealRaw = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
+          const categories = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
 
-                // Actual allocation grouping
-                const actualMap: Record<string, number> = {};
-                const actualSubMap: Record<string, number> = {};
-                
-                (analysis.mf_snapshot || []).forEach((mf: any) => {
-                  const cat = (mf.fund_category || "").toLowerCase();
-                  const type = (mf.fund_type || "").toLowerCase();
-                  const valuation = mf.valuation || 0;
-                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+          const parseIdeal = (v: string) => parseFloat(v?.replace("%", "") || "0");
 
-                  if (cat.includes("equity")) {
-                    actualMap["Equity"] = (actualMap["Equity"] || 0) + percentage;
-                    // Attempt to map sub-types
-                    Object.keys(detailedIdeal["Equity"]).forEach(t => {
-                      if (type.includes(t.toLowerCase())) actualSubMap[t] = (actualSubMap[t] || 0) + percentage;
-                    });
-                  }
-                  else if (cat.includes("debt")) {
-                    actualMap["Debt"] = (actualMap["Debt"] || 0) + percentage;
-                    Object.keys(detailedIdeal["Debt"]).forEach(t => {
-                      if (type.includes(t.toLowerCase())) actualSubMap[t] = (actualSubMap[t] || 0) + percentage;
-                    });
-                  }
-                  else if (cat.includes("hybrid")) {
-                    actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + percentage;
-                    Object.keys(detailedIdeal["Hybrid"]).forEach(t => {
-                      if (type.includes(t.toLowerCase())) actualSubMap[t] = (actualSubMap[t] || 0) + percentage;
-                    });
-                  }
-                  else if (cat.includes("gold") || cat.includes("silver")) {
-                    actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + percentage;
-                    if (type.includes("gold")) actualSubMap["Gold ETF/Fund"] = (actualSubMap["Gold ETF/Fund"] || 0) + percentage;
-                    if (type.includes("silver")) actualSubMap["Silver ETF/Fund"] = (actualSubMap["Silver ETF/Fund"] || 0) + percentage;
-                  }
-                  else {
-                    actualMap["Others"] = (actualMap["Others"] || 0) + percentage;
-                  }
-                });
+          const idealMap: Record<string, number> = {};
+          categories.forEach(c => { idealMap[c] = parseIdeal(idealRaw[c]); });
 
-                return categories.map(cat => (
-                  <AssetCategoryRow 
-                    key={cat}
-                    category={cat}
-                    actual={actualMap[cat] || 0}
-                    ideal={ideal[cat] || "0%"}
-                    subCategories={detailedIdeal[cat]}
-                    actualSubMap={actualSubMap}
-                  />
-                ));
-              })()}
-            </tbody>
-          </table>
-        </div>
+          const actualMap: Record<string, number> = {};
+          const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+
+          (analysis.mf_snapshot || []).forEach((mf: any) => {
+            const cat = (mf.fund_category || "").toLowerCase();
+            const valuation = mf.valuation || 0;
+            const pct = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+            if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
+            else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
+            else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
+            else if (cat.includes("gold") || cat.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
+            else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
+          });
+
+          const equityActual = actualMap["Equity"] || 0;
+          const equityIdeal = idealMap["Equity"] || 0;
+          const debtActual = actualMap["Debt"] || 0;
+          const debtIdeal = idealMap["Debt"] || 0;
+
+          const missingCategories = categories.filter(c => (actualMap[c] || 0) < 0.01 && idealMap[c] > 0);
+
+          // Overall health: 100 minus sum of abs deviations weighted
+          let healthScore = 100;
+          categories.forEach(c => {
+            const dev = Math.abs((actualMap[c] || 0) - (idealMap[c] || 0));
+            healthScore -= dev * 0.8;
+          });
+          healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
+
+          const healthLabel = healthScore >= 80 ? "Well balanced" : healthScore >= 60 ? "Needs rebalancing" : "Needs attention";
+          const healthColor = healthScore >= 80 ? "#10b981" : healthScore >= 60 ? "#f59e0b" : "#ef4444";
+
+          const fmtDiff = (actual: number, ideal: number) => {
+            const d = actual - ideal;
+            const sign = d >= 0 ? "+" : "";
+            return `${sign}${Math.abs(d).toFixed(2)}% ${d >= 0 ? "over" : "under"} ideal`;
+          };
+
+          return (
+            <>
+              {/* Header */}
+              <div className="px-6 pt-5 pb-4 flex items-start justify-between border-b border-slate-100">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">Asset allocation check</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-100">
+                      {report.investorType || "—"}
+                    </span>
+                    <span className="bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1 rounded-full">
+                      Age {report.ageGroup || "—"}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-slate-400 font-medium mb-0.5">Overall health</div>
+                  <div className="text-3xl font-bold" style={{ color: healthColor }}>
+                    {healthScore}<span className="text-base font-semibold text-slate-400">/100</span>
+                  </div>
+                  <span
+                    className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: `${healthColor}18`, color: healthColor }}
+                  >
+                    {healthLabel}
+                  </span>
+                </div>
+              </div>
+
+              {/* Summary cards */}
+              <div className="grid grid-cols-3 gap-0 border-b border-slate-100">
+                <div className="px-6 py-4 border-r border-slate-100">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Equity Exposure</div>
+                  <div className="text-2xl font-bold text-blue-600">{equityActual.toFixed(2)}%</div>
+                  <div className="text-xs mt-0.5" style={{ color: equityActual > equityIdeal ? "#ef4444" : "#10b981" }}>
+                    {fmtDiff(equityActual, equityIdeal)}
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-r border-slate-100">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Debt Exposure</div>
+                  <div className="text-2xl font-bold text-amber-500">{debtActual.toFixed(2)}%</div>
+                  <div className="text-xs mt-0.5" style={{ color: debtActual > debtIdeal ? "#ef4444" : "#10b981" }}>
+                    {fmtDiff(debtActual, debtIdeal)}
+                  </div>
+                </div>
+                <div className="px-6 py-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Missing Allocation</div>
+                  {missingCategories.length === 0 ? (
+                    <div className="text-2xl font-bold text-emerald-500">None</div>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-red-500">{missingCategories.length} categories</div>
+                      <div className="text-xs text-slate-400 mt-0.5">{missingCategories.join(", ")}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Category</th>
+                      <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Actual</th>
+                      <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Ideal</th>
+                      <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Comparison</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map(cat => (
+                      <AssetCategoryRow
+                        key={cat}
+                        category={cat}
+                        actual={actualMap[cat] || 0}
+                        ideal={idealMap[cat] || 0}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          );
+        })()}
       </motion.div>
 
       {/* Category Wise Distribution Section */}
