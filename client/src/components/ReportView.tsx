@@ -1,5 +1,5 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, AreaChart, Area } from "recharts";
 import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -813,101 +813,198 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </motion.div>
 
-      {/* Summary Section - Account Wise */}
-      <motion.div variants={item} className="flex flex-col gap-8">
-        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
-            <h3 className="text-lg font-bold">Portfolio Account Summary</h3>
-            <div className="text-right">
-              <p className="text-xs opacity-80 uppercase tracking-wider font-semibold">Consolidated Value</p>
-              <p className="text-xl font-bold">₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}</p>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-                <tr>
-                  <th className="px-6 py-4">Account Type</th>
-                  <th className="px-6 py-4">Account Details</th>
-                  <th className="px-6 py-4 text-right">No. of Schemes</th>
-                  <th className="px-6 py-4 text-right">Value (₹)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(analysis.account_summaries || [])
-                  .map((acc: any, i: number) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-slate-700">{acc.type}</td>
-                    <td className="px-6 py-4 text-slate-500">{acc.details}</td>
-                    <td className="px-6 py-4 text-right font-mono">{acc.count}</td>
-                    <td className="px-6 py-4 text-right font-bold text-slate-900">
-                      {acc.value?.toLocaleString() ?? '0.00'}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
-                  <td colSpan={3} className="px-6 py-4 text-right uppercase tracking-wider text-xs text-slate-500">Total Portfolio Value</td>
-                  <td className="px-6 py-4 text-right text-lg text-slate-900">
-                    ₹{analysis.summary?.net_asset_value?.toLocaleString() ?? '0'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
+      {/* Portfolio Overview Dashboard */}
+      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        {/* Dashboard Header */}
+        <div className="px-6 pt-5 pb-2 border-b border-slate-100">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Portfolio Overview&nbsp;&nbsp;·&nbsp;&nbsp;{format(new Date(), "MMM d, yyyy")}
+          </p>
+        </div>
 
-        <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center">
-            <h3 className="text-lg font-bold">Investment Stats</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-5 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Invested Amount</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  ₹{totalInvested.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-5 bg-blue-50 rounded-xl border border-blue-100">
-                <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider mb-1">Current Valuation</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  ₹{totalValuation.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-100">
-                <p className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider mb-1">Total Absolute Return</p>
-                {(() => {
-                  const absoluteReturn = totalValuation - totalInvested;
-                  const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
-                  return (
-                    <div>
-                      <p className={`text-2xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                        ₹{absoluteReturn.toLocaleString()}
-                      </p>
-                      <p className={`text-sm font-semibold ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {absoluteReturn >= 0 ? '+' : ''}{absoluteReturnPct.toFixed(2)}%
-                      </p>
+        <div className="p-5 space-y-5">
+          {/* KPI Row */}
+          {(() => {
+            const totalSchemes = (analysis.mf_snapshot || []).length;
+            const absoluteReturn = totalValuation - totalInvested;
+            const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
+            const approxCagr = totalInvested > 0 ? ((Math.pow(totalValuation / totalInvested, 1 / 2) - 1) * 100) : 0;
+            const accounts = analysis.account_summaries || [];
+            const formatLakh = (v: number) => v >= 100000 ? `₹${(v / 100000).toFixed(2)} L` : `₹${v.toLocaleString()}`;
+
+            return (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-4 rounded-xl bg-slate-50">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
+                    <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
+                    <p className={`text-xs font-semibold mt-0.5 ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {absoluteReturn >= 0 ? '+' : ''}{absoluteReturnPct.toFixed(1)}% overall return
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-50">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Approx. CAGR</p>
+                    <p className="text-xl font-bold text-slate-900">{approxCagr.toFixed(1)}%</p>
+                    <p className="text-xs text-slate-400 mt-0.5">estimated 2-year</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-50">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Absolute Gain</p>
+                    <p className={`text-xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {absoluteReturn >= 0 ? '+' : ''}{formatLakh(Math.abs(absoluteReturn))}
+                    </p>
+                    <p className={`text-xs font-semibold mt-0.5 ${absoluteReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      on ₹{(totalInvested / 100000).toFixed(2)} L invested
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-50">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Schemes</p>
+                    <p className="text-xl font-bold text-slate-900">{totalSchemes}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">across {accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+
+                {/* Charts Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 6-Month Growth */}
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">6-Month Growth</p>
+                    {(analysis.historical_valuations || []).length > 0 ? (
+                      <ResponsiveContainer width="100%" height={150}>
+                        <AreaChart data={analysis.historical_valuations} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <XAxis dataKey="month_year" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} width={36} />
+                          <RechartsTooltip
+                            contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+                            formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, 'Value']}
+                          />
+                          <Area type="monotone" dataKey="valuation" stroke="#3b82f6" strokeWidth={2} fill="url(#growthGrad)" dot={false} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-36 flex items-center justify-center text-slate-400 text-xs">No historical data</div>
+                    )}
+                  </div>
+
+                  {/* Allocation Donut */}
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">Allocation</p>
+                    {accounts.length > 0 ? (() => {
+                      const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+                      const total = accounts.reduce((s: number, a: any) => s + (a.value || 0), 0);
+                      const pieData = accounts.map((a: any) => ({ name: a.type, value: a.value || 0 }));
+                      return (
+                        <div className="flex items-center gap-4">
+                          <PieChart width={130} height={130}>
+                            <Pie data={pieData} cx="50%" cy="50%" innerRadius={38} outerRadius={58} paddingAngle={3} dataKey="value">
+                              {pieData.map((_: any, idx: number) => (
+                                <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, '']} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                          </PieChart>
+                          <div className="flex flex-col gap-2 flex-1">
+                            {accounts.map((a: any, idx: number) => {
+                              const pct = total > 0 ? ((a.value / total) * 100).toFixed(1) : '0.0';
+                              return (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                                  <span className="text-xs text-slate-600 flex-1 leading-tight">{a.type}</span>
+                                  <span className="text-xs font-bold text-slate-700">{pct}%</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })() : (
+                      <div className="h-36 flex items-center justify-center text-slate-400 text-xs">No allocation data</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Row: Accounts + Top Funds */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Accounts */}
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">Accounts</p>
+                    <div className="space-y-2">
+                      {(() => {
+                        const COLORS_ACC = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+                        const total = accounts.reduce((s: number, a: any) => s + (a.value || 0), 0);
+                        return accounts.map((acc: any, idx: number) => {
+                          const initials = (acc.type || '??').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+                          const pct = total > 0 ? ((acc.value / total) * 100).toFixed(1) : '0.0';
+                          const bg = COLORS_ACC[idx % COLORS_ACC.length];
+                          return (
+                            <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-white border border-slate-100">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: bg }}>
+                                {initials}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-800 leading-tight truncate">{acc.type}</p>
+                                <p className="text-[10px] text-slate-400 leading-tight truncate">{acc.count} scheme{acc.count !== 1 ? 's' : ''}{acc.details ? ` · ${acc.details}` : ''}</p>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <p className="text-xs font-bold text-slate-800">{formatLakh(acc.value || 0)}</p>
+                                <p className="text-[10px] text-slate-400">{pct}%</p>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
-                  );
-                })()}
-              </div>
-              <div className="p-5 bg-indigo-50 rounded-xl border border-indigo-100">
-                <p className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider mb-1">Approx. CAGR (Portfolio)</p>
-                {(() => {
-                  const absoluteReturnPct = totalInvested > 0 ? (totalValuation / totalInvested) - 1 : 0;
-                  return (
-                    <div>
-                      <p className="text-2xl font-bold text-indigo-900">
-                        {totalInvested > 0 ? ((Math.pow(1 + absoluteReturnPct, 1/2) - 1) * 100).toFixed(2) : '0.00'}%
-                      </p>
-                      <p className="text-[10px] text-indigo-400 font-medium">Estimated 2-Year CAGR</p>
+                  </div>
+
+                  {/* Top 3 Mutual Funds */}
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">Top 3 Mutual Funds</p>
+                    <div className="space-y-2">
+                      {(() => {
+                        const RANK_COLORS = ['#3b82f6', '#10b981', '#f59e0b'];
+                        const sorted = [...(analysis.mf_snapshot || [])]
+                          .filter((m: any) => m.invested_amount > 0)
+                          .sort((a: any, b: any) => {
+                            const rA = a.invested_amount > 0 ? (a.unrealised_profit_loss / a.invested_amount) : 0;
+                            const rB = b.invested_amount > 0 ? (b.unrealised_profit_loss / b.invested_amount) : 0;
+                            return rB - rA;
+                          })
+                          .slice(0, 3);
+                        return sorted.map((mf: any, idx: number) => {
+                          const retPct = mf.invested_amount > 0 ? ((mf.unrealised_profit_loss / mf.invested_amount) * 100).toFixed(1) : '0.0';
+                          const isPos = mf.unrealised_profit_loss >= 0;
+                          const shortName = mf.scheme_name?.replace(/\s*-\s*(Direct|Regular)\s*(Growth|Plan)?/i, '').trim() ?? mf.scheme_name;
+                          return (
+                            <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-white border border-slate-100">
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0" style={{ backgroundColor: RANK_COLORS[idx] }}>
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-800 leading-tight line-clamp-1">{shortName}</p>
+                                <p className="text-[10px] text-slate-400 leading-tight">{mf.fund_category}</p>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <p className={`text-xs font-bold ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {isPos ? '+' : ''}{retPct}% return
+                                </p>
+                                <p className="text-[10px] text-slate-400">{formatLakh(mf.valuation || 0)}</p>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        </motion.div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
       </motion.div>
 
       {/* Asset Allocation Check */}
