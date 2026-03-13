@@ -1447,10 +1447,8 @@ export function ReportView({ report }: ReportViewProps) {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <h4 className="font-bold text-slate-900">{mf.scheme_name}</h4>
-                  <div className="flex flex-wrap gap-2 text-[10px] uppercase font-bold text-slate-500">
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">ISIN: {mf.isin || 'N/A'}</span>
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_category}</span>
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">{mf.fund_type}</span>
+                  <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wide">
+                    ISIN: {mf.isin || 'N/A'}&nbsp;&nbsp;·&nbsp;&nbsp;{mf.fund_category}&nbsp;&nbsp;·&nbsp;&nbsp;{mf.fund_type}
                   </div>
                 </div>
                 <Button 
