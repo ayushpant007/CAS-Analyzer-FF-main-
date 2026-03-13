@@ -516,19 +516,61 @@ export function ReportView({ report }: ReportViewProps) {
     if (!reportRef.current) return;
     setIsDownloading(true);
 
+    // Track all nodes we temporarily mutate so we can restore them
+    const restoreQueue: Array<{ el: HTMLElement; props: Record<string, string> }> = [];
+
+    const saveAndSet = (el: HTMLElement, props: Record<string, string>) => {
+      const saved: Record<string, string> = {};
+      Object.keys(props).forEach((k) => {
+        saved[k] = (el.style as any)[k];
+        (el.style as any)[k] = props[k];
+      });
+      restoreQueue.push({ el, props: saved });
+    };
+
+    const restoreAll = () => {
+      restoreQueue.forEach(({ el, props }) => {
+        Object.keys(props).forEach((k) => {
+          (el.style as any)[k] = props[k];
+        });
+      });
+    };
+
     try {
       const element = reportRef.current;
 
-      const savedStyle = {
-        height: element.style.height,
-        maxHeight: element.style.maxHeight,
-        overflow: element.style.overflow,
-      };
-      element.style.height = "auto";
-      element.style.maxHeight = "none";
-      element.style.overflow = "visible";
+      // 1. Expand the report container itself
+      saveAndSet(element, { height: "auto", maxHeight: "none", overflow: "visible" });
+
+      // 2. Walk up the DOM and expand every ancestor that clips height/overflow
+      let ancestor = element.parentElement;
+      while (ancestor && ancestor !== document.documentElement) {
+        const cs = window.getComputedStyle(ancestor);
+        const needsFix =
+          cs.overflow !== "visible" ||
+          cs.overflowY !== "visible" ||
+          (cs.height !== "auto" && cs.height !== "") ||
+          (cs.maxHeight !== "none" && cs.maxHeight !== "");
+        if (needsFix) {
+          saveAndSet(ancestor, {
+            overflow: "visible",
+            overflowY: "visible",
+            overflowX: "visible",
+            height: "auto",
+            maxHeight: "none",
+          });
+        }
+        ancestor = ancestor.parentElement;
+      }
+
+      // 3. Scroll page to top so html2canvas starts at y=0
+      window.scrollTo(0, 0);
+
+      // 4. Let the browser re-layout after style changes
+      await new Promise((r) => setTimeout(r, 250));
 
       const captureWidth = element.scrollWidth;
+      const captureHeight = element.scrollHeight;
 
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -536,16 +578,21 @@ export function ReportView({ report }: ReportViewProps) {
         logging: false,
         backgroundColor: "#f8fafc",
         windowWidth: captureWidth,
-        windowHeight: element.scrollHeight,
+        windowHeight: captureHeight,
         width: captureWidth,
+        height: captureHeight,
         scrollX: 0,
         scrollY: 0,
         onclone: (_doc, clonedElement) => {
-          // 1. Fix all overflow clipping and positioning issues
+          // Fix overflow/max-height clipping inside the clone
           const allEls = Array.from(clonedElement.querySelectorAll("*")) as HTMLElement[];
           allEls.forEach((el) => {
             const cs = window.getComputedStyle(el);
-            if (cs.overflow === "hidden" || cs.overflowY === "hidden" || cs.overflowX === "hidden") {
+            if (
+              cs.overflow === "hidden" ||
+              cs.overflowY === "hidden" ||
+              cs.overflowX === "hidden"
+            ) {
               el.style.overflow = "visible";
               el.style.overflowX = "visible";
               el.style.overflowY = "visible";
@@ -558,65 +605,64 @@ export function ReportView({ report }: ReportViewProps) {
             }
           });
 
-          // 2. Lock the cloned root to the capture width
+          // Lock the cloned root dimensions
           clonedElement.style.width = captureWidth + "px";
           clonedElement.style.minWidth = captureWidth + "px";
+          clonedElement.style.height = captureHeight + "px";
 
-          // 3. Replace input elements with spans that show the live value
+          // Replace <input> elements with visible spans
           const originalInputs = Array.from(element.querySelectorAll("input"));
           const clonedInputs = Array.from(clonedElement.querySelectorAll("input"));
           originalInputs.forEach((orig, i) => {
             const cloned = clonedInputs[i] as HTMLInputElement | undefined;
             if (!cloned) return;
-            const liveValue = orig.value;
             const span = _doc.createElement("span");
-            span.textContent = liveValue;
-            span.style.display = "inline-block";
-            span.style.width = orig.offsetWidth + "px";
-            span.style.minWidth = orig.offsetWidth + "px";
-            span.style.height = orig.offsetHeight + "px";
-            span.style.lineHeight = orig.offsetHeight + "px";
-            span.style.textAlign = "right";
-            span.style.fontFamily = "ui-monospace, monospace";
-            span.style.fontSize = "12px";
-            span.style.padding = "0 6px";
-            span.style.verticalAlign = "middle";
-            span.style.border = "1px solid #e2e8f0";
-            span.style.borderRadius = "6px";
-            span.style.background = "#fff";
-            span.style.color = "#1e293b";
-            span.style.boxSizing = "border-box";
+            span.textContent = orig.value;
+            span.style.cssText = [
+              `display:inline-block`,
+              `width:${orig.offsetWidth}px`,
+              `min-width:${orig.offsetWidth}px`,
+              `height:${orig.offsetHeight}px`,
+              `line-height:${orig.offsetHeight}px`,
+              `text-align:right`,
+              `font-family:ui-monospace,monospace`,
+              `font-size:12px`,
+              `padding:0 6px`,
+              `vertical-align:middle`,
+              `border:1px solid #e2e8f0`,
+              `border-radius:6px`,
+              `background:#fff`,
+              `color:#1e293b`,
+              `box-sizing:border-box`,
+            ].join(";");
             cloned.replaceWith(span);
           });
         },
       });
 
-      element.style.height = savedStyle.height;
-      element.style.maxHeight = savedStyle.maxHeight;
-      element.style.overflow = savedStyle.overflow;
+      restoreAll();
 
       const imgData = canvas.toDataURL("image/jpeg", 0.85);
-
       const pxToMm = 0.264583;
-      const pageWidthMm = canvas.width * pxToMm;
-      const pageHeightMm = canvas.height * pxToMm;
+      const pageWidthMm = (canvas.width / 2) * pxToMm;
+      const pageHeightMm = (canvas.height / 2) * pxToMm;
 
       const pdf = new jsPDF({
-        orientation: pageWidthMm > pageHeightMm ? "l" : "p",
+        orientation: "p",
         unit: "mm",
         format: [pageWidthMm, pageHeightMm],
         compress: true,
       });
 
       pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, pageHeightMm, undefined, "FAST");
-
       pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
 
       toast({
         title: "Success",
-        description: "Report downloaded as a single continuous document.",
+        description: "Full report downloaded successfully.",
       });
     } catch (err: any) {
+      restoreAll();
       console.error("PDF Export Error:", err);
       toast({
         title: "Download Failed",
