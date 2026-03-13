@@ -747,7 +747,7 @@ export function ReportView({ report }: ReportViewProps) {
         {/* Header Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <h1 className="text-3xl font-bold font-display text-slate-900 mb-1">{cleanFilename(report.filename)}</h1>
+          <h1 className="text-3xl font-bold font-display mb-1 text-[#d0f70f]">{cleanFilename(report.filename)}</h1>
           <div className="flex items-center gap-2 text-slate-500">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">Analyzed on {report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : "Unknown Date"}</span>
