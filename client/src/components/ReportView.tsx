@@ -1166,205 +1166,179 @@ export function ReportView({ report }: ReportViewProps) {
       </motion.div>
 
       {/* Category Wise Distribution Section */}
-      <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
-          <h3 className="text-lg font-bold">Category Wise Distribution</h3>
-          <p className="text-xs opacity-80 uppercase tracking-wider">Portfolio weightage by fund category</p>
-        </div>
-        <div className="p-6">
-          <div className="h-[500px] w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                layout="vertical"
-                data={(() => {
-                  const data: any[] = [];
-                  const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                  const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
-                  const typeMap: Record<string, Record<string, number>> = {};
-                  const mainMap: Record<string, number> = {};
+      <motion.div variants={item} className="bg-[#f5f0e8] rounded-2xl border border-slate-200 overflow-hidden p-6">
+        {(() => {
+          const allCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
+          const catMeta: Record<string, { color: string; abbr: string; label: string }> = {
+            "Equity":      { color: "#3b82f6", abbr: "EQ", label: "Equity" },
+            "Debt":        { color: "#f59e0b", abbr: "DB", label: "Debt" },
+            "Hybrid":      { color: "#94a3b8", abbr: "HB", label: "Hybrid" },
+            "Gold/Silver": { color: "#d97706", abbr: "GS", label: "Gold / Silver" },
+            "Others":      { color: "#10b981", abbr: "OT", label: "Others" },
+          };
 
-                  (analysis.mf_snapshot || []).forEach((mf: any) => {
-                    const cat = (mf.fund_category || "").toLowerCase();
-                    const type = mf.fund_type || "Other";
-                    const valuation = mf.valuation || 0;
-                    const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+          const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+          const actualMap: Record<string, number> = {};
+          const typeMap: Record<string, Record<string, number>> = {};
 
-                    let mainCat = "Gold/Silver";
-                    if (cat.includes("equity")) mainCat = "Equity";
-                    else if (cat.includes("debt")) mainCat = "Debt";
-                    else if (cat.includes("hybrid")) mainCat = "Hybrid";
+          (analysis.mf_snapshot || []).forEach((mf: any) => {
+            const cat = (mf.fund_category || "").toLowerCase();
+            const type = mf.fund_type || "Other";
+            const valuation = mf.valuation || 0;
+            const pct = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+            let mainCat = "Others";
+            if (cat.includes("equity")) mainCat = "Equity";
+            else if (cat.includes("debt")) mainCat = "Debt";
+            else if (cat.includes("hybrid")) mainCat = "Hybrid";
+            else if (cat.includes("gold") || cat.includes("silver")) mainCat = "Gold/Silver";
+            actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
+            if (!typeMap[mainCat]) typeMap[mainCat] = {};
+            typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + pct;
+          });
 
-                    mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
-                    if (!typeMap[mainCat]) typeMap[mainCat] = {};
-                    typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
-                  });
+          const idealRaw = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
+          const parseIdeal = (v: string) => parseFloat(v?.replace("%", "") || "0");
 
-                  mainCategories.forEach(mainCat => {
-                    if (mainMap[mainCat] > 0) {
-                      data.push({
-                        name: mainCat,
-                        value: mainMap[mainCat],
-                        isMain: true,
-                        category: mainCat
-                      });
+          const activeCats = allCategories.filter(c => (actualMap[c] || 0) > 0.01);
+          const remainingCats = allCategories.filter(c => (actualMap[c] || 0) < 0.01);
 
-                      const subTypes = Object.entries(typeMap[mainCat] || {})
-                        .sort((a, b) => b[1] - a[1]);
-                      
-                      subTypes.forEach(([type, val]) => {
-                        data.push({
-                          name: `  • ${type}`,
-                          value: val,
-                          isMain: false,
-                          category: mainCat
-                        });
-                      });
-                    }
-                  });
-                  return data;
-                })()}
-                margin={{ left: 140, right: 60, top: 10, bottom: 10 }}
-              >
-                <XAxis type="number" hide domain={[0, 100]} />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  width={130} 
-                  tick={(props) => {
-                    const { x, y, payload } = props;
-                    const isMain = !payload.value.includes("•");
-                    return (
-                      <text 
-                        x={x} 
-                        y={y} 
-                        dy={4} 
-                        textAnchor="end" 
-                        fill={isMain ? "#0f172a" : "#64748b"} 
-                        style={{ 
-                          fontSize: isMain ? '12px' : '10px', 
-                          fontWeight: isMain ? 700 : 400,
-                          fontFamily: 'Inter, sans-serif'
-                        }}
-                      >
-                        {payload.value}
-                      </text>
-                    );
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <RechartsTooltip
-                  cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl">
-                          <p className="text-xs font-bold text-slate-900 mb-1">{data.name.replace('  • ', '')}</p>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].color }} />
-                            <p className="text-xs text-blue-600 font-bold">{data.value.toFixed(2)}%</p>
+          const getCatStatus = (cat: string) => {
+            const actual = actualMap[cat] || 0;
+            const ideal = parseIdeal(idealRaw[cat]);
+            if (actual === 0) return null;
+            const maxActual = Math.max(...allCategories.map(c => actualMap[c] || 0));
+            if (actual === maxActual && actual > 50) return { label: "Dominant", bg: "#eff6ff", text: "#3b82f6" };
+            if (actual > ideal + 2) return { label: "Over ideal", bg: "#fffbeb", text: "#d97706" };
+            if (actual < ideal - 2) return { label: "Under ideal", bg: "#fef2f2", text: "#ef4444" };
+            return { label: "On target", bg: "#f0fdf4", text: "#16a34a" };
+          };
+
+          return (
+            <>
+              {/* Header */}
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">
+                Category Wise Distribution &middot; Portfolio Weightage by Fund Category
+              </p>
+
+              {/* Summary stat cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                {["Equity", "Debt", "Hybrid", "Gold/Silver"].map(cat => {
+                  const meta = catMeta[cat];
+                  const pct = actualMap[cat] || 0;
+                  const subCount = Object.keys(typeMap[cat] || {}).length;
+                  return (
+                    <div key={cat} className="bg-white rounded-xl p-4 border border-slate-100">
+                      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: meta.color }}>
+                        {meta.label}
+                      </div>
+                      <div className="text-2xl font-bold text-slate-800" style={{ color: pct > 0 ? (cat === "Debt" ? "#f59e0b" : cat === "Equity" ? "#3b82f6" : "#1e293b") : "#1e293b" }}>
+                        {pct.toFixed(2)}%
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {subCount > 0 ? `${subCount} sub-categor${subCount === 1 ? "y" : "ies"}` : "No data"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Category detail cards grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Active category cards */}
+                {activeCats.map(cat => {
+                  const meta = catMeta[cat];
+                  const pct = actualMap[cat] || 0;
+                  const subs = Object.entries(typeMap[cat] || {}).sort((a, b) => b[1] - a[1]);
+                  const status = getCatStatus(cat);
+
+                  return (
+                    <div key={cat} className="bg-white rounded-xl border border-slate-100 p-5">
+                      {/* Card header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                            style={{ backgroundColor: meta.color }}
+                          >
+                            {meta.abbr}
+                          </span>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">{meta.label}</div>
+                            <div className="text-xs text-slate-400">{pct.toFixed(2)}% of portfolio</div>
                           </div>
                         </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar 
-                  dataKey="value" 
-                  radius={[0, 6, 6, 0]}
-                  barSize={20}
-                >
-                  {(() => {
-                    const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-                    const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
-                    const typeMap: Record<string, Record<string, number>> = {};
-                    const mainMap: Record<string, number> = {};
+                        {status && (
+                          <span
+                            className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                            style={{ backgroundColor: status.bg, color: status.text }}
+                          >
+                            {status.label}
+                          </span>
+                        )}
+                      </div>
 
-                    (analysis.mf_snapshot || []).forEach((mf: any) => {
-                      const cat = (mf.fund_category || "").toLowerCase();
-                      const type = mf.fund_type || "Other";
-                      const valuation = mf.valuation || 0;
-                      const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+                      {/* Main category bar */}
+                      <div className="h-2 rounded-full mb-4 overflow-hidden bg-slate-100">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: meta.color }}
+                        />
+                      </div>
 
-                      let mainCat = "Gold/Silver";
-                      if (cat.includes("equity")) mainCat = "Equity";
-                      else if (cat.includes("debt")) mainCat = "Debt";
-                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
-
-                      mainMap[mainCat] = (mainMap[mainCat] || 0) + percentage;
-                      if (!typeMap[mainCat]) typeMap[mainCat] = {};
-                      typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
-                    });
-
-                    const cellData: any[] = [];
-                    mainCategories.forEach((mainCat, idx) => {
-                      if (mainMap[mainCat] > 0) {
-                        cellData.push({ color: COLORS[idx % COLORS.length], opacity: 1 });
-                        const subTypesCount = Object.keys(typeMap[mainCat] || {}).length;
-                        for(let i=0; i<subTypesCount; i++) {
-                          cellData.push({ color: COLORS[idx % COLORS.length], opacity: 0.5 });
-                        }
-                      }
-                    });
-                    return cellData.map((d, i) => (
-                      <Cell key={`cell-${i}`} fill={d.color} fillOpacity={d.opacity} />
-                    ));
-                  })()}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-            {(() => {
-              const actualMap: Record<string, number> = {};
-              const typeMap: Record<string, Record<string, number>> = {};
-              const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-              const mainCategories = ["Equity", "Debt", "Hybrid", "Gold/Silver"];
-              
-              (analysis.mf_snapshot || []).forEach((mf: any) => {
-                const cat = (mf.fund_category || "").toLowerCase();
-                const type = mf.fund_type || "Other";
-                const valuation = mf.valuation || 0;
-                const percentage = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
-
-                let mainCat = "Gold/Silver";
-                if (cat.includes("equity")) mainCat = "Equity";
-                else if (cat.includes("debt")) mainCat = "Debt";
-                else if (cat.includes("hybrid")) mainCat = "Hybrid";
-
-                actualMap[mainCat] = (actualMap[mainCat] || 0) + percentage;
-                
-                if (!typeMap[mainCat]) typeMap[mainCat] = {};
-                typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + percentage;
-              });
-
-              return mainCategories.map((cat, idx) => (
-                <div key={cat} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
-                  <div className="text-center pb-2 border-b border-slate-200/50">
-                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">{cat}</p>
-                    <p className="text-xl font-bold text-slate-900">{(actualMap[cat] || 0).toFixed(2)}%</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    {typeMap[cat] && Object.entries(typeMap[cat]).length > 0 ? (
-                      Object.entries(typeMap[cat])
-                        .sort((a, b) => b[1] - a[1])
-                        .map(([type, pct]) => (
-                          <div key={type} className="flex justify-between items-center text-[10px]">
-                            <span className="text-slate-600 truncate mr-2" title={type}>{type}</span>
-                            <span className="font-bold text-slate-900 shrink-0">{pct.toFixed(2)}%</span>
+                      {/* Sub-type rows */}
+                      <div className="space-y-2.5">
+                        {subs.map(([type, subPct]) => (
+                          <div key={type} className="flex items-center gap-3">
+                            <span className="text-xs text-slate-600 w-28 flex-shrink-0 truncate">{type}</span>
+                            <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{ width: `${Math.min(subPct, 100)}%`, backgroundColor: meta.color }}
+                              />
+                            </div>
+                            <span className="text-xs font-semibold text-slate-700 w-12 text-right flex-shrink-0">
+                              {subPct.toFixed(2)}%
+                            </span>
                           </div>
-                        ))
-                    ) : (
-                      <p className="text-[10px] text-slate-400 text-center italic">No data</p>
-                    )}
+                        ))}
+                      </div>
+
+                      {/* Tag pills */}
+                      {subs.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-4">
+                          {subs.map(([type, subPct]) => (
+                            <span
+                              key={type}
+                              className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
+                              style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
+                            >
+                              {type} {subPct.toFixed(1)}%
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Remaining categories card — show only if there are inactive cats */}
+                {remainingCats.length > 0 && activeCats.length > 0 && (
+                  <div className="bg-white rounded-xl border border-slate-100 p-5 flex flex-col justify-between">
+                    <div className="text-xs font-bold text-slate-500 mb-3">Remaining categories</div>
+                    <div className="space-y-2">
+                      {remainingCats.map(cat => (
+                        <div key={cat} className="flex justify-between items-center text-sm">
+                          <span className="text-slate-500">{catMeta[cat]?.label || cat}</span>
+                          <span className="text-slate-400 font-medium">0.00%</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ));
-            })()}
-          </div>
-        </div>
+                )}
+              </div>
+            </>
+          );
+        })()}
       </motion.div>
 
       {/* Portfolio Fit & Optimization Section */}
