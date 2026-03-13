@@ -19,7 +19,7 @@ export default function Home() {
 
       {/* Navbar */}
       <nav
-        className="sticky top-0 z-50 border-b"
+        className="border-b"
         style={{
           background: "rgba(10, 14, 46, 0.6)",
           backdropFilter: "blur(16px)",
