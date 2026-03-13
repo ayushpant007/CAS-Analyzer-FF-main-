@@ -722,8 +722,8 @@ export function ReportView({ report }: ReportViewProps) {
   };
 
   return (
-    <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
-      <div className="flex justify-end sticky top-0 z-50 py-2 bg-slate-50/80 backdrop-blur-sm">
+    <div className="space-y-4">
+      <div className="flex justify-end py-2">
         <Button 
           onClick={downloadPDF} 
           disabled={isDownloading}
