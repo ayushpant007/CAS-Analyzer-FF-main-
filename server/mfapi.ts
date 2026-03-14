@@ -3,11 +3,19 @@ import path from "path";
 
 interface SchemeCodeEntry {
   code: number;
+  isinGrowth: string | null;
+  isinDivReinvestment: string | null;
   name: string;
   nameNorm: string;
 }
 
 let schemeCodesCache: SchemeCodeEntry[] | null = null;
+let isinMapCache: Map<string, number> | null = null;
+
+function parseIsin(val: string): string | null {
+  const v = val.trim();
+  return v && v !== "-" ? v : null;
+}
 
 async function loadSchemeCodes(): Promise<SchemeCodeEntry[]> {
   if (schemeCodesCache) return schemeCodesCache;
@@ -20,18 +28,39 @@ async function loadSchemeCodes(): Promise<SchemeCodeEntry[]> {
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
-    const commaIdx = line.indexOf(",");
-    if (commaIdx === -1) continue;
-    const codeStr = line.substring(0, commaIdx).trim();
-    const name = line.substring(commaIdx + 1).trim();
+
+    const cols = line.split(",");
+    if (cols.length < 4) continue;
+
+    const codeStr = cols[0].trim();
     const code = parseInt(codeStr, 10);
-    if (isNaN(code) || !name) continue;
-    entries.push({ code, name, nameNorm: normalize(name) });
+    if (isNaN(code)) continue;
+
+    const isinGrowth = parseIsin(cols[1]);
+    const isinDivReinvestment = parseIsin(cols[2]);
+    const name = cols.slice(3).join(",").trim();
+    if (!name) continue;
+
+    entries.push({ code, isinGrowth, isinDivReinvestment, name, nameNorm: normalize(name) });
   }
 
   schemeCodesCache = entries;
-  console.log(`Loaded ${entries.length} scheme codes from CSV`);
+
+  const isinMap = new Map<string, number>();
+  for (const e of entries) {
+    if (e.isinGrowth) isinMap.set(e.isinGrowth, e.code);
+    if (e.isinDivReinvestment) isinMap.set(e.isinDivReinvestment, e.code);
+  }
+  isinMapCache = isinMap;
+
+  console.log(`Loaded ${entries.length} scheme codes (${isinMap.size} ISIN mappings) from CSV`);
   return entries;
+}
+
+async function getIsinMap(): Promise<Map<string, number>> {
+  if (isinMapCache) return isinMapCache;
+  await loadSchemeCodes();
+  return isinMapCache!;
 }
 
 function normalize(str: string): string {
@@ -51,13 +80,11 @@ function normalize(str: string): string {
 }
 
 function isDirect(name: string): boolean {
-  const n = name.toLowerCase();
-  return n.includes("direct");
+  return name.toLowerCase().includes("direct");
 }
 
 function isGrowth(name: string): boolean {
-  const n = name.toLowerCase();
-  return n.includes("growth");
+  return name.toLowerCase().includes("growth");
 }
 
 function isIDCW(name: string): boolean {
@@ -98,6 +125,16 @@ function extractCoreFundName(name: string): string {
   return core;
 }
 
+export async function findSchemeCodeByISIN(isin: string): Promise<{ code: number; name: string } | null> {
+  const isinMap = await getIsinMap();
+  const code = isinMap.get(isin.trim());
+  if (!code) return null;
+
+  const entries = await loadSchemeCodes();
+  const entry = entries.find(e => e.code === code);
+  return entry ? { code: entry.code, name: entry.name } : { code, name: "" };
+}
+
 export async function findSchemeCode(schemeName: string): Promise<{ code: number; name: string } | null> {
   const entries = await loadSchemeCodes();
   const inputNorm = normalize(schemeName);
@@ -133,15 +170,11 @@ export async function findSchemeCode(schemeName: string): Promise<{ code: number
 
     let coreMatched = 0;
     for (const w of inputCoreWords) {
-      if (entryCoreWords.includes(w) || entryCore.includes(w)) {
-        coreMatched++;
-      }
+      if (entryCoreWords.includes(w) || entryCore.includes(w)) coreMatched++;
     }
     let coreMissed = 0;
     for (const w of entryCoreWords) {
-      if (!inputCoreWords.includes(w) && !inputCore.includes(w)) {
-        coreMissed++;
-      }
+      if (!inputCoreWords.includes(w) && !inputCore.includes(w)) coreMissed++;
     }
 
     if (inputCoreWords.length > 0) {
@@ -309,6 +342,22 @@ export async function fetchNavData(schemeCode: number): Promise<NavData | null> 
   }
 }
 
+export async function fetchNavByISIN(isin: string, fallbackSchemeName?: string): Promise<NavData | null> {
+  const isinMatch = await findSchemeCodeByISIN(isin);
+  if (isinMatch) {
+    console.log(`ISIN match: "${isin}" -> code ${isinMatch.code} (${isinMatch.name})`);
+    return fetchNavData(isinMatch.code);
+  }
+
+  if (fallbackSchemeName) {
+    console.log(`No ISIN match for "${isin}", falling back to name matching: "${fallbackSchemeName}"`);
+    return fetchNavForScheme(fallbackSchemeName);
+  }
+
+  console.log(`No scheme found for ISIN: ${isin}`);
+  return null;
+}
+
 export async function fetchNavForScheme(schemeName: string): Promise<NavData | null> {
   const match = await findSchemeCode(schemeName);
   if (!match) {
@@ -316,6 +365,6 @@ export async function fetchNavForScheme(schemeName: string): Promise<NavData | n
     return null;
   }
 
-  console.log(`Matched "${schemeName}" -> code ${match.code} (${match.name})`);
+  console.log(`Name match: "${schemeName}" -> code ${match.code} (${match.name})`);
   return fetchNavData(match.code);
 }

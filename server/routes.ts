@@ -11,7 +11,7 @@ import { promisify } from "util";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
-import { fetchNavForScheme, findSchemeCode, searchSchemeCodes } from "./mfapi";
+import { fetchNavForScheme, fetchNavByISIN, findSchemeCode, searchSchemeCodes } from "./mfapi";
 import { extractMetricsFromFactsheet } from "./factsheet";
 import { getMetricsFromJson } from "./json_factsheet";
 import { getBenchmarkReturns } from "./benchmarks";
@@ -222,7 +222,7 @@ ${text}`;
       console.log(`Fetching real data for: ${fundName} (${isin})`);
 
       const [navData, jsonMetrics] = await Promise.all([
-        fetchNavForScheme(fundName),
+        fetchNavByISIN(isin, fundName),
         getMetricsFromJson(fundName)
       ]);
 
@@ -320,7 +320,7 @@ Return ONLY JSON. No markdown.`;
       console.log(`Fetching scheme performance from MFAPI for: ${fundName} (${isin})`);
 
       const [navData, factsheetMetrics] = await Promise.all([
-        fetchNavForScheme(fundName),
+        fetchNavByISIN(isin, fundName),
         extractMetricsFromFactsheet(fundName),
       ]);
 
