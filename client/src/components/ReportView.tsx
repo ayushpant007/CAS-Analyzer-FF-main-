@@ -460,18 +460,23 @@ export function ReportView({ report }: ReportViewProps) {
     if (schemes.length === 0) return;
 
     setIsFetchingNav(true);
-    const schemeNames = schemes.map((s: any) => s.scheme_name).filter(Boolean);
     const statusMap: Record<string, string> = {};
-    schemeNames.forEach((n: string) => { statusMap[n] = "loading"; });
+    schemes.forEach((s: any) => { if (s.scheme_name) statusMap[s.scheme_name] = "loading"; });
     setNavFetchStatus(statusMap);
 
     try {
       const batchSize = 5;
-      for (let i = 0; i < schemeNames.length; i += batchSize) {
-        const batch = schemeNames.slice(i, i + batchSize);
-        const promises = batch.map(async (name: string) => {
+      for (let i = 0; i < schemes.length; i += batchSize) {
+        const batch = schemes.slice(i, i + batchSize);
+        const promises = batch.map(async (scheme: any) => {
+          const name = scheme.scheme_name;
+          const isin = scheme.isin;
+          if (!name) return;
           try {
-            const res = await fetch(`/api/nav/${encodeURIComponent(name)}`);
+            const url = isin
+              ? `/api/nav/${encodeURIComponent(name)}?isin=${encodeURIComponent(isin)}`
+              : `/api/nav/${encodeURIComponent(name)}`;
+            const res = await fetch(url);
             if (res.ok) {
               const data = await res.json();
               setManualNavs(prev => ({ ...prev, [name]: data.current_nav }));

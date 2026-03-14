@@ -180,8 +180,11 @@ ${text}`;
 
   app.get("/api/nav/:schemeName", async (req, res) => {
     const schemeName = decodeURIComponent(req.params.schemeName);
+    const isin = (req.query.isin as string | undefined)?.trim();
     try {
-      const navData = await fetchNavForScheme(schemeName);
+      const navData = isin
+        ? await fetchNavByISIN(isin, schemeName)
+        : await fetchNavForScheme(schemeName);
       if (!navData) {
         return res.status(404).json({ message: "NAV data not found for this scheme" });
       }
