@@ -1,0 +1,40 @@
+Category,sub-category,Benchmark name,1yr,3YR,5yr
+Equity,Large Cap,Nifty 100 TR INR,5.01%,13.52%,10.78%
+Equity,Large & Mid Cap,Nifty LargeMidcap 250 TR INR,7.79%,17.04%,14.14%
+Equity,Mid Cap,Nifty Midcap 150 TR INR,11.38%,20.31%,16.42%
+Equity,Small Cap,BSE 250 SmallCap TR INR,6.48%,16.93%,17.31%
+Equity,Multi Cap,Nifty 500 Multicap 50:25:25 TR INR,6.70%,17.12%,N/A
+Equity,Flexi Cap / Diversified,Nifty 500 TR INR,5.55%,14.66%,11.91%
+Equity,Dividend Yield,Nifty 500 TR INR,6.99%,17.42%,15.72%
+Equity,Value / Contra,Nifty 500 TR INR,9.56%,17.23%,14.30%
+Equity,Sector – Financial Services,Nifty Financial Services TR INR,16.77%,15.00%,11.78%
+Equity,Sector – Technology / IT,Nifty IT TR INR,-13.04%,4.39%,5.14%
+Equity,Sector – Pharma & Healthcare,BSE Healthcare TR INR,9.79%,25.03%,15.20%
+Equity,Sector – Infrastructure,BSE India Infrastructure TRI TR INR,9.30%,20.98%,19.38%
+Equity,Sector – Consumption / FMCG,Nifty India Consumption TR INR,0.51%,12.92%,12.92%
+Equity,Sector – Financial Services,Nifty Financial Services TR INR,16.77%,15.00%,11.78%
+Equity,ESG / Sustainable,Nifty 100 ESG TR INR,2.86%,12.32%,10.28%
+Equity,Value / Contra,Nifty 500 TR INR,9.56%,17.23%,14.30%
+Debt,Banking & PSU Debt,Nifty Banking & PSU Debt Idx A-II TR INR,6.56%,7.08%,6.25%
+Debt,Corporate Bond,NIFTY Corporate Bond A-II TR INR,6.65%,7.28%,6.28%
+Debt,Credit Risk,CRISIL Credit Risk Debt TR INR,9.00%,8.99%,9.45%
+Debt,Dynamic / Composite Bond,Nifty Composite Debt TR INR,4.86%,7.02%,6.14%
+Debt,Ultra Short Duration,NIFTY Ultra Short Duration Debt TR INR,6.27%,6.72%,5.81%
+Debt,Gilt / G-Sec,NIFTY All Duration G-Sec TR INR,4.24%,6.84%,5.65%
+Debt,Liquid / Overnight,CRISIL Liquid Debt TR INR,5.61%,6.29%,5.39%
+Debt,Long Duration,CRISIL Long Duration Debt A-III TR INR,2.64%,7.07%,6.05%
+Debt,Low Duration,NIFTY Low Duration Debt Index TR INR,6.83%,7.12%,6.06%
+Debt,Medium Duration,Nifty Medium Duration Debt TR INR,6.96%,7.71%,7.03%
+Debt,Medium to Long Duration,NIFTY Medium Long Dur Debt TR INR,4.89%,6.93%,5.97%
+Debt,Money Market,CRISIL Money Market TR INR,6.43%,6.95%,5.95%
+Debt,Liquid / Overnight,Nifty Liquid TR INR,5.61%,6.29%,5.39%
+Debt,Short Duration,CRISIL Short Duration Debt TR INR,6.57%,7.35%,6.38%
+Hybrid,Aggressive Hybrid (65:35),CRISIL Hybrid 35+65 - Agg TR INR,6.24%,13.45%,11.44%
+Hybrid,Balanced Hybrid (50:50),CRISIL Hybrid 50+50 - Moderate TR INR,4.94%,11.10%,9.19%
+Hybrid,Conservative Hybrid,CRISIL Hybrid 85+15 - ConservativeTR INR,5.40%,8.70%,7.73%
+Hybrid,Equity Savings,NIFTY Equity Savings TR INR,6.26%,9.64%,8.11%
+Commodities & FoF,Gold,Price of Gold TR INR,108.12%,45.25%,27.57%
+Commodities & FoF,Silver,LBMA Silver Price USD,108.12%,45.25%,27.57%
+Commodities & FoF,Gold,Domestic Price of Gold,108.12%,45.25%,27.57%
+Commodities & FoF,Silver,Domestic Price of Silver,108.12%,45.25%,27.57%
+Commodities & FoF,Arbitrage,NIFTY 50 Arbitrage TR INR,6.28%,7.01%,5.99%

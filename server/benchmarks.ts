@@ -15,6 +15,13 @@ interface SummaryEntry {
   dataRows: number;
 }
 
+interface PrecomputedReturns {
+  benchmarkName: string;
+  "1y": string;
+  "3y": string;
+  "5y": string;
+}
+
 export interface BenchmarkData {
   "1y": string;
   "3y": string;
@@ -24,6 +31,10 @@ export interface BenchmarkData {
 
 const ATTACHED_ASSETS = path.join(process.cwd(), "attached_assets");
 
+// ── Primary flat CSV (pre-computed returns) ───────────────────────────────────
+const PRIMARY_FILE = "master_benchmark_returns_organized.xlsx_-_Sheet1_1773745959092.csv";
+
+// ── Fallback: individual price-series CSVs ────────────────────────────────────
 const DATA_FILES = [
   "master_benchmark_returns_organized.xlsx_-_Equity_1773724210120.csv",
   "master_benchmark_returns_organized.xlsx_-_Debt_1773724225974.csv",
@@ -35,17 +46,73 @@ const DATA_FILES = [
 const SUMMARY_FILE =
   "master_benchmark_returns_organized.xlsx_-_Summary_(1)_1773724187734.csv";
 
-// benchmark name → sorted price entries (newest first)
+// ── In-memory stores ──────────────────────────────────────────────────────────
+
+// PRIMARY: "Category|||SubCategory" → best PrecomputedReturns
+const primarySubCatMap = new Map<string, PrecomputedReturns>();
+// PRIMARY: benchmark name (lowercased-normalized) → PrecomputedReturns
+const primaryNameMap = new Map<string, PrecomputedReturns>();
+
+// FALLBACK: benchmark name → sorted price entries (newest first)
 const benchmarkPrices = new Map<string, PriceEntry[]>();
-// benchmark name → summary info
+// FALLBACK: benchmark name → summary info
 const summaryMap = new Map<string, SummaryEntry>();
-// "Category|||SubCategory" → preferred benchmark name
-const subCategoryMap = new Map<string, string>();
+// FALLBACK: "Category|||SubCategory" → preferred benchmark name
+const fallbackSubCatMap = new Map<string, string>();
 
 let dataLoaded = false;
 let loadPromise: Promise<void> | null = null;
 
-// ── CSV parsing helpers ──────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function normalizeName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function normalizeReturn(val: string): string {
+  const t = val.trim();
+  if (!t || t === "N/A" || t === "-") return "N/A";
+  return t;
+}
+
+// ── Primary CSV parsing ───────────────────────────────────────────────────────
+
+async function parsePrimaryCSV(): Promise<void> {
+  const content = await fs.readFile(path.join(ATTACHED_ASSETS, PRIMARY_FILE), "utf-8");
+  const lines = content.split("\n");
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols = line.split(",");
+    if (cols.length < 6) continue;
+
+    const category = cols[0].trim();
+    const subCategory = cols[1].trim();
+    const benchmarkName = cols[2].trim();
+    const ret1y = normalizeReturn(cols[3]);
+    const ret3y = normalizeReturn(cols[4]);
+    const ret5y = normalizeReturn(cols[5]);
+
+    if (!category || !subCategory || !benchmarkName) continue;
+
+    const entry: PrecomputedReturns = { benchmarkName, "1y": ret1y, "3y": ret3y, "5y": ret5y };
+
+    // Sub-category map: first occurrence wins
+    const subKey = `${category}|||${subCategory}`;
+    if (!primarySubCatMap.has(subKey)) {
+      primarySubCatMap.set(subKey, entry);
+    }
+
+    // Name map: normalized benchmark name → entry
+    const nameKey = normalizeName(benchmarkName);
+    if (!primaryNameMap.has(nameKey)) {
+      primaryNameMap.set(nameKey, entry);
+    }
+  }
+}
+
+// ── Fallback CSV parsing ──────────────────────────────────────────────────────
 
 function parseDate(dateStr: string): Date | null {
   const trimmed = dateStr.trim();
@@ -62,8 +129,6 @@ function parseDate(dateStr: string): Date | null {
 async function parseSummaryCSV(): Promise<void> {
   const content = await fs.readFile(path.join(ATTACHED_ASSETS, SUMMARY_FILE), "utf-8");
   const lines = content.split("\n");
-
-  // For each sub-category, track the best benchmark (NSE India + OK + most rows)
   const subCatCandidates = new Map<string, SummaryEntry>();
 
   for (let i = 1; i < lines.length; i++) {
@@ -85,24 +150,23 @@ async function parseSummaryCSV(): Promise<void> {
 
     const key = `${entry.category}|||${entry.subCategory}`;
     const existing = subCatCandidates.get(key);
-
     if (!existing) {
       subCatCandidates.set(key, entry);
     } else {
-      const existingOk = existing.status === "OK";
-      const newOk = entry.status === "OK";
-      const existingNSE = existing.source === "NSE India";
-      const newNSE = entry.source === "NSE India";
       const newIsBetter =
-        (!existingOk && newOk) ||
-        (existingOk === newOk && !existingNSE && newNSE) ||
-        (existingOk === newOk && existingNSE === newNSE && entry.dataRows > existing.dataRows);
+        (existing.status !== "OK" && entry.status === "OK") ||
+        (existing.status === entry.status &&
+          existing.source !== "NSE India" &&
+          entry.source === "NSE India") ||
+        (existing.status === entry.status &&
+          existing.source === entry.source &&
+          entry.dataRows > existing.dataRows);
       if (newIsBetter) subCatCandidates.set(key, entry);
     }
   }
 
   for (const [key, entry] of subCatCandidates) {
-    subCategoryMap.set(key, entry.benchmarkName);
+    fallbackSubCatMap.set(key, entry.benchmarkName);
   }
 }
 
@@ -142,19 +206,23 @@ async function parseDataCSV(filename: string): Promise<void> {
   }
 }
 
+// ── Data loading ──────────────────────────────────────────────────────────────
+
 async function loadAllData(): Promise<void> {
   if (dataLoaded) return;
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
     try {
+      await parsePrimaryCSV();
       await parseSummaryCSV();
       for (const file of DATA_FILES) {
         await parseDataCSV(file);
       }
       dataLoaded = true;
       console.log(
-        `[Benchmarks] Loaded ${benchmarkPrices.size} benchmarks across ${subCategoryMap.size} sub-categories`
+        `[Benchmarks] Primary: ${primarySubCatMap.size} sub-categories | ` +
+          `Fallback: ${benchmarkPrices.size} price series`
       );
     } catch (err) {
       console.error("[Benchmarks] Failed to load benchmark data:", err);
@@ -164,13 +232,8 @@ async function loadAllData(): Promise<void> {
   return loadPromise;
 }
 
-// ── CAGR calculation ─────────────────────────────────────────────────────────
+// ── CAGR calculation (fallback only) ─────────────────────────────────────────
 
-/**
- * Compute CAGR between the latest data point and a point `yearsBack` years ago.
- * Returns "N/A" if sufficient historical data is not available (missing or
- * the closest matching date is more than 45 days away from the target).
- */
 function computeCAGR(prices: PriceEntry[], yearsBack: number): string {
   if (!prices || prices.length === 0) return "N/A";
 
@@ -181,7 +244,7 @@ function computeCAGR(prices: PriceEntry[], yearsBack: number): string {
   targetDate.setFullYear(targetDate.getFullYear() - yearsBack);
   const targetTime = targetDate.getTime();
 
-  const TOLERANCE_MS = 45 * 24 * 60 * 60 * 1000; // ±45 days
+  const TOLERANCE_MS = 45 * 24 * 60 * 60 * 1000;
 
   let closestEntry: PriceEntry | null = null;
   let minDiff = Infinity;
@@ -192,7 +255,6 @@ function computeCAGR(prices: PriceEntry[], yearsBack: number): string {
       minDiff = diff;
       closestEntry = entry;
     }
-    // Prices are sorted newest→oldest; once we overshoot by more than tolerance, stop
     if (entry.date.getTime() < targetTime - TOLERANCE_MS) break;
   }
 
@@ -202,10 +264,26 @@ function computeCAGR(prices: PriceEntry[], yearsBack: number): string {
   return `${(cagr * 100).toFixed(2)}%`;
 }
 
-// ── Name resolution ───────────────────────────────────────────────────────────
+// ── Name resolution helpers ───────────────────────────────────────────────────
 
-/** Try to find a matching key in benchmarkPrices for a given name. */
-function resolveBenchmarkName(name: string): string | null {
+/** Look up a benchmark name in the primary flat CSV (normalized fuzzy match). */
+function lookupPrimaryByName(name: string): PrecomputedReturns | null {
+  if (!name) return null;
+  const norm = normalizeName(name);
+
+  // Exact normalized match
+  if (primaryNameMap.has(norm)) return primaryNameMap.get(norm)!;
+
+  // Partial match: name contains key or key contains name
+  for (const [key, entry] of primaryNameMap) {
+    if (norm.includes(key) || key.includes(norm)) return entry;
+  }
+
+  return null;
+}
+
+/** Look up a benchmark name in the fallback price-series data. */
+function resolveFallbackName(name: string): string | null {
   if (!name) return null;
   if (benchmarkPrices.has(name)) return name;
 
@@ -214,12 +292,11 @@ function resolveBenchmarkName(name: string): string | null {
     if (key.toLowerCase() === lower) return key;
   }
 
-  const normalized = lower.replace(/[^a-z0-9]/g, "");
+  const norm = normalizeName(name);
   for (const key of benchmarkPrices.keys()) {
-    if (key.toLowerCase().replace(/[^a-z0-9]/g, "") === normalized) return key;
+    if (normalizeName(key) === norm) return key;
   }
 
-  // Partial match (longer name contains shorter one)
   for (const key of benchmarkPrices.keys()) {
     const kl = key.toLowerCase();
     if (kl.includes(lower) || lower.includes(kl)) return key;
@@ -228,7 +305,7 @@ function resolveBenchmarkName(name: string): string | null {
   return null;
 }
 
-// ── Category / sub-category inference ────────────────────────────────────────
+// ── Sub-category inference ────────────────────────────────────────────────────
 
 function inferSubCategory(schemeName: string): { category: string; subCategory: string } | null {
   const s = schemeName.toLowerCase();
@@ -261,7 +338,7 @@ function inferSubCategory(schemeName: string): { category: string; subCategory: 
   if (s.includes("elss") || s.includes("tax saver") || s.includes("tax saving"))
     return { category: "Equity", subCategory: "Flexi Cap / Diversified" };
 
-  // Thematic / Factor
+  // Thematic / Factor / Sector
   if (s.includes("esg") || s.includes("sustainable"))
     return { category: "Equity", subCategory: "ESG / Sustainable" };
   if (s.includes("momentum"))
@@ -386,74 +463,22 @@ function inferSubCategory(schemeName: string): { category: string; subCategory: 
     return { category: "Commodities & FoF", subCategory: "Index Fund / ETF" };
 
   // Generic equity fallback
-  if (s.includes("equity") || s.includes("growth fund") || s.includes("opportunities fund"))
+  if (
+    s.includes("equity") ||
+    s.includes("growth fund") ||
+    s.includes("opportunities fund")
+  )
     return { category: "Equity", subCategory: "Flexi Cap / Diversified" };
 
   return null;
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+// ── Fallback: compute from price series ───────────────────────────────────────
 
-/**
- * Returns CAGR-based benchmark returns for a mutual fund.
- *
- * Priority:
- *  1. If reportedBenchmarkName resolves to a benchmark with price data → compute CAGR
- *  2. If reportedBenchmarkName is a CRISIL index (no public data) → N/A for all periods
- *  3. Fall back to sub-category mapping inferred from schemeName
- */
-export async function getBenchmarkReturns(
-  schemeName: string,
-  reportedBenchmarkName?: string
-): Promise<BenchmarkData | null> {
-  await loadAllData();
-
-  let resolvedName: string | null = null;
-
-  // Step 1: try reported benchmark name
-  if (
-    reportedBenchmarkName &&
-    reportedBenchmarkName.trim().length > 2 &&
-    reportedBenchmarkName !== "Data unavailable"
-  ) {
-    resolvedName = resolveBenchmarkName(reportedBenchmarkName);
-
-    // Not in price data — check if it's a known no-data benchmark (CRISIL etc.)
-    if (!resolvedName) {
-      const isCrisil = reportedBenchmarkName.toLowerCase().includes("crisil");
-      const knownEntry = [...summaryMap.values()].find(
-        (e) => e.benchmarkName.toLowerCase() === reportedBenchmarkName.toLowerCase().trim()
-      );
-      if (isCrisil || (knownEntry && knownEntry.status !== "OK")) {
-        return {
-          "1y": "N/A",
-          "3y": "N/A",
-          "5y": "N/A",
-          resolvedName: reportedBenchmarkName.trim(),
-        };
-      }
-    }
-  }
-
-  // Step 2: fallback via scheme name → sub-category → Summary CSV mapping
-  if (!resolvedName) {
-    const subCat = inferSubCategory(schemeName);
-    if (subCat) {
-      const key = `${subCat.category}|||${subCat.subCategory}`;
-      const mappedName = subCategoryMap.get(key);
-      if (mappedName) {
-        resolvedName = resolveBenchmarkName(mappedName) ?? mappedName;
-      }
-    }
-  }
-
-  if (!resolvedName) return null;
-
-  // Step 3: check availability in price data
+function computeFromPriceSeries(resolvedName: string): BenchmarkData {
   const summaryEntry = summaryMap.get(resolvedName);
   const prices = benchmarkPrices.get(resolvedName);
 
-  // No data (CRISIL / computed benchmarks)
   if (!prices || prices.length === 0 || (summaryEntry && summaryEntry.status !== "OK")) {
     return { "1y": "N/A", "3y": "N/A", "5y": "N/A", resolvedName };
   }
@@ -464,4 +489,80 @@ export async function getBenchmarkReturns(
     "5y": computeCAGR(prices, 5),
     resolvedName,
   };
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+/**
+ * Returns benchmark returns for a mutual fund.
+ *
+ * Priority order:
+ *  1. PRIMARY – Look up reportedBenchmarkName in the flat pre-computed CSV
+ *  2. PRIMARY – Look up by category/sub-category inferred from schemeName
+ *  3. FALLBACK – Compute CAGR from price-series CSVs using reportedBenchmarkName
+ *  4. FALLBACK – Compute CAGR from price-series CSVs using inferred sub-category
+ */
+export async function getBenchmarkReturns(
+  schemeName: string,
+  reportedBenchmarkName?: string
+): Promise<BenchmarkData | null> {
+  await loadAllData();
+
+  const hasReported =
+    reportedBenchmarkName &&
+    reportedBenchmarkName.trim().length > 2 &&
+    reportedBenchmarkName !== "Data unavailable";
+
+  // ── Step 1: Primary lookup by reported benchmark name ────────────────────────
+  if (hasReported) {
+    const primary = lookupPrimaryByName(reportedBenchmarkName!);
+    if (primary) {
+      return {
+        "1y": primary["1y"],
+        "3y": primary["3y"],
+        "5y": primary["5y"],
+        resolvedName: primary.benchmarkName,
+      };
+    }
+  }
+
+  // ── Step 2: Primary lookup by sub-category (inferred from scheme name) ────────
+  const subCat = inferSubCategory(schemeName);
+  if (subCat) {
+    const key = `${subCat.category}|||${subCat.subCategory}`;
+    const primary = primarySubCatMap.get(key);
+    if (primary) {
+      return {
+        "1y": primary["1y"],
+        "3y": primary["3y"],
+        "5y": primary["5y"],
+        resolvedName: primary.benchmarkName,
+      };
+    }
+  }
+
+  // ── Step 3: Fallback – price-series by reported benchmark name ────────────────
+  if (hasReported) {
+    // CRISIL with no data
+    const isCrisil = reportedBenchmarkName!.toLowerCase().includes("crisil");
+    const knownEntry = summaryMap.get(reportedBenchmarkName!.trim());
+    if (isCrisil || (knownEntry && knownEntry.status !== "OK")) {
+      return { "1y": "N/A", "3y": "N/A", "5y": "N/A", resolvedName: reportedBenchmarkName!.trim() };
+    }
+
+    const fallbackName = resolveFallbackName(reportedBenchmarkName!);
+    if (fallbackName) return computeFromPriceSeries(fallbackName);
+  }
+
+  // ── Step 4: Fallback – price-series by inferred sub-category ─────────────────
+  if (subCat) {
+    const key = `${subCat.category}|||${subCat.subCategory}`;
+    const mappedName = fallbackSubCatMap.get(key);
+    if (mappedName) {
+      const fallbackName = resolveFallbackName(mappedName) ?? mappedName;
+      return computeFromPriceSeries(fallbackName);
+    }
+  }
+
+  return null;
 }
