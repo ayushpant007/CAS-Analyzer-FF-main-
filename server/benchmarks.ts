@@ -396,7 +396,7 @@ function inferSubCategory(schemeName: string): { category: string; subCategory: 
     return { category: "Debt", subCategory: "Liquid / Overnight" };
   if (s.includes("liquid fund") || s.includes("liquid -"))
     return { category: "Debt", subCategory: "Liquid / Overnight" };
-  if (s.includes("money market"))
+  if (s.includes("money market") || s.includes("savings fund"))
     return { category: "Debt", subCategory: "Money Market" };
   if (s.includes("ultra short") || s.includes("ultra-short"))
     return { category: "Debt", subCategory: "Ultra Short Duration" };
