@@ -1,0 +1,92 @@
+Benchmark Name,Category,Sub-Category,Source,Status,Data Rows
+NIFTY 100 TRI,Equity,Large Cap,NSE India,OK,2478
+S&P BSE 100 TRI,Equity,Large Cap,BSE India (Investing.com),OK,2480
+NIFTY LargeMidcap 250 TRI,Equity,Large & Mid Cap,NSE India,OK,2478
+S&P BSE 250 LargeMidCap TRI,Equity,Large & Mid Cap,BSE India (Investing.com),OK,2478
+NIFTY Midcap 150 TRI,Equity,Mid Cap,NSE India,OK,1778
+S&P BSE 150 MidCap TRI,Equity,Mid Cap,BSE India (Investing.com),OK,1778
+NIFTY Smallcap 250 TRI,Equity,Small Cap,NSE India,OK,1778
+S&P BSE 250 SmallCap TRI,Equity,Small Cap,BSE India (Investing.com),OK,1778
+NIFTY 500 Multicap 50:25:25 TRI,Equity,Multi Cap,NSE India,OK,2478
+NIFTY 500 TRI,Equity,Flexi Cap / Diversified,NSE India,OK,2478
+S&P BSE 500 TRI,Equity,Flexi Cap / Diversified,BSE India (Investing.com),OK,2478
+NIFTY Dividend Opportunities 50 TRI,Equity,Dividend Yield,NSE India,OK,2469
+NIFTY 500 Value 50 TRI,Equity,Value / Contra,NSE India,OK,310
+NIFTY Financial Services TRI,Equity,Sector – Financial Services,NSE India,OK,2478
+NIFTY Bank TRI,Equity,Sector – Financial Services,NSE India,OK,2484
+NIFTY IT TRI,Equity,Sector – Technology / IT,NSE India,OK,2484
+NIFTY Pharma TRI,Equity,Sector – Pharma & Healthcare,NSE India,OK,2495
+S&P BSE Healthcare TRI,Equity,Sector – Pharma & Healthcare,BSE India (Investing.com),OK,1142
+NIFTY Infrastructure TRI,Equity,Sector – Infrastructure,NSE India,OK,2469
+NIFTY India Consumption TRI,Equity,Sector – Consumption / FMCG,NSE India,OK,2469
+NIFTY Transportation & Logistics TRI,Equity,Sector – Infrastructure,NSE India,OK,310
+NIFTY Auto TRI,Equity,Sector – Consumption / FMCG,NSE India,OK,2469
+NIFTY FMCG TRI,Equity,Sector – Consumption / FMCG,NSE India,OK,2468
+NIFTY Energy TRI,Equity,Sector – Energy & Commodities,NSE India,OK,2469
+NIFTY Metal TRI,Equity,Sector – Energy & Commodities,NSE India,OK,2469
+NIFTY Realty TRI,Equity,Sector – Real Estate,NSE India,OK,2469
+NIFTY PSU Bank TRI,Equity,Sector – Financial Services,NSE India,OK,2495
+NIFTY Private Bank TRI,Equity,Sector – Financial Services,NSE India,OK,2479
+NIFTY India Manufacturing TRI,Equity,Sector – Infrastructure,NSE India,OK,2469
+NIFTY MNC TRI,Equity,Thematic – MNC,NSE India,OK,2495
+S&P BSE PSU TRI,Equity,Thematic – PSU / Government,BSE India (Investing.com),OK,2495
+NIFTY 100 ESG TRI,Equity,ESG / Sustainable,NSE India,OK,1037
+NIFTY 200 Momentum 30 TRI,Equity,Factor – Momentum,NSE India,OK,543
+NIFTY Alpha Low-Volatility 30 TRI,Equity,Factor – Low Volatility / Alpha,NSE India,OK,1391
+NIFTY50 Value 20 TRI,Equity,Factor – Value (Large Cap),NSE India,OK,2495
+NIFTY 200 Quality 30 TRI,Equity,Factor – Quality,NSE India,OK,2478
+NIFTY500 Value 50 TRI,Equity,Value / Contra,NSE India,OK,310
+NIFTY Banking & PSU Debt Index,Debt,Banking & PSU Debt,NSE India,OK,2478
+NIFTY Corporate Bond Index,Debt,Corporate Bond,NSE India,OK,2478
+CRISIL Corporate Bond Index,Debt,Corporate Bond,CRISIL,NOTE – no public price series,0
+NIFTY Credit Risk Bond Index,Debt,Credit Risk,NSE India,OK,2478
+CRISIL Credit Risk Debt Index,Debt,Credit Risk,CRISIL,NOTE – no public price series,0
+NIFTY Composite Debt Index,Debt,Dynamic / Composite Bond,NSE India,OK,2478
+CRISIL Dynamic Bond Index,Debt,Dynamic / Composite Bond,CRISIL,NOTE – no public price series,0
+NIFTY Ultra Short Duration Debt Index,Debt,Ultra Short Duration,NSE India,OK,2478
+CRISIL Ultra Short Term Debt Index,Debt,Ultra Short Duration,CRISIL,NOTE – no public price series,0
+NIFTY All Duration G-Sec Index,Debt,Gilt / G-Sec,NSE India,OK,2532
+CRISIL Dynamic Gilt Index,Debt,Gilt / G-Sec,CRISIL,NOTE – no public price series,0
+CRISIL 10 Year Gilt Index,Debt,Gilt / G-Sec,CRISIL,NOTE – no public price series,0
+NIFTY Liquid Index,Debt,Liquid / Overnight,NSE India,OK,2478
+NIFTY Long Duration Debt Index A-III,Debt,Long Duration,NSE India,OK,2478
+CRISIL Long Duration Debt A-III Index,Debt,Long Duration,CRISIL,NOTE – no public price series,0
+NIFTY Low Duration Debt Index,Debt,Low Duration,NSE India,OK,2478
+CRISIL Low Duration Debt Index,Debt,Low Duration,CRISIL,NOTE – no public price series,0
+NIFTY Medium Duration Debt Index,Debt,Medium Duration,NSE India,OK,2478
+CRISIL Medium Duration Debt Index,Debt,Medium Duration,CRISIL,NOTE – no public price series,0
+NIFTY Medium to Long Duration Debt Index,Debt,Medium to Long Duration,NSE India,OK,2478
+NIFTY Money Market Index,Debt,Money Market,NSE India,OK,2478
+NIFTY 1D Rate Index,Debt,Liquid / Overnight,NSE India,OK,2478
+NIFTY Short Duration Debt Index,Debt,Short Duration,NSE India,OK,2478
+CRISIL Short Duration Debt Index,Debt,Short Duration,CRISIL,NOTE – no public price series,0
+NIFTY 50 Hybrid Composite Debt 65:35 Index,Hybrid,Aggressive Hybrid (65:35),NSE India,OK,2482
+CRISIL Hybrid 35+65 Aggressive Index,Hybrid,Aggressive Hybrid (65:35),CRISIL,NOTE – no public price series,0
+NIFTY 50 Hybrid Composite Debt 50:50 Index,Hybrid,Balanced Hybrid (50:50),NSE India,OK,2482
+CRISIL Hybrid 85+15 - Conservative Index,Hybrid,Conservative Hybrid,CRISIL,NOTE – no public price series,0
+NIFTY Equity Savings Index,Hybrid,Equity Savings,NSE India,OK,2478
+65% NIFTY 50 + 25% Composite Debt + 10% Gold (Multi Asset Benchmark),Hybrid,Multi Asset Allocation,NSE India,COMPUTED – no single series,0
+NIFTY 500 TRI (Children/Retirement Equity),Solution Oriented,Children's / Retirement – Equity,NSE India,OK,2478
+NIFTY 50 Hybrid Composite Debt 65:35 Index (Children/Retirement),Solution Oriented,Children's / Retirement – Aggressive Hybrid,NSE India,OK,2482
+NIFTY 50 Hybrid Composite Debt 15:85 Conservative Index,Solution Oriented,Children's / Retirement – Conservative,NSE India,OK,2482
+S&P BSE 500 TRI (Retirement/Children),Solution Oriented,Children's / Retirement – Equity,BSE India (Investing.com),OK,2478
+BSE 500 Total Return Index,Solution Oriented,Children's / Retirement – Equity,BSE India (Investing.com),OK,2478
+CRISIL Hybrid 35+65 Aggressive Index (Retirement),Solution Oriented,Children's / Retirement – Aggressive Hybrid,CRISIL,NOTE – no public price series,0
+CRISIL Hybrid 25+75 Aggressive Index,Solution Oriented,Children's / Retirement – Aggressive Hybrid,CRISIL,NOTE – no public price series,0
+CRISIL Hybrid 75+25 Conservative Index,Solution Oriented,Children's / Retirement – Conservative,CRISIL,NOTE – no public price series,0
+CRISIL Hybrid 50+50 Moderate Index,Solution Oriented,Children's / Retirement – Balanced,CRISIL,NOTE – no public price series,0
+CRISIL Hybrid 65+35 Conservative Index,Solution Oriented,Children's / Retirement – Conservative,CRISIL,NOTE – no public price series,0
+CRISIL Hybrid 85+15 Conservative Index,Solution Oriented,Children's / Retirement – Conservative,CRISIL,NOTE – no public price series,0
+CRISIL Short Term Debt Hybrid 60+40 Fund Index,Solution Oriented,Children's / Retirement – Debt Hybrid,CRISIL,NOTE – no public price series,0
+CRISIL Short Term Debt Hybrid 60+40 Index,Solution Oriented,Children's / Retirement – Debt Hybrid,CRISIL,NOTE – no public price series,0
+CRISIL Short Term Debt Hybrid 75+25 Index,Solution Oriented,Children's / Retirement – Debt Hybrid,CRISIL,NOTE – no public price series,0
+CRISIL Short Term Bond Fund Index,Solution Oriented,Children's / Retirement – Pure Debt,CRISIL,NOTE – no public price series,0
+NIFTY Composite Debt Index (Retirement Pure Debt),Solution Oriented,Children's / Retirement – Pure Debt,NSE India,OK,2478
+Domestic Price of Gold (MCX/International),Commodities & FoF,Gold,MCX / Investing.com,OK,2533
+Domestic Price of Silver (MCX/International),Commodities & FoF,Silver,MCX / Investing.com,OK,2533
+Gold ETF (India) - GOLDBEES,Commodities & FoF,Gold,NSE India (ETF Price),OK,2487
+Silver ETF (India) - SILVERBEES,Commodities & FoF,Silver,NSE India (ETF Price),OK,1014
+MSCI World Index (via URTH ETF),Commodities & FoF,International / Global FoF,Investing.com,OK,2533
+S&P 500 Index,Commodities & FoF,International / Global FoF,Investing.com,OK,2533
+Nifty 50 Arbitrage Index,Commodities & FoF,Arbitrage,NSE India,OK,2478
+Nifty 500 TRI (Index Fund Benchmark),Commodities & FoF,Index Fund / ETF,NSE India,OK,2478
