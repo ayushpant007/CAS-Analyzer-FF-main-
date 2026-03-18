@@ -1848,6 +1848,7 @@ export function ReportView({ report }: ReportViewProps) {
               <tr>
                 <th className="px-4 py-3">Scheme Name</th>
                 <th className="px-4 py-3">Category / Type</th>
+                <th className="px-4 py-3">Folio No.</th>
                 <th className="px-4 py-3 text-right">No. of Units</th>
                 <th className="px-4 py-3 text-right">NAV (₹)</th>
                 <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
@@ -1865,6 +1866,7 @@ export function ReportView({ report }: ReportViewProps) {
                       <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
                     </div>
                   </td>
+                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
                   <td className="px-4 py-3 text-right">{ (mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3}) }</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
