@@ -1602,118 +1602,60 @@ export function ReportView({ report }: ReportViewProps) {
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className={`space-y-6 pt-4 border-t-4 border-${getClassifiedColor(performances[mf.isin])}-500 transition-all duration-500`}
+                  className={`pt-3 border-t-4 border-${getClassifiedColor(performances[mf.isin])}-500 space-y-3`}
                 >
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full bg-${getClassifiedColor(performances[mf.isin])}-500 shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
-                        <p className={`text-sm font-bold text-${getClassifiedColor(performances[mf.isin])}-700 uppercase tracking-wider`}>
-                          Performance Status: {
-                            getClassifiedColor(performances[mf.isin]) === "emerald" ? "Good (Outperforming Benchmark)" :
-                            getClassifiedColor(performances[mf.isin]) === "amber" ? "Average (Matching Benchmark)" :
-                            "Poor (Underperforming Benchmark)"
-                          }
-                        </p>
-                      </div>
+                    {/* Status + NAV + Benchmark row */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold bg-${getClassifiedColor(performances[mf.isin])}-100 text-${getClassifiedColor(performances[mf.isin])}-700 border border-${getClassifiedColor(performances[mf.isin])}-200`}>
+                        <div className={`w-1.5 h-1.5 rounded-full bg-${getClassifiedColor(performances[mf.isin])}-500`} />
+                        {getClassifiedColor(performances[mf.isin]) === "emerald" ? "Outperforming" : getClassifiedColor(performances[mf.isin]) === "amber" ? "Matching Benchmark" : "Underperforming"}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-medium">NAV: <span className="text-slate-700 font-bold">₹{performances[mf.isin].nav?.value}</span> <span className="text-slate-400">({performances[mf.isin].nav?.date})</span></span>
+                      {performances[mf.isin].benchmark_name && performances[mf.isin].benchmark_name !== "Data unavailable" && (
+                        <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[200px]">{performances[mf.isin].benchmark_name}</span>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                        <h5 className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">AI Reason</h5>
-                        <p className="text-xs text-slate-700 leading-relaxed">
-                          {performances[mf.isin].risk_ratios?.alpha?.fund && parseFloat(performances[mf.isin].risk_ratios.alpha.fund) > 0 
-                            ? `This fund is generating a positive alpha, indicating superior stock selection and management performance relative to its benchmark. `
-                            : ""}
-                          {getClassifiedColor(performances[mf.isin]) === "emerald" 
-                            ? "Consistent outperformance across multiple time horizons suggests strong fund management and a robust investment strategy."
-                            : getClassifiedColor(performances[mf.isin]) === "amber"
-                            ? "Performance is closely tracking the benchmark, providing market-representative returns with standard risk levels."
-                            : "Underperformance relative to the benchmark may be due to high expense ratios or defensive positioning in a bullish market."
-                          }
-                        </p>
-                      </div>
-                      <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
-                        <h5 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2">My Remarks</h5>
-                        <textarea
-                          className="w-full bg-white/50 border border-amber-200 rounded-lg p-2 text-xs focus:ring-1 focus:ring-amber-400 outline-none min-h-[60px] resize-none"
-                          placeholder="Add your own observations here..."
-                          value={manualRemarks[mf.isin] || ""}
-                          onChange={(e) => setManualRemarks(prev => ({ ...prev, [mf.isin]: e.target.value }))}
-                        />
-                      </div>
+                    {/* Returns table */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {(['1y', '3y', '5y'] as const).map((period) => (
+                        <div key={period} className="bg-slate-50 rounded-lg border border-slate-100 p-2 text-center">
+                          <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{period === '1y' ? '1-Yr' : period === '3y' ? '3-Yr' : '5-Yr'}</p>
+                          <p className="text-sm font-black text-slate-900">{performances[mf.isin].cagr[period]}</p>
+                          {performances[mf.isin].benchmark_returns?.[period] && (
+                            <p className="text-[9px] text-blue-500 font-semibold">BM: {performances[mf.isin].benchmark_returns[period]}</p>
+                          )}
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6">
+                    {/* Performance score + remarks inline */}
+                    {(() => {
+                      const score = calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns);
+                      return (
+                        <div className="flex flex-wrap gap-2 items-start">
+                          <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5 text-[10px] shrink-0">
+                            <span className="text-blue-500 font-semibold uppercase">Perf Score</span>
+                            <span className="font-black text-blue-800 text-xs">{score.total}<span className="font-medium text-blue-400">/40</span></span>
+                            <span className="text-blue-300">|</span>
+                            <span className="text-slate-500">1Y <b className="text-slate-700">{score.breakDown["1y"]}</b>/10</span>
+                            <span className="text-slate-500">3Y <b className="text-slate-700">{score.breakDown["3y"]}</b>/15</span>
+                            <span className="text-slate-500">5Y <b className="text-slate-700">{score.breakDown["5y"]}</b>/15</span>
+                          </div>
+                          <textarea
+                            className="flex-1 min-w-[120px] bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 text-[10px] focus:ring-1 focus:ring-amber-300 outline-none resize-none h-[32px]"
+                            placeholder="Remarks..."
+                            value={manualRemarks[mf.isin] || ""}
+                            onChange={(e) => setManualRemarks(prev => ({ ...prev, [mf.isin]: e.target.value }))}
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    <div className="grid grid-cols-1 gap-3">
                     {/* Returns & Basic Stats */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-end">
-                        <div className="flex flex-col gap-1">
-                          <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Performance & NAV</h5>
-                          <div className="flex flex-wrap gap-1">
-                            {performances[mf.isin].benchmark_name && performances[mf.isin].benchmark_name !== "Data unavailable" && (
-                              <span className="text-[9px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                                {performances[mf.isin].benchmark_name}
-                              </span>
-                            )}
-                            {performances[mf.isin].data_sources?.nav && (
-                              <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                                {performances[mf.isin].data_sources.nav}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-[10px] text-slate-500">NAV: ₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['1y', '3y', '5y'].map((period) => (
-                          <div key={period} className="bg-white p-2 rounded-lg border border-slate-100 text-center">
-                            <p className="text-[10px] text-slate-500 uppercase">{period === '1y' ? '1-Year' : period === '3y' ? '3-Year' : '5-Year'}</p>
-                            <p className="font-bold text-slate-900">{performances[mf.isin].cagr[period as "1y" | "3y" | "5y"]}</p>
-                            {performances[mf.isin].benchmark_returns && (
-                              <div className="mt-1 pt-1 border-t border-slate-50">
-                                <p className="text-[8px] text-slate-400 font-medium">Benchmark</p>
-                                <p className="text-[9px] font-bold text-blue-600">
-                                  {performances[mf.isin].benchmark_returns[period as "1y" | "3y" | "5y"]}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                    <div className="space-y-3">
                       <div className="grid grid-cols-1 gap-2">
-                        <div className="bg-slate-100/50 p-2 rounded-lg text-center border border-slate-200">
-                          <p className="text-[10px] text-slate-500 uppercase font-bold">NAV</p>
-                          <p className="text-sm font-bold text-slate-900">₹{performances[mf.isin].nav?.value} ({performances[mf.isin].nav?.date})</p>
-                        </div>
-                        {(() => {
-                          const score = calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns);
-                          return (
-                            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-                              <div className="flex justify-between items-center mb-2">
-                                <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider">Performance Scoring Breakdown</p>
-                                <p className="text-xs font-bold text-blue-700">Total: {score.total}/40</p>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 mb-2">
-                                <div className="text-center">
-                                  <p className="text-[8px] text-slate-500 uppercase">1Y Score</p>
-                                  <p className="text-xs font-bold text-slate-900">{score.breakDown["1y"]}/10</p>
-                                </div>
-                                <div className="text-center border-x border-blue-100">
-                                  <p className="text-[8px] text-slate-500 uppercase">3Y Score</p>
-                                  <p className="text-xs font-bold text-slate-900">{score.breakDown["3y"]}/15</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="text-[8px] text-slate-500 uppercase">5Y Score</p>
-                                  <p className="text-xs font-bold text-slate-900">{score.breakDown["5y"]}/15</p>
-                                </div>
-                              </div>
-                              <p className="text-[9px] text-center text-blue-500 font-medium italic border-t border-blue-100 pt-1">
-                                Performance Score = 1Y Score + 3Y Score + 5Y Score
-                              </p>
-                            </div>
-                          );
-                        })()}
-                      </div>
 
                       {/* Financial Metrics Section — from Scoring files */}
                       {(() => {
@@ -1875,6 +1817,7 @@ export function ReportView({ report }: ReportViewProps) {
                       })()}
                     </div>
                   </div>
+                </div>
                 </motion.div>
               )}
             </div>
