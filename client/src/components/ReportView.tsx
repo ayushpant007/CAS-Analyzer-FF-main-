@@ -521,137 +521,104 @@ export function ReportView({ report }: ReportViewProps) {
     setIsDownloading(true);
 
     try {
-      // 1. Extract all compiled CSS from the live document (same-origin, so this works)
-      let allCss = "";
-      for (const sheet of Array.from(document.styleSheets)) {
-        try {
-          const rules = Array.from(sheet.cssRules || []);
-          allCss += rules.map((r) => r.cssText).join("\n") + "\n";
-        } catch {
-          if (sheet.href) allCss += `@import url('${sheet.href}');\n`;
+      const { jsPDF } = await import("jspdf");
+      const html2canvas = (await import("html2canvas")).default;
+
+      // A4 dimensions in points (jsPDF default unit)
+      const PAGE_W_PT = 595.28;
+      const PAGE_H_PT = 841.89;
+      const MARGIN_PT = 28; // ~10mm
+      const CONTENT_W_PT = PAGE_W_PT - MARGIN_PT * 2;
+      const CONTENT_H_PT = PAGE_H_PT - MARGIN_PT * 2;
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+
+      // Gather all direct child sections of the report container
+      const sections = Array.from(reportRef.current.children) as HTMLElement[];
+
+      let cursorY = MARGIN_PT;
+      let firstPage = true;
+
+      const h2cOptions = {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#f8fafc",
+        logging: false,
+        onclone: (_doc: Document, el: HTMLElement) => {
+          // Hide interactive chrome in the captured snapshot
+          el.querySelectorAll<HTMLElement>(
+            "button, [role='button'], .no-print, input[type='range']"
+          ).forEach((n) => { n.style.display = "none"; });
+          // Replace number inputs with plain text spans
+          el.querySelectorAll<HTMLInputElement>("input[type='number'], input:not([type])").forEach((inp) => {
+            const s = document.createElement("span");
+            s.textContent = inp.value;
+            s.style.cssText = "font-family:monospace;font-size:12px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;background:#fff;color:#1e293b;display:inline-block;";
+            inp.replaceWith(s);
+          });
+        },
+      } as any;
+
+      for (const section of sections) {
+        // Skip the button-only row
+        if (
+          !section.textContent?.trim() ||
+          (section.children.length === 1 && section.querySelector("button"))
+        ) continue;
+
+        const canvas = await html2canvas(section, {
+          ...h2cOptions,
+          width: section.scrollWidth,
+        });
+
+        // Scale the canvas image to fit the PDF content width
+        const ratio = CONTENT_W_PT / canvas.width;
+        const imgH = canvas.height * ratio;
+        const imgData = canvas.toDataURL("image/jpeg", 0.93);
+
+        // If this section won't fit on the remaining space of the current page,
+        // start a fresh page (unless it's the very first item)
+        if (!firstPage && cursorY + imgH > PAGE_H_PT - MARGIN_PT) {
+          pdf.addPage();
+          cursorY = MARGIN_PT;
         }
+
+        // If the section itself is taller than a full page, tile it across pages
+        if (imgH > CONTENT_H_PT) {
+          let srcOffsetPt = 0;
+          while (srcOffsetPt < imgH) {
+            const sliceH = Math.min(CONTENT_H_PT, imgH - srcOffsetPt);
+            // srcY in canvas pixels for this slice
+            const srcY = (srcOffsetPt / ratio);
+            const sliceCanvas = document.createElement("canvas");
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = sliceH / ratio;
+            const ctx = sliceCanvas.getContext("2d")!;
+            ctx.drawImage(canvas, 0, -srcY);
+            const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.93);
+            pdf.addImage(sliceData, "JPEG", MARGIN_PT, cursorY, CONTENT_W_PT, sliceH);
+            srcOffsetPt += sliceH;
+            if (srcOffsetPt < imgH) {
+              pdf.addPage();
+              cursorY = MARGIN_PT;
+            }
+          }
+          cursorY += Math.min(CONTENT_H_PT, imgH) + 6;
+        } else {
+          pdf.addImage(imgData, "JPEG", MARGIN_PT, cursorY, CONTENT_W_PT, imgH);
+          cursorY += imgH + 6;
+        }
+
+        firstPage = false;
       }
 
-      // 2. Print-mode CSS: A4 page, break-inside:avoid on sections, preserve colours
-      const printCss = `
-        @page {
-          size: A4 portrait;
-          margin: 15mm 12mm;
-        }
-        html, body {
-          margin: 0 !important;
-          padding: 0 !important;
-          background: #f8fafc !important;
-        }
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-          color-adjust: exact !important;
-          box-sizing: border-box;
-        }
-        .pdf-wrap {
-          width: 100%;
-          max-width: 186mm;
-          margin: 0 auto;
-          font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-        }
-        /* Every top-level section avoids internal page breaks */
-        .pdf-section {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          margin-bottom: 6mm;
-        }
-        /* Subsections inside a section also avoid breaks */
-        .pdf-subsection {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-        }
-        /* No buttons, loaders, or interactive chrome in the PDF */
-        button, [role="button"], .no-print { display: none !important; }
-        /* Inputs are already replaced with spans below */
-        input { display: none !important; }
-      `;
+      const filename =
+        report.filename.replace(/\.pdf$/i, "").replace(/\s*\([^)]*\)/g, "").trim() +
+        "_Report.pdf";
+      pdf.save(filename);
 
-      // 3. Clone the report DOM (this copies rendered SVG charts too)
-      const reportEl = reportRef.current;
-      const clone = reportEl.cloneNode(true) as HTMLElement;
-
-      // Mark every direct child section with break-inside: avoid
-      Array.from(clone.children).forEach((child) => {
-        (child as HTMLElement).classList.add("pdf-section");
-        // Also mark grandchildren (inner cards/rows) so they don't split
-        Array.from((child as HTMLElement).children).forEach((gc) => {
-          (gc as HTMLElement).classList.add("pdf-subsection");
-        });
-      });
-
-      // Remove all buttons from the clone
-      clone.querySelectorAll("button").forEach((btn) => btn.remove());
-
-      // Replace <input> elements with static <span>s showing their current value
-      const origInputs = Array.from(reportEl.querySelectorAll("input"));
-      const cloneInputs = Array.from(clone.querySelectorAll("input"));
-      origInputs.forEach((orig, i) => {
-        const ci = cloneInputs[i];
-        if (!ci) return;
-        const span = document.createElement("span");
-        span.textContent = (orig as HTMLInputElement).value;
-        span.style.cssText =
-          "display:inline-block;font-family:monospace;font-size:12px;" +
-          "padding:2px 6px;border:1px solid #e2e8f0;border-radius:4px;" +
-          "background:#fff;color:#1e293b;";
-        ci.replaceWith(span);
-      });
-
-      // 4. Open a dedicated print window
-      const pw = window.open("", "_blank", "width=960,height=800,scrollbars=yes");
-      if (!pw) {
-        toast({
-          title: "Popup blocked",
-          description: "Please allow popups for this site and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      pw.document.open();
-      pw.document.write(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>FinAnalyze Report – ${report.filename.replace(/\.pdf$/i, "")}</title>
-  <style>${allCss}</style>
-  <style>${printCss}</style>
-</head>
-<body>
-  <div class="pdf-wrap">
-    ${clone.outerHTML}
-  </div>
-</body>
-</html>`);
-      pw.document.close();
-
-      // 5. Wait for all resources (fonts, images) to fully load
-      await new Promise<void>((resolve) => {
-        if (pw.document.readyState === "complete") { resolve(); return; }
-        pw.addEventListener("load", () => resolve());
-        setTimeout(resolve, 3000);
-      });
-      // Extra buffer for web fonts
-      await new Promise((r) => setTimeout(r, 600));
-
-      // 6. Trigger the browser's native print dialog
-      pw.focus();
-      pw.print();
-
-      toast({
-        title: "Print dialog opened",
-        description: 'Select "Save as PDF", set paper size to A4, then click Save.',
-      });
-
-      // Close the print window after the user is done (30 s grace period)
-      setTimeout(() => { try { pw.close(); } catch {} }, 30_000);
+      toast({ title: "PDF Downloaded", description: "Your report has been saved successfully." });
 
     } catch (err: any) {
       console.error("PDF Export Error:", err);
@@ -858,7 +825,7 @@ export function ReportView({ report }: ReportViewProps) {
           ) : (
             <Download className="w-4 h-4 mr-2" />
           )}
-          {isDownloading ? "Preparing PDF..." : "Save as PDF"}
+          {isDownloading ? "Generating PDF..." : "Download PDF"}
         </Button>
       </div>
       <motion.div 
