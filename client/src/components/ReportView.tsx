@@ -1848,7 +1848,7 @@ export function ReportView({ report }: ReportViewProps) {
               <tr>
                 <th className="px-3 py-2">Scheme</th>
                 <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2">Folio</th>
+                <th className="px-3 py-2">Score</th>
                 <th className="px-3 py-2 text-right">Units</th>
                 <th className="px-3 py-2 text-right">NAV (₹)</th>
                 <th className="px-3 py-2 text-right">Invested (₹)</th>
@@ -1880,7 +1880,30 @@ export function ReportView({ report }: ReportViewProps) {
                         <span className="text-slate-400 text-[9px]">{mf.fund_type || ''}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2 font-mono text-slate-400 text-[10px]">{mf.folio_no}</td>
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const sc = scoringRecords[mf.isin];
+                        const perf = performances[mf.isin];
+                        if (!sc) return <span className="text-slate-300 text-[10px]">—</span>;
+                        const combined = sc.totalScore + (perf ? calculatePerformanceScore(perf.cagr, perf.benchmark_returns).total : 0);
+                        const maxScore = perf ? 80 : 40;
+                        const rating: string = sc.fundRating || "";
+                        const pillStyle: Record<string, string> = {
+                          "Excellent": "bg-emerald-100 text-emerald-700",
+                          "Good": "bg-blue-100 text-blue-700",
+                          "Average": "bg-amber-100 text-amber-700",
+                          "Poor": "bg-rose-100 text-rose-700",
+                          "Very Poor": "bg-rose-200 text-rose-800",
+                        };
+                        const cls = pillStyle[rating] ?? "bg-slate-100 text-slate-600";
+                        return (
+                          <div className="flex flex-col items-start gap-0.5">
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${cls}`}>{rating || "—"}</span>
+                            <span className="text-[9px] text-slate-400 font-mono">{combined}/{maxScore}</span>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="px-3 py-2 text-right text-slate-600">{(mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
