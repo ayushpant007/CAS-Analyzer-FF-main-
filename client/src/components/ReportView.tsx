@@ -1795,36 +1795,17 @@ export function ReportView({ report }: ReportViewProps) {
                               const perfScore = calculatePerformanceScore(performances[mf.isin].cagr, performances[mf.isin].benchmark_returns);
                               const combinedScore = sc.totalScore + perfScore.total;
                               return (
-                                <div className={`mt-4 p-4 rounded-xl border-2 ${ratingStyle.bg} ${ratingStyle.border} shadow-sm`}>
-                                  <div className="flex flex-col items-center text-center space-y-2">
-                                    <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Overall Fund Analysis</h5>
-                                    <div className="flex items-center gap-6 flex-wrap justify-center">
-                                      <div className="text-center">
-                                        <p className="text-[8px] text-slate-400 uppercase">Financial Score</p>
-                                        <p className="text-lg font-black text-slate-700">{sc.totalScore}<span className="text-xs font-bold text-slate-400">/40</span></p>
-                                      </div>
-                                      <div className="h-10 w-px bg-slate-200 hidden md:block" />
-                                      <div className="text-center">
-                                        <p className="text-[8px] text-slate-400 uppercase">Perf Score</p>
-                                        <p className="text-lg font-black text-slate-700">{perfScore.total}<span className="text-xs font-bold text-slate-400">/40</span></p>
-                                      </div>
-                                      <div className="h-10 w-px bg-slate-200 hidden md:block" />
-                                      <div className="text-center">
-                                        <p className="text-[8px] text-slate-400 uppercase">Total Score</p>
-                                        <p className="text-2xl font-black text-slate-900">{combinedScore}<span className="text-sm font-bold text-slate-400">/80</span></p>
-                                      </div>
-                                      <div className="h-10 w-px bg-slate-200 hidden md:block" />
-                                      <div className="text-center">
-                                        <p className="text-[8px] text-slate-400 uppercase">Fund Rating</p>
-                                        <p className={`text-2xl font-black ${ratingStyle.text} uppercase tracking-tight`}>{sc.fundRating}</p>
-                                      </div>
-                                      <div className="h-10 w-px bg-slate-200 hidden md:block" />
-                                      <div className="text-center">
-                                        <p className="text-[8px] text-slate-400 uppercase">Risk Category</p>
-                                        <p className="text-sm font-bold text-slate-700">{sc.riskCategory}</p>
-                                      </div>
-                                    </div>
-                                  </div>
+                                <div className={`mt-3 px-3 py-2 rounded-lg border ${ratingStyle.bg} ${ratingStyle.border} flex flex-wrap items-center gap-x-4 gap-y-1`}>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Overall</span>
+                                  <span className="text-[10px] text-slate-500">Fin: <b className="text-slate-700">{sc.totalScore}</b><span className="text-slate-400">/40</span></span>
+                                  <span className="text-slate-300">·</span>
+                                  <span className="text-[10px] text-slate-500">Perf: <b className="text-slate-700">{perfScore.total}</b><span className="text-slate-400">/40</span></span>
+                                  <span className="text-slate-300">·</span>
+                                  <span className="text-[11px] font-black text-slate-900">{combinedScore}<span className="text-[9px] font-bold text-slate-400">/80</span></span>
+                                  <span className="text-slate-300">·</span>
+                                  <span className={`text-xs font-black uppercase ${ratingStyle.text}`}>{sc.fundRating}</span>
+                                  <span className="text-slate-300">·</span>
+                                  <span className="text-[10px] font-semibold text-slate-600">{sc.riskCategory}</span>
                                 </div>
                               );
                             })()}
