@@ -2127,18 +2127,26 @@ export function ReportView({ report }: ReportViewProps) {
               "SWP (Systematic Withdrawal Plan)": [] as any[]
             };
 
+            // Build scheme_name -> fund_category lookup from mf_snapshot
+            const fundCategoryMap: Record<string, string> = {};
+            (analysis.mf_snapshot || []).forEach((mf: any) => {
+              if (mf.scheme_name) fundCategoryMap[mf.scheme_name] = (mf.fund_category || "").toLowerCase();
+            });
+
             transactions.forEach((tx: any) => {
               const category = categorize(tx.type || "");
               const typeLower = (tx.type || "").toLowerCase();
-              const schemeLower = (tx.scheme_name || "").toLowerCase();
-              
-              // Skip "Switch In" transactions (receiving end of a transfer, not an outflow)
-              const isSwitchIn = typeLower.includes("switch in");
 
-              if (isSwitchIn) return;
+              // Skip explicit "Switch In" type transactions
+              if (typeLower.includes("switch in")) return;
 
-              if (category === "STP") sections["STP (Systematic Transfer Plan)"].push(tx);
-              else if (category === "SIP") sections["SIP (Systematic Investment Plan)"].push(tx);
+              if (category === "STP") {
+                // For STP, only show switch-out (source) funds — i.e. Debt funds.
+                // Equity funds in STP are the switch-in (receiving) end.
+                const fundCat = fundCategoryMap[tx.scheme_name] || "";
+                if (fundCat && fundCat !== "debt") return;
+                sections["STP (Systematic Transfer Plan)"].push(tx);
+              } else if (category === "SIP") sections["SIP (Systematic Investment Plan)"].push(tx);
               else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);
             });
 
