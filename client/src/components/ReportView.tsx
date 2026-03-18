@@ -1843,75 +1843,75 @@ export function ReportView({ report }: ReportViewProps) {
           </Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+          <table className="w-full text-[11px] text-left">
+            <thead className="bg-slate-50 text-slate-400 font-semibold border-b border-slate-100 uppercase tracking-wide text-[9px]">
               <tr>
-                <th className="px-4 py-3">Scheme Name</th>
-                <th className="px-4 py-3">Category / Type</th>
-                <th className="px-4 py-3">Folio No.</th>
-                <th className="px-4 py-3 text-right">No. of Units</th>
-                <th className="px-4 py-3 text-right">NAV (₹)</th>
-                <th className="px-4 py-3 text-right">Invested Amount (₹)</th>
-                <th className="px-4 py-3 text-right">Valuation (₹)</th>
-                <th className="px-4 py-3 text-right">Unrealised P/L (₹)</th>
+                <th className="px-3 py-2">Scheme</th>
+                <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">Folio</th>
+                <th className="px-3 py-2 text-right">Units</th>
+                <th className="px-3 py-2 text-right">NAV (₹)</th>
+                <th className="px-3 py-2 text-right">Invested (₹)</th>
+                <th className="px-3 py-2 text-right">Value (₹)</th>
+                <th className="px-3 py-2 text-right">P/L (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {mfSnapshot.map((mf: any, i: number) => (
-                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-slate-700 max-w-[250px]" title={mf.scheme_name}>{mf.scheme_name}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-slate-900">{mf.fund_category || 'N/A'}</span>
-                      <span className="text-slate-500 text-[10px]">{mf.fund_type || 'N/A'}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-slate-500">{mf.folio_no}</td>
-                  <td className="px-4 py-3 text-right">{ (mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3}) }</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      {navFetchStatus[mf.scheme_name] === "loading" && (
-                        <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
-                      )}
-                      {navFetchStatus[mf.scheme_name] === "done" && (
-                        <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">LIVE</span>
-                      )}
-                      {navFetchStatus[mf.scheme_name] === "not_found" && (
-                        <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 py-0.5 rounded">N/A</span>
-                      )}
-                      <Input
-                        type="number"
-                        step="0.0001"
-                        className="h-8 text-right w-24 ml-auto text-xs font-mono"
-                        value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          setManualNavs(prev => ({
-                            ...prev,
-                            [mf.scheme_name]: isNaN(val) ? 0 : val
-                          }));
-                        }}
-                      />
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">{mf.invested_amount?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                  <td className={`px-4 py-3 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {mf.unrealised_profit_loss?.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              ))}
-              <tr className="bg-slate-800 text-white font-bold">
-                <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-wider text-[10px]">Grand Total</td>
-                <td className="px-4 py-3 text-right">
-                  ₹{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                </td>
-                <td className="px-4 py-3 text-right text-sm">
-                  ₹{totalValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                </td>
-                <td className="px-4 py-3 text-right">
-                   ₹{totalUnrealised.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                </td>
+              {mfSnapshot.map((mf: any, i: number) => {
+                const shortName = (() => {
+                  const name: string = mf.scheme_name || "";
+                  const cleaned = name
+                    .replace(/\s*\(Erstwhile[^)]*\)/gi, "")
+                    .replace(/\s*-\s*Regular Plan\s*-?\s*/gi, " ")
+                    .replace(/\s*-\s*Direct Plan\s*-?\s*/gi, " ")
+                    .replace(/\s*Growth Option\s*/gi, "")
+                    .replace(/\s*Growth Plan\s*/gi, "")
+                    .replace(/\s*-\s*Growth\s*$/i, "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+                  return cleaned.length > 38 ? cleaned.slice(0, 36) + "…" : cleaned;
+                })();
+                return (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-3 py-2 font-semibold text-slate-700 max-w-[200px]" title={mf.scheme_name}>{shortName}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-slate-600">{mf.fund_category || '—'}</span>
+                        <span className="text-slate-400 text-[9px]">{mf.fund_type || ''}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 font-mono text-slate-400 text-[10px]">{mf.folio_no}</td>
+                    <td className="px-3 py-2 text-right text-slate-600">{(mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
+                    <td className="px-3 py-2 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {navFetchStatus[mf.scheme_name] === "loading" && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
+                        {navFetchStatus[mf.scheme_name] === "done" && <span className="text-[7px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded">LIVE</span>}
+                        {navFetchStatus[mf.scheme_name] === "not_found" && <span className="text-[7px] font-bold text-amber-600 bg-amber-50 px-1 rounded">N/F</span>}
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          className="h-6 text-right w-20 ml-auto text-[11px] font-mono px-1"
+                          value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setManualNavs(prev => ({ ...prev, [mf.scheme_name]: isNaN(val) ? 0 : val }));
+                          }}
+                        />
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-right text-slate-600">{mf.invested_amount?.toLocaleString()}</td>
+                    <td className="px-3 py-2 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td className={`px-3 py-2 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {mf.unrealised_profit_loss?.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                );
+              })}
+              <tr className="bg-slate-800 text-white font-bold text-[10px]">
+                <td colSpan={5} className="px-3 py-2 text-right uppercase tracking-wider text-[9px]">Grand Total</td>
+                <td className="px-3 py-2 text-right">₹{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                <td className="px-3 py-2 text-right">₹{totalValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                <td className="px-3 py-2 text-right">₹{totalUnrealised.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
               </tr>
             </tbody>
           </table>
