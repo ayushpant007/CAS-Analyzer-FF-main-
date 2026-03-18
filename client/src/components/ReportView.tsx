@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface SchemePerformanceData {
   scheme_returns: { "1y": string; "3y": string; "5y": string };
@@ -516,33 +518,162 @@ export function ReportView({ report }: ReportViewProps) {
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0), [mfSnapshot]);
 
   const downloadPDF = async () => {
+    if (!reportRef.current) return;
     setIsDownloading(true);
-    try {
-      const response = await fetch(`/api/report/${report.id}/pdf`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ performances }),
-      });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.message || "PDF generation failed");
+    // Track all nodes we temporarily mutate so we can restore them
+    const restoreQueue: Array<{ el: HTMLElement; props: Record<string, string> }> = [];
+
+    const saveAndSet = (el: HTMLElement, props: Record<string, string>) => {
+      const saved: Record<string, string> = {};
+      Object.keys(props).forEach((k) => {
+        saved[k] = (el.style as any)[k];
+        (el.style as any)[k] = props[k];
+      });
+      restoreQueue.push({ el, props: saved });
+    };
+
+    const restoreAll = () => {
+      restoreQueue.forEach(({ el, props }) => {
+        Object.keys(props).forEach((k) => {
+          (el.style as any)[k] = props[k];
+        });
+      });
+    };
+
+    try {
+      const element = reportRef.current;
+
+      // 1. Expand the report container itself
+      saveAndSet(element, { height: "auto", maxHeight: "none", overflow: "visible" });
+
+      // 2. Walk up the DOM and expand every ancestor that clips height/overflow
+      let ancestor = element.parentElement;
+      while (ancestor && ancestor !== document.documentElement) {
+        const cs = window.getComputedStyle(ancestor);
+        const needsFix =
+          cs.overflow !== "visible" ||
+          cs.overflowY !== "visible" ||
+          (cs.height !== "auto" && cs.height !== "") ||
+          (cs.maxHeight !== "none" && cs.maxHeight !== "");
+        if (needsFix) {
+          saveAndSet(ancestor, {
+            overflow: "visible",
+            overflowY: "visible",
+            overflowX: "visible",
+            height: "auto",
+            maxHeight: "none",
+          });
+        }
+        ancestor = ancestor.parentElement;
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // 3. Scroll page to top so html2canvas starts at y=0
+      window.scrollTo(0, 0);
 
-      toast({ title: "Success", description: "Full report downloaded successfully." });
+      // 4. Let the browser re-layout after style changes
+      await new Promise((r) => setTimeout(r, 250));
+
+      const captureWidth = element.scrollWidth;
+      const captureHeight = element.scrollHeight;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#f8fafc",
+        windowWidth: captureWidth,
+        windowHeight: captureHeight,
+        width: captureWidth,
+        height: captureHeight,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (_doc, clonedElement) => {
+          // Fix overflow/max-height clipping inside the clone
+          const allEls = Array.from(clonedElement.querySelectorAll("*")) as HTMLElement[];
+          allEls.forEach((el) => {
+            const cs = window.getComputedStyle(el);
+            if (
+              cs.overflow === "hidden" ||
+              cs.overflowY === "hidden" ||
+              cs.overflowX === "hidden"
+            ) {
+              el.style.overflow = "visible";
+              el.style.overflowX = "visible";
+              el.style.overflowY = "visible";
+            }
+            if (cs.maxHeight && cs.maxHeight !== "none" && cs.maxHeight !== "") {
+              el.style.maxHeight = "none";
+            }
+            if (cs.position === "fixed") {
+              el.style.position = "absolute";
+            }
+          });
+
+          // Lock the cloned root dimensions
+          clonedElement.style.width = captureWidth + "px";
+          clonedElement.style.minWidth = captureWidth + "px";
+          clonedElement.style.height = captureHeight + "px";
+
+          // Replace <input> elements with visible spans
+          const originalInputs = Array.from(element.querySelectorAll("input"));
+          const clonedInputs = Array.from(clonedElement.querySelectorAll("input"));
+          originalInputs.forEach((orig, i) => {
+            const cloned = clonedInputs[i] as HTMLInputElement | undefined;
+            if (!cloned) return;
+            const span = _doc.createElement("span");
+            span.textContent = orig.value;
+            span.style.cssText = [
+              `display:inline-block`,
+              `width:${orig.offsetWidth}px`,
+              `min-width:${orig.offsetWidth}px`,
+              `height:${orig.offsetHeight}px`,
+              `line-height:${orig.offsetHeight}px`,
+              `text-align:right`,
+              `font-family:ui-monospace,monospace`,
+              `font-size:12px`,
+              `padding:0 6px`,
+              `vertical-align:middle`,
+              `border:1px solid #e2e8f0`,
+              `border-radius:6px`,
+              `background:#fff`,
+              `color:#1e293b`,
+              `box-sizing:border-box`,
+            ].join(";");
+            cloned.replaceWith(span);
+          });
+        },
+      });
+
+      restoreAll();
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
+      const pxToMm = 0.264583;
+      const pageWidthMm = (canvas.width / 2) * pxToMm;
+      const pageHeightMm = (canvas.height / 2) * pxToMm;
+
+      const pdf = new jsPDF({
+        orientation: "p",
+        unit: "mm",
+        format: [pageWidthMm, pageHeightMm],
+        compress: true,
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, pageHeightMm, undefined, "FAST");
+      pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
+
+      toast({
+        title: "Success",
+        description: "Full report downloaded successfully.",
+      });
     } catch (err: any) {
+      restoreAll();
       console.error("PDF Export Error:", err);
-      toast({ title: "Download Failed", description: err.message || "There was an error generating your report.", variant: "destructive" });
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating your report.",
+        variant: "destructive",
+      });
     } finally {
       setIsDownloading(false);
     }

@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -16,7 +16,6 @@ import { extractMetricsFromFactsheet } from "./factsheet";
 import { getMetricsFromJson } from "./json_factsheet";
 import { getBenchmarkReturns } from "./benchmarks";
 import { lookupByIsinOrName } from "./scoring";
-import { buildReportHtml, generatePdf } from "./pdf";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -362,7 +361,7 @@ Return ONLY JSON. No markdown.`;
       res.status(500).json({ message: "Failed to fetch scheme performance" });
     }
   });
-  
+
   app.get("/api/scoring/:isin", async (req, res) => {
     const isin = req.params.isin.trim();
     const schemeName = (req.query.schemeName as string | undefined) || undefined;
@@ -410,27 +409,6 @@ Return ONLY JSON. No markdown.`;
     }
 
     res.json(results);
-  });
-
-  app.post("/api/report/:id/pdf", express.json({ limit: "10mb" }), async (req, res) => {
-    const reportId = Number(req.params.id);
-    const performances: Record<string, any> = req.body?.performances || {};
-
-    try {
-      const report = await storage.getReport(reportId);
-      if (!report) return res.status(404).json({ message: "Report not found" });
-
-      const html = buildReportHtml(report, performances);
-      const pdfBuffer = await generatePdf(html);
-
-      const safeName = report.filename.replace(/[^a-zA-Z0-9_\-. ]/g, "_").replace(/\.pdf$/i, "");
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename="FinAnalyze_${safeName}.pdf"`);
-      res.send(pdfBuffer);
-    } catch (err: any) {
-      console.error("PDF generation error:", err);
-      res.status(500).json({ message: "Failed to generate PDF: " + err.message });
-    }
   });
 
   return httpServer;
