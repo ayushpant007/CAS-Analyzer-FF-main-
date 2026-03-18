@@ -521,9 +521,7 @@ export function ReportView({ report }: ReportViewProps) {
     if (!reportRef.current) return;
     setIsDownloading(true);
 
-    // Track all nodes we temporarily mutate so we can restore them
     const restoreQueue: Array<{ el: HTMLElement; props: Record<string, string> }> = [];
-
     const saveAndSet = (el: HTMLElement, props: Record<string, string>) => {
       const saved: Record<string, string> = {};
       Object.keys(props).forEach((k) => {
@@ -532,51 +530,55 @@ export function ReportView({ report }: ReportViewProps) {
       });
       restoreQueue.push({ el, props: saved });
     };
-
     const restoreAll = () => {
       restoreQueue.forEach(({ el, props }) => {
-        Object.keys(props).forEach((k) => {
-          (el.style as any)[k] = props[k];
-        });
+        Object.keys(props).forEach((k) => { (el.style as any)[k] = props[k]; });
       });
     };
 
     try {
       const element = reportRef.current;
 
-      // 1. Expand the report container itself
+      // 1. Expand the report container and all ancestors that clip
       saveAndSet(element, { height: "auto", maxHeight: "none", overflow: "visible" });
-
-      // 2. Walk up the DOM and expand every ancestor that clips height/overflow
       let ancestor = element.parentElement;
       while (ancestor && ancestor !== document.documentElement) {
         const cs = window.getComputedStyle(ancestor);
-        const needsFix =
-          cs.overflow !== "visible" ||
-          cs.overflowY !== "visible" ||
+        if (
+          cs.overflow !== "visible" || cs.overflowY !== "visible" ||
           (cs.height !== "auto" && cs.height !== "") ||
-          (cs.maxHeight !== "none" && cs.maxHeight !== "");
-        if (needsFix) {
+          (cs.maxHeight !== "none" && cs.maxHeight !== "")
+        ) {
           saveAndSet(ancestor, {
-            overflow: "visible",
-            overflowY: "visible",
-            overflowX: "visible",
-            height: "auto",
-            maxHeight: "none",
+            overflow: "visible", overflowY: "visible", overflowX: "visible",
+            height: "auto", maxHeight: "none",
           });
         }
         ancestor = ancestor.parentElement;
       }
 
-      // 3. Scroll page to top so html2canvas starts at y=0
       window.scrollTo(0, 0);
+      await new Promise((r) => setTimeout(r, 300));
 
-      // 4. Let the browser re-layout after style changes
-      await new Promise((r) => setTimeout(r, 250));
+      // 2. Collect safe cut Y-positions (section boundaries) from the expanded DOM
+      //    offsetTop is relative to the offsetParent; we want positions relative to element itself.
+      const elementOffsetTop = element.getBoundingClientRect().top + window.scrollY;
+      const safeCutSet = new Set<number>([0]);
+      Array.from(element.children).forEach((child) => {
+        const rect = (child as HTMLElement).getBoundingClientRect();
+        const top = rect.top + window.scrollY - elementOffsetTop;
+        const bottom = rect.bottom + window.scrollY - elementOffsetTop;
+        if (top > 0) safeCutSet.add(top);
+        if (bottom > 0) safeCutSet.add(bottom);
+      });
 
       const captureWidth = element.scrollWidth;
       const captureHeight = element.scrollHeight;
+      safeCutSet.add(captureHeight);
 
+      const safeCuts = Array.from(safeCutSet).sort((a, b) => a - b);
+
+      // 3. Capture the full page as one canvas
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -589,15 +591,10 @@ export function ReportView({ report }: ReportViewProps) {
         scrollX: 0,
         scrollY: 0,
         onclone: (_doc, clonedElement) => {
-          // Fix overflow/max-height clipping inside the clone
           const allEls = Array.from(clonedElement.querySelectorAll("*")) as HTMLElement[];
           allEls.forEach((el) => {
             const cs = window.getComputedStyle(el);
-            if (
-              cs.overflow === "hidden" ||
-              cs.overflowY === "hidden" ||
-              cs.overflowX === "hidden"
-            ) {
+            if (cs.overflow === "hidden" || cs.overflowY === "hidden" || cs.overflowX === "hidden") {
               el.style.overflow = "visible";
               el.style.overflowX = "visible";
               el.style.overflowY = "visible";
@@ -605,17 +602,12 @@ export function ReportView({ report }: ReportViewProps) {
             if (cs.maxHeight && cs.maxHeight !== "none" && cs.maxHeight !== "") {
               el.style.maxHeight = "none";
             }
-            if (cs.position === "fixed") {
-              el.style.position = "absolute";
-            }
+            if (cs.position === "fixed") el.style.position = "absolute";
           });
-
-          // Lock the cloned root dimensions
           clonedElement.style.width = captureWidth + "px";
           clonedElement.style.minWidth = captureWidth + "px";
           clonedElement.style.height = captureHeight + "px";
 
-          // Replace <input> elements with visible spans
           const originalInputs = Array.from(element.querySelectorAll("input"));
           const clonedInputs = Array.from(clonedElement.querySelectorAll("input"));
           originalInputs.forEach((orig, i) => {
@@ -625,20 +617,11 @@ export function ReportView({ report }: ReportViewProps) {
             span.textContent = orig.value;
             span.style.cssText = [
               `display:inline-block`,
-              `width:${orig.offsetWidth}px`,
-              `min-width:${orig.offsetWidth}px`,
-              `height:${orig.offsetHeight}px`,
-              `line-height:${orig.offsetHeight}px`,
-              `text-align:right`,
-              `font-family:ui-monospace,monospace`,
-              `font-size:12px`,
-              `padding:0 6px`,
-              `vertical-align:middle`,
-              `border:1px solid #e2e8f0`,
-              `border-radius:6px`,
-              `background:#fff`,
-              `color:#1e293b`,
-              `box-sizing:border-box`,
+              `width:${orig.offsetWidth}px`, `min-width:${orig.offsetWidth}px`,
+              `height:${orig.offsetHeight}px`, `line-height:${orig.offsetHeight}px`,
+              `text-align:right`, `font-family:ui-monospace,monospace`, `font-size:12px`,
+              `padding:0 6px`, `vertical-align:middle`, `border:1px solid #e2e8f0`,
+              `border-radius:6px`, `background:#fff`, `color:#1e293b`, `box-sizing:border-box`,
             ].join(";");
             cloned.replaceWith(span);
           });
@@ -647,59 +630,63 @@ export function ReportView({ report }: ReportViewProps) {
 
       restoreAll();
 
-      // A4 dimensions in mm
+      // 4. Build a smart-paged PDF using section boundaries as safe cut points
       const a4WidthMm = 210;
       const a4HeightMm = 297;
       const marginMm = 10;
-      const contentWidthMm = a4WidthMm - marginMm * 2;
+      const contentWidthMm = a4WidthMm - marginMm * 2;   // 190 mm
+      const contentHeightMm = a4HeightMm - marginMm * 2; // 277 mm
 
-      // Scale: canvas pixel width → content area width in mm
-      const scaleFactor = contentWidthMm / (canvas.width / 2);
-      const imgHeightMm = (canvas.height / 2) * scaleFactor;
+      // canvas is at scale=2, so CSS px = canvas px / 2
+      const cssWidthPx = canvas.width / 2;
+      const cssHeightPx = canvas.height / 2;
+      const scaleFactor = contentWidthMm / cssWidthPx; // mm per CSS-px
 
-      const pdf = new jsPDF({
-        orientation: "p",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
+      // Page capacity in CSS px
+      const pageCapacityPx = contentHeightMm / scaleFactor;
 
-      const contentHeightMm = a4HeightMm - marginMm * 2;
-      const totalPages = Math.ceil(imgHeightMm / contentHeightMm);
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
 
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) pdf.addPage();
+      // Helper: draw a horizontal slice of the canvas onto the current PDF page
+      const addSlice = (startCssPx: number, endCssPx: number) => {
+        const s = Math.round(startCssPx * 2);
+        const e = Math.round(Math.min(endCssPx * 2, canvas.height));
+        const h = e - s;
+        if (h <= 0) return;
+        const sc = document.createElement("canvas");
+        sc.width = canvas.width;
+        sc.height = h;
+        sc.getContext("2d")!.drawImage(canvas, 0, s, canvas.width, h, 0, 0, canvas.width, h);
+        const hMm = (h / 2) * scaleFactor;
+        pdf.addImage(sc.toDataURL("image/jpeg", 0.88), "JPEG", marginMm, marginMm, contentWidthMm, hMm);
+      };
 
-        const yOffsetMm = page * contentHeightMm;
+      let pageStartPx = 0; // where the current page starts, in CSS px
+      let firstPage = true;
 
-        // Slice the canvas for this page
-        const sliceStartPx = Math.round((yOffsetMm / scaleFactor) * 2);
-        const sliceHeightPx = Math.round((contentHeightMm / scaleFactor) * 2);
+      while (pageStartPx < cssHeightPx) {
+        if (!firstPage) pdf.addPage();
 
-        const sliceCanvas = document.createElement("canvas");
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = Math.min(sliceHeightPx, canvas.height - sliceStartPx);
-        const ctx = sliceCanvas.getContext("2d")!;
-        ctx.drawImage(
-          canvas,
-          0, sliceStartPx,
-          canvas.width, sliceCanvas.height,
-          0, 0,
-          canvas.width, sliceCanvas.height
-        );
+        const theoreticalEnd = pageStartPx + pageCapacityPx;
 
-        const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.85);
-        const sliceHeightMm = (sliceCanvas.height / 2) * scaleFactor;
+        // Find the largest safe cut point that fits within this page
+        let bestCut = -1;
+        for (const cut of safeCuts) {
+          if (cut > pageStartPx && cut <= theoreticalEnd) bestCut = cut;
+          if (cut > theoreticalEnd) break;
+        }
 
-        pdf.addImage(sliceData, "JPEG", marginMm, marginMm, contentWidthMm, sliceHeightMm, undefined, "FAST");
+        // If no section boundary fits, cut mechanically at the page limit
+        if (bestCut < 0) bestCut = Math.min(theoreticalEnd, cssHeightPx);
+
+        addSlice(pageStartPx, bestCut);
+        pageStartPx = bestCut;
+        firstPage = false;
       }
 
       pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
 
-      toast({
-        title: "Success",
-        description: "Full report downloaded successfully.",
-      });
+      toast({ title: "Success", description: "Full report downloaded successfully." });
     } catch (err: any) {
       restoreAll();
       console.error("PDF Export Error:", err);
