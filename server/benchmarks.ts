@@ -408,7 +408,7 @@ function inferSubCategory(schemeName: string): { category: string; subCategory: 
     return { category: "Debt", subCategory: "Short Duration" };
   if (s.includes("medium to long") || s.includes("medium-to-long"))
     return { category: "Debt", subCategory: "Medium to Long Duration" };
-  if (s.includes("medium duration"))
+  if (s.includes("medium duration") || s.includes("medium term"))
     return { category: "Debt", subCategory: "Medium Duration" };
   if (s.includes("long duration"))
     return { category: "Debt", subCategory: "Long Duration" };
