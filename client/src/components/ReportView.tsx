@@ -647,19 +647,53 @@ export function ReportView({ report }: ReportViewProps) {
 
       restoreAll();
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const pxToMm = 0.264583;
-      const pageWidthMm = (canvas.width / 2) * pxToMm;
-      const pageHeightMm = (canvas.height / 2) * pxToMm;
+      // A4 dimensions in mm
+      const a4WidthMm = 210;
+      const a4HeightMm = 297;
+      const marginMm = 10;
+      const contentWidthMm = a4WidthMm - marginMm * 2;
+
+      // Scale: canvas pixel width → content area width in mm
+      const scaleFactor = contentWidthMm / (canvas.width / 2);
+      const imgHeightMm = (canvas.height / 2) * scaleFactor;
 
       const pdf = new jsPDF({
         orientation: "p",
         unit: "mm",
-        format: [pageWidthMm, pageHeightMm],
+        format: "a4",
         compress: true,
       });
 
-      pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, pageHeightMm, undefined, "FAST");
+      const contentHeightMm = a4HeightMm - marginMm * 2;
+      const totalPages = Math.ceil(imgHeightMm / contentHeightMm);
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
+
+        const yOffsetMm = page * contentHeightMm;
+
+        // Slice the canvas for this page
+        const sliceStartPx = Math.round((yOffsetMm / scaleFactor) * 2);
+        const sliceHeightPx = Math.round((contentHeightMm / scaleFactor) * 2);
+
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = Math.min(sliceHeightPx, canvas.height - sliceStartPx);
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.drawImage(
+          canvas,
+          0, sliceStartPx,
+          canvas.width, sliceCanvas.height,
+          0, 0,
+          canvas.width, sliceCanvas.height
+        );
+
+        const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.85);
+        const sliceHeightMm = (sliceCanvas.height / 2) * scaleFactor;
+
+        pdf.addImage(sliceData, "JPEG", marginMm, marginMm, contentWidthMm, sliceHeightMm, undefined, "FAST");
+      }
+
       pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
 
       toast({
