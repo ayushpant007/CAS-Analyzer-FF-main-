@@ -2146,9 +2146,37 @@ export function ReportView({ report }: ReportViewProps) {
               else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);
             });
 
+            const parseDate = (dateStr: string): number => {
+              if (!dateStr) return 0;
+              const parts = dateStr.split(/[-/]/);
+              if (parts.length === 3) {
+                const monthMap: Record<string, number> = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+                const day = parseInt(parts[0]);
+                const monthRaw = parts[1];
+                const year = parseInt(parts[2]);
+                const month = isNaN(parseInt(monthRaw)) ? (monthMap[monthRaw.toLowerCase().slice(0,3)] ?? 0) : parseInt(monthRaw) - 1;
+                return new Date(year, month, day).getTime();
+              }
+              return new Date(dateStr).getTime() || 0;
+            };
+
             return Object.entries(sections).map(([title, items]) => {
               const isSTP = title.startsWith("STP");
+              const isSIP = title.startsWith("SIP");
+
               let filteredItems = items;
+
+              if (isSIP && items.length > 0) {
+                const latestByScheme: Record<string, any> = {};
+                items.forEach((tx: any) => {
+                  const key = tx.scheme_name || "unknown";
+                  const txTime = parseDate(tx.date);
+                  if (!latestByScheme[key] || txTime > parseDate(latestByScheme[key].date)) {
+                    latestByScheme[key] = tx;
+                  }
+                });
+                filteredItems = Object.values(latestByScheme);
+              }
               
               const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
 
@@ -2165,8 +2193,8 @@ export function ReportView({ report }: ReportViewProps) {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {items.length > 0 ? (
-                          items.map((item: any, idx: number) => {
+                        {filteredItems.length > 0 ? (
+                          filteredItems.map((item: any, idx: number) => {
                             return (
                               <tr key={idx} className="hover:bg-slate-50/50">
                                 <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">
@@ -2187,7 +2215,7 @@ export function ReportView({ report }: ReportViewProps) {
                           </tr>
                         )}
                       </tbody>
-                      {items.length > 0 && (
+                      {filteredItems.length > 0 && (
                         <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
                           <tr>
                             <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">

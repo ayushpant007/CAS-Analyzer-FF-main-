@@ -137,11 +137,11 @@ Return ONLY valid JSON with this exact structure: {
 }. 
 
 For mf_snapshot, ensure you accurately identify:
-- fund_category: e.g. Equity, Debt, Hybrid, etc.
-- fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, etc.
+- fund_category: e.g. Equity, Debt, Hybrid, Gold/Commodity, etc. Gold ETF Fund of Fund should be categorized as "Gold/Commodity".
+- fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, Gold ETF FoF, etc.
 - isin: The 12-character International Securities Identification Number for the fund.
 
-Ensure ALL funds and folios are extracted comprehensively without omission. Ensure all numerical values are numbers.
+Ensure ALL funds and folios are extracted comprehensively without omission, including Gold ETF Fund of Fund, Silver ETF, and any commodity/alternative fund schemes. Ensure all numerical values are numbers.
 
 Text content:
 ${text}`;
