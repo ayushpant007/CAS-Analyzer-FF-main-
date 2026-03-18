@@ -9,8 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 
 interface SchemePerformanceData {
   scheme_returns: { "1y": string; "3y": string; "5y": string };
@@ -521,178 +519,144 @@ export function ReportView({ report }: ReportViewProps) {
     if (!reportRef.current) return;
     setIsDownloading(true);
 
-    const restoreQueue: Array<{ el: HTMLElement; props: Record<string, string> }> = [];
-    const saveAndSet = (el: HTMLElement, props: Record<string, string>) => {
-      const saved: Record<string, string> = {};
-      Object.keys(props).forEach((k) => {
-        saved[k] = (el.style as any)[k];
-        (el.style as any)[k] = props[k];
-      });
-      restoreQueue.push({ el, props: saved });
-    };
-    const restoreAll = () => {
-      restoreQueue.forEach(({ el, props }) => {
-        Object.keys(props).forEach((k) => { (el.style as any)[k] = props[k]; });
-      });
-    };
-
     try {
-      const element = reportRef.current;
-
-      // 1. Expand the report container and all ancestors that clip
-      saveAndSet(element, { height: "auto", maxHeight: "none", overflow: "visible" });
-      let ancestor = element.parentElement;
-      while (ancestor && ancestor !== document.documentElement) {
-        const cs = window.getComputedStyle(ancestor);
-        if (
-          cs.overflow !== "visible" || cs.overflowY !== "visible" ||
-          (cs.height !== "auto" && cs.height !== "") ||
-          (cs.maxHeight !== "none" && cs.maxHeight !== "")
-        ) {
-          saveAndSet(ancestor, {
-            overflow: "visible", overflowY: "visible", overflowX: "visible",
-            height: "auto", maxHeight: "none",
-          });
+      // 1. Extract all compiled CSS from the live document (same-origin, so this works)
+      let allCss = "";
+      for (const sheet of Array.from(document.styleSheets)) {
+        try {
+          const rules = Array.from(sheet.cssRules || []);
+          allCss += rules.map((r) => r.cssText).join("\n") + "\n";
+        } catch {
+          if (sheet.href) allCss += `@import url('${sheet.href}');\n`;
         }
-        ancestor = ancestor.parentElement;
       }
 
-      window.scrollTo(0, 0);
-      await new Promise((r) => setTimeout(r, 300));
-
-      // 2. Collect safe cut Y-positions (section boundaries) from the expanded DOM
-      //    offsetTop is relative to the offsetParent; we want positions relative to element itself.
-      const elementOffsetTop = element.getBoundingClientRect().top + window.scrollY;
-      const safeCutSet = new Set<number>([0]);
-      Array.from(element.children).forEach((child) => {
-        const rect = (child as HTMLElement).getBoundingClientRect();
-        const top = rect.top + window.scrollY - elementOffsetTop;
-        const bottom = rect.bottom + window.scrollY - elementOffsetTop;
-        if (top > 0) safeCutSet.add(top);
-        if (bottom > 0) safeCutSet.add(bottom);
-      });
-
-      const captureWidth = element.scrollWidth;
-      const captureHeight = element.scrollHeight;
-      safeCutSet.add(captureHeight);
-
-      const safeCuts = Array.from(safeCutSet).sort((a, b) => a - b);
-
-      // 3. Capture the full page as one canvas
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#f8fafc",
-        windowWidth: captureWidth,
-        windowHeight: captureHeight,
-        width: captureWidth,
-        height: captureHeight,
-        scrollX: 0,
-        scrollY: 0,
-        onclone: (_doc, clonedElement) => {
-          const allEls = Array.from(clonedElement.querySelectorAll("*")) as HTMLElement[];
-          allEls.forEach((el) => {
-            const cs = window.getComputedStyle(el);
-            if (cs.overflow === "hidden" || cs.overflowY === "hidden" || cs.overflowX === "hidden") {
-              el.style.overflow = "visible";
-              el.style.overflowX = "visible";
-              el.style.overflowY = "visible";
-            }
-            if (cs.maxHeight && cs.maxHeight !== "none" && cs.maxHeight !== "") {
-              el.style.maxHeight = "none";
-            }
-            if (cs.position === "fixed") el.style.position = "absolute";
-          });
-          clonedElement.style.width = captureWidth + "px";
-          clonedElement.style.minWidth = captureWidth + "px";
-          clonedElement.style.height = captureHeight + "px";
-
-          const originalInputs = Array.from(element.querySelectorAll("input"));
-          const clonedInputs = Array.from(clonedElement.querySelectorAll("input"));
-          originalInputs.forEach((orig, i) => {
-            const cloned = clonedInputs[i] as HTMLInputElement | undefined;
-            if (!cloned) return;
-            const span = _doc.createElement("span");
-            span.textContent = orig.value;
-            span.style.cssText = [
-              `display:inline-block`,
-              `width:${orig.offsetWidth}px`, `min-width:${orig.offsetWidth}px`,
-              `height:${orig.offsetHeight}px`, `line-height:${orig.offsetHeight}px`,
-              `text-align:right`, `font-family:ui-monospace,monospace`, `font-size:12px`,
-              `padding:0 6px`, `vertical-align:middle`, `border:1px solid #e2e8f0`,
-              `border-radius:6px`, `background:#fff`, `color:#1e293b`, `box-sizing:border-box`,
-            ].join(";");
-            cloned.replaceWith(span);
-          });
-        },
-      });
-
-      restoreAll();
-
-      // 4. Build a smart-paged PDF using section boundaries as safe cut points
-      const a4WidthMm = 210;
-      const a4HeightMm = 297;
-      const marginMm = 10;
-      const contentWidthMm = a4WidthMm - marginMm * 2;   // 190 mm
-      const contentHeightMm = a4HeightMm - marginMm * 2; // 277 mm
-
-      // canvas is at scale=2, so CSS px = canvas px / 2
-      const cssWidthPx = canvas.width / 2;
-      const cssHeightPx = canvas.height / 2;
-      const scaleFactor = contentWidthMm / cssWidthPx; // mm per CSS-px
-
-      // Page capacity in CSS px
-      const pageCapacityPx = contentHeightMm / scaleFactor;
-
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-
-      // Helper: draw a horizontal slice of the canvas onto the current PDF page
-      const addSlice = (startCssPx: number, endCssPx: number) => {
-        const s = Math.round(startCssPx * 2);
-        const e = Math.round(Math.min(endCssPx * 2, canvas.height));
-        const h = e - s;
-        if (h <= 0) return;
-        const sc = document.createElement("canvas");
-        sc.width = canvas.width;
-        sc.height = h;
-        sc.getContext("2d")!.drawImage(canvas, 0, s, canvas.width, h, 0, 0, canvas.width, h);
-        const hMm = (h / 2) * scaleFactor;
-        pdf.addImage(sc.toDataURL("image/jpeg", 0.88), "JPEG", marginMm, marginMm, contentWidthMm, hMm);
-      };
-
-      let pageStartPx = 0; // where the current page starts, in CSS px
-      let firstPage = true;
-
-      while (pageStartPx < cssHeightPx) {
-        if (!firstPage) pdf.addPage();
-
-        const theoreticalEnd = pageStartPx + pageCapacityPx;
-
-        // Find the largest safe cut point that fits within this page
-        let bestCut = -1;
-        for (const cut of safeCuts) {
-          if (cut > pageStartPx && cut <= theoreticalEnd) bestCut = cut;
-          if (cut > theoreticalEnd) break;
+      // 2. Print-mode CSS: A4 page, break-inside:avoid on sections, preserve colours
+      const printCss = `
+        @page {
+          size: A4 portrait;
+          margin: 15mm 12mm;
         }
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #f8fafc !important;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          box-sizing: border-box;
+        }
+        .pdf-wrap {
+          width: 100%;
+          max-width: 186mm;
+          margin: 0 auto;
+          font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        }
+        /* Every top-level section avoids internal page breaks */
+        .pdf-section {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          margin-bottom: 6mm;
+        }
+        /* Subsections inside a section also avoid breaks */
+        .pdf-subsection {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        /* No buttons, loaders, or interactive chrome in the PDF */
+        button, [role="button"], .no-print { display: none !important; }
+        /* Inputs are already replaced with spans below */
+        input { display: none !important; }
+      `;
 
-        // If no section boundary fits, cut mechanically at the page limit
-        if (bestCut < 0) bestCut = Math.min(theoreticalEnd, cssHeightPx);
+      // 3. Clone the report DOM (this copies rendered SVG charts too)
+      const reportEl = reportRef.current;
+      const clone = reportEl.cloneNode(true) as HTMLElement;
 
-        addSlice(pageStartPx, bestCut);
-        pageStartPx = bestCut;
-        firstPage = false;
+      // Mark every direct child section with break-inside: avoid
+      Array.from(clone.children).forEach((child) => {
+        (child as HTMLElement).classList.add("pdf-section");
+        // Also mark grandchildren (inner cards/rows) so they don't split
+        Array.from((child as HTMLElement).children).forEach((gc) => {
+          (gc as HTMLElement).classList.add("pdf-subsection");
+        });
+      });
+
+      // Remove all buttons from the clone
+      clone.querySelectorAll("button").forEach((btn) => btn.remove());
+
+      // Replace <input> elements with static <span>s showing their current value
+      const origInputs = Array.from(reportEl.querySelectorAll("input"));
+      const cloneInputs = Array.from(clone.querySelectorAll("input"));
+      origInputs.forEach((orig, i) => {
+        const ci = cloneInputs[i];
+        if (!ci) return;
+        const span = document.createElement("span");
+        span.textContent = (orig as HTMLInputElement).value;
+        span.style.cssText =
+          "display:inline-block;font-family:monospace;font-size:12px;" +
+          "padding:2px 6px;border:1px solid #e2e8f0;border-radius:4px;" +
+          "background:#fff;color:#1e293b;";
+        ci.replaceWith(span);
+      });
+
+      // 4. Open a dedicated print window
+      const pw = window.open("", "_blank", "width=960,height=800,scrollbars=yes");
+      if (!pw) {
+        toast({
+          title: "Popup blocked",
+          description: "Please allow popups for this site and try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      pdf.save(`FinAnalyze_Report_${report.filename.replace(/\.[^/.]+$/, "")}.pdf`);
+      pw.document.open();
+      pw.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FinAnalyze Report – ${report.filename.replace(/\.pdf$/i, "")}</title>
+  <style>${allCss}</style>
+  <style>${printCss}</style>
+</head>
+<body>
+  <div class="pdf-wrap">
+    ${clone.outerHTML}
+  </div>
+</body>
+</html>`);
+      pw.document.close();
 
-      toast({ title: "Success", description: "Full report downloaded successfully." });
+      // 5. Wait for all resources (fonts, images) to fully load
+      await new Promise<void>((resolve) => {
+        if (pw.document.readyState === "complete") { resolve(); return; }
+        pw.addEventListener("load", () => resolve());
+        setTimeout(resolve, 3000);
+      });
+      // Extra buffer for web fonts
+      await new Promise((r) => setTimeout(r, 600));
+
+      // 6. Trigger the browser's native print dialog
+      pw.focus();
+      pw.print();
+
+      toast({
+        title: "Print dialog opened",
+        description: 'Select "Save as PDF", set paper size to A4, then click Save.',
+      });
+
+      // Close the print window after the user is done (30 s grace period)
+      setTimeout(() => { try { pw.close(); } catch {} }, 30_000);
+
     } catch (err: any) {
-      restoreAll();
       console.error("PDF Export Error:", err);
       toast({
-        title: "Download Failed",
-        description: "There was an error generating your report.",
+        title: "Export Failed",
+        description: err.message || "Could not generate the report PDF.",
         variant: "destructive",
       });
     } finally {
@@ -883,7 +847,7 @@ export function ReportView({ report }: ReportViewProps) {
           ) : (
             <Download className="w-4 h-4 mr-2" />
           )}
-          {isDownloading ? "Generating PDF..." : "Download Full Report"}
+          {isDownloading ? "Preparing PDF..." : "Save as PDF"}
         </Button>
       </div>
       <motion.div 
