@@ -443,6 +443,7 @@ const calculateRiskScore = (perf: any) => {
 export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
+  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
   const [scoringRecords, setScoringRecords] = useState<Record<string, any>>({});
   const [manualRemarks, setManualRemarks] = useState<Record<string, string>>({});
@@ -736,6 +737,16 @@ export function ReportView({ report }: ReportViewProps) {
     } finally {
       setAnalyzingIsin(null);
     }
+  };
+
+  const analyzeAll = async () => {
+    const funds = (analysis.mf_snapshot || []).filter((mf: any) => mf.isin);
+    if (!funds.length) return;
+    setIsAnalyzingAll(true);
+    for (const mf of funds) {
+      await analyzePerformance(mf.isin, mf.scheme_name);
+    }
+    setIsAnalyzingAll(false);
   };
 
   const classifyPerformance = (schemeReturns: any, benchmarkReturns: any) => {
@@ -1591,6 +1602,22 @@ export function ReportView({ report }: ReportViewProps) {
               <h3 className="text-lg font-bold">Risk Metrics Check </h3>
               <p className="text-xs opacity-80 uppercase tracking-wider">Historical Returns & Risk Metrics</p>
             </div>
+            <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={analyzeAll}
+                disabled={isAnalyzingAll || !!analyzingIsin}
+                data-testid="button-analyze-all"
+                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
+              >
+                {isAnalyzingAll ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Activity className="w-4 h-4 mr-2" />
+                )}
+                {isAnalyzingAll ? `Analysing...` : "Analyse All"}
+              </Button>
             {Object.values(performanceClassification).some(count => count > 0) && (
               <div className="flex gap-2">
                 <div className="bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 rounded-lg flex items-center gap-2">
@@ -1607,6 +1634,7 @@ export function ReportView({ report }: ReportViewProps) {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
         <div className="p-6 space-y-4">
