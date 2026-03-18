@@ -2104,50 +2104,102 @@ export function ReportView({ report }: ReportViewProps) {
           <h3 className="text-lg font-bold">Date Wise Investment Amount</h3>
         </div>
         
-        <div className="p-4">
+        <div className="p-6 space-y-8">
           {(() => {
             const transactions = analysis.transactions || [];
-            const switchInItems = transactions.filter((tx: any) => {
-              const t = (tx.type || "").toLowerCase();
-              return t.includes("switch in") || t.includes("stp") || t.includes("systematic transfer");
+            console.log("All transactions read from analysis:", transactions);
+            
+            const categorize = (type: string) => {
+              const t = type.toLowerCase();
+              if (["stp", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
+              if (["sip", "systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
+              if (["swp", "systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
+              
+              // Fallback to what Gemini might have directly returned as "type"
+              if (t === "stp" || t === "sip" || t === "swp") return t.toUpperCase();
+              
+              return null;
+            };
+
+            const sections = {
+              "STP (Systematic Transfer Plan)": [] as any[],
+              "SIP (Systematic Investment Plan)": [] as any[],
+              "SWP (Systematic Withdrawal Plan)": [] as any[]
+            };
+
+            transactions.forEach((tx: any) => {
+              const category = categorize(tx.type || "");
+              const typeLower = (tx.type || "").toLowerCase();
+              const schemeLower = (tx.scheme_name || "").toLowerCase();
+              
+              // Skip "Switch In" transactions (receiving end of a transfer, not an outflow)
+              const isSwitchIn = typeLower.includes("switch in");
+
+              if (isSwitchIn) return;
+
+              if (category === "STP") sections["STP (Systematic Transfer Plan)"].push(tx);
+              else if (category === "SIP") sections["SIP (Systematic Investment Plan)"].push(tx);
+              else if (category === "SWP") sections["SWP (Systematic Withdrawal Plan)"].push(tx);
             });
-            const totalAmount = switchInItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
-            return (
-              <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                <table className="w-full text-[11px] text-left">
-                  <thead className="bg-slate-50 text-slate-400 font-semibold border-b border-slate-100 uppercase tracking-wide text-[9px]">
-                    <tr>
-                      <th className="px-3 py-2">Date</th>
-                      <th className="px-3 py-2">Scheme Name</th>
-                      <th className="px-3 py-2 text-right">Amount (₹)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {switchInItems.length > 0 ? switchInItems.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-slate-50/50">
-                        <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono">{item.date || "—"}</td>
-                        <td className="px-3 py-2 text-slate-700">{item.scheme_name || "—"}</td>
-                        <td className="px-3 py-2 text-right font-mono font-semibold text-slate-900">₹{item.amount?.toLocaleString() || "0"}</td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan={3} className="px-4 py-6 text-center text-slate-400 italic text-xs">No Switch In entries found</td>
-                      </tr>
-                    )}
-                  </tbody>
-                  {switchInItems.length > 0 && (
-                    <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
-                      <tr>
-                        <td colSpan={2} className="px-3 py-2 text-right text-slate-500 uppercase tracking-wider text-[9px]">Total STP Amount</td>
-                        <td className="px-3 py-2 text-right font-mono text-slate-900 text-xs">
-                          ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            );
+
+            return Object.entries(sections).map(([title, items]) => {
+              const isSTP = title.startsWith("STP");
+              let filteredItems = items;
+              
+              const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
+
+              return (
+                <div key={title} className="space-y-4">
+                  <h4 className="text-md font-bold text-slate-800 border-l-4 border-primary pl-3">{title}</h4>
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 text-slate-500 font-medium">
+                        <tr>
+                          <th className="px-6 py-3">Date</th>
+                          <th className="px-6 py-3">Scheme Name</th>
+                          <th className="px-6 py-3 text-right">Amount in ₹</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {items.length > 0 ? (
+                          items.map((item: any, idx: number) => {
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/50">
+                                <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">
+                                  {item.date || "N/A"}
+                                </td>
+                                <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
+                                <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
+                                  ₹{item.amount?.toLocaleString() || "0.00"}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="px-6 py-8 text-center text-slate-400 italic">
+                              No entries found for this category
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                      {items.length > 0 && (
+                        <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
+                          <tr>
+                            <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
+                              {isSTP ? "STP Total" : `Total ${title.split(' ')[0]} Amount`}
+                            </td>
+                            <td className="px-6 py-3 text-right font-mono text-slate-900">
+                              ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                  </div>
+                </div>
+              );
+            });
           })()}
         </div>
       </motion.div>
