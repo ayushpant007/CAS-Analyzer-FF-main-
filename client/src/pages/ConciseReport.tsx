@@ -43,6 +43,18 @@ const CATEGORY_META: Record<string, { color: string }> = {
   "Others":      { color: "#10b981" },
 };
 
+function calcPerfScore(schemeReturns: any, benchmarkReturns: any) {
+  if (!schemeReturns || !benchmarkReturns) return { total: 0, breakDown: { "1y": 0, "3y": 0, "5y": 0 } };
+  const pv = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, "") || "0");
+  const diff1 = pv(schemeReturns["1y"]) - pv(benchmarkReturns["1y"]);
+  const diff3 = pv(schemeReturns["3y"]) - pv(benchmarkReturns["3y"]);
+  const diff5 = pv(schemeReturns["5y"]) - pv(benchmarkReturns["5y"]);
+  const s1 = diff1 >= 3 ? 10 : diff1 >= 1.5 ? 8 : diff1 >= 0 ? 6 : diff1 >= -1.49 ? 4 : diff1 >= -2.99 ? 2 : 0;
+  const s3 = diff3 >= 3 ? 15 : diff3 >= 1.5 ? 13 : diff3 >= 0 ? 11 : diff3 >= -1.49 ? 9 : diff3 >= -2.99 ? 7 : 0;
+  const s5 = diff5 >= 3 ? 15 : diff5 >= 1.5 ? 13 : diff5 >= 0 ? 11 : diff5 >= -1.49 ? 9 : diff5 >= -2.99 ? 7 : 0;
+  return { total: s1 + s3 + s5, breakDown: { "1y": s1, "3y": s3, "5y": s5 } };
+}
+
 export default function ConciseReport() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -50,6 +62,16 @@ export default function ConciseReport() {
   const { data: report, isLoading } = useReport(reportId);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const storedPerformances = useMemo<Record<string, any>>(() => {
+    if (!reportId) return {};
+    try { return JSON.parse(localStorage.getItem(`fin_perf_${reportId}`) || "{}"); } catch { return {}; }
+  }, [reportId]);
+
+  const storedScoring = useMemo<Record<string, any>>(() => {
+    if (!reportId) return {};
+    try { return JSON.parse(localStorage.getItem(`fin_scoring_${reportId}`) || "{}"); } catch { return {}; }
+  }, [reportId]);
 
   const analysis = (report?.analysis as any) || {};
 
@@ -573,7 +595,118 @@ export default function ConciseReport() {
             </div>
           </div>
 
-          {/* 4. Portfolio Snapshot - Mutual Fund Units */}
+          {/* 4. Concise Performance Check */}
+          {Object.keys(storedPerformances).length > 0 && (() => {
+            const RATING_STYLE: Record<string, { pill: string; bar: string }> = {
+              "Excellent": { pill: "bg-emerald-100 text-emerald-700 border-emerald-200", bar: "#10b981" },
+              "Good":      { pill: "bg-blue-100 text-blue-700 border-blue-200",          bar: "#3b82f6" },
+              "Average":   { pill: "bg-amber-100 text-amber-700 border-amber-200",       bar: "#f59e0b" },
+              "Poor":      { pill: "bg-rose-100 text-rose-600 border-rose-200",          bar: "#ef4444" },
+              "Very Poor": { pill: "bg-rose-200 text-rose-800 border-rose-300",          bar: "#b91c1c" },
+            };
+            const rows = mfSnapshot
+              .filter((mf: any) => storedPerformances[mf.isin])
+              .map((mf: any) => {
+                const perf = storedPerformances[mf.isin];
+                const sc = storedScoring[mf.isin];
+                const perfScore = calcPerfScore(perf?.cagr, perf?.benchmark_returns);
+                const scoringTotal = sc?.totalScore ?? 0;
+                const combined = scoringTotal + perfScore.total;
+                const maxScore = perf ? 80 : 40;
+                const rating: string = sc?.fundRating || "";
+                const pct = maxScore > 0 ? Math.round((combined / maxScore) * 100) : 0;
+                const cagr1y = perf?.cagr?.["1y"] ?? "—";
+                const cagr3y = perf?.cagr?.["3y"] ?? "—";
+                const cagr5y = perf?.cagr?.["5y"] ?? "—";
+                const bm1y = perf?.benchmark_returns?.["1y"] ?? null;
+                const bm3y = perf?.benchmark_returns?.["3y"] ?? null;
+                const bm5y = perf?.benchmark_returns?.["5y"] ?? null;
+                return { mf, perf, sc, perfScore, combined, maxScore, rating, pct, cagr1y, cagr3y, cagr5y, bm1y, bm3y, bm5y };
+              });
+
+            return (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-600 to-indigo-700 p-4 text-white">
+                  <h3 className="text-lg font-bold">Concise Performance Check</h3>
+                  <p className="text-violet-200 text-xs mt-0.5">Fund-level scores vs benchmark · Risk Metrics Summary</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 w-8">#</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">Fund Name</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Risk Type</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">1Y CAGR</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">3Y CAGR</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">5Y CAGR</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Score</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Rating</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {rows.map((r, idx) => {
+                        const style = RATING_STYLE[r.rating] ?? { pill: "bg-slate-100 text-slate-500 border-slate-200", bar: "#94a3b8" };
+                        const fmtCagr = (v: string, bm: string | null) => {
+                          const val = parseFloat(v?.replace(/[^\d.-]/g, "") || "");
+                          const bmVal = parseFloat(bm?.replace(/[^\d.-]/g, "") ?? "");
+                          const isGood = !isNaN(val) && !isNaN(bmVal) && val >= bmVal;
+                          const isAvail = !isNaN(val);
+                          return (
+                            <span className={`font-bold text-[11px] ${!isAvail ? "text-slate-300" : isGood ? "text-emerald-600" : "text-rose-500"}`}>
+                              {isAvail ? `${val.toFixed(1)}%` : "—"}
+                              {isAvail && !isNaN(bmVal) && (
+                                <span className="block text-[9px] font-normal text-slate-400">BM: {bmVal.toFixed(1)}%</span>
+                              )}
+                            </span>
+                          );
+                        };
+                        return (
+                          <tr key={r.mf.isin || idx} className={`${idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"} hover:bg-violet-50/30 transition-colors`}>
+                            <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{idx + 1}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-col gap-0.5 max-w-[260px]">
+                                <span className="text-[11px] font-semibold text-slate-800 leading-snug line-clamp-2">{r.mf.scheme_name}</span>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide bg-blue-50 text-blue-600 border border-blue-100">{r.mf.fund_category || "—"}</span>
+                                  <span className="text-[9px] text-slate-400">{r.mf.isin}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
+                                {r.mf.fund_type || "—"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">{fmtCagr(r.cagr1y, r.bm1y)}</td>
+                            <td className="px-4 py-3 text-center">{fmtCagr(r.cagr3y, r.bm3y)}</td>
+                            <td className="px-4 py-3 text-center">{fmtCagr(r.cagr5y, r.bm5y)}</td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="text-[13px] font-black text-slate-800">{r.combined}<span className="text-[9px] font-normal text-slate-400">/{r.maxScore}</span></span>
+                                <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                  <div className="h-full rounded-full" style={{ width: `${r.pct}%`, backgroundColor: style.bar }} />
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {r.rating ? (
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide border ${style.pill}`}>
+                                  {r.rating}
+                                </span>
+                              ) : <span className="text-slate-300 text-[10px]">—</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* 5. Portfolio Snapshot - Mutual Fund Units */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white">
               <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>

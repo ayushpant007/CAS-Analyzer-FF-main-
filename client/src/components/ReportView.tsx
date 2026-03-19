@@ -840,7 +840,14 @@ export function ReportView({ report }: ReportViewProps) {
           return (
             <div className="relative group">
               <Button
-                onClick={() => allAnalyzed && navigate(`/reports/${report.id}/concise`)}
+                onClick={() => {
+                  if (!allAnalyzed) return;
+                  try {
+                    localStorage.setItem(`fin_perf_${report.id}`, JSON.stringify(performances));
+                    localStorage.setItem(`fin_scoring_${report.id}`, JSON.stringify(scoringRecords));
+                  } catch (_) {}
+                  navigate(`/reports/${report.id}/concise`);
+                }}
                 variant="outline"
                 disabled={!allAnalyzed}
                 className={`hover-elevate border-slate-600 ${allAnalyzed ? "text-slate-200 bg-slate-800 hover:bg-slate-700" : "text-slate-500 bg-slate-900/60 border-slate-700 cursor-not-allowed opacity-50"}`}
