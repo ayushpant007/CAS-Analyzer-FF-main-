@@ -2134,15 +2134,35 @@ export function ReportView({ report }: ReportViewProps) {
               let filteredItems = items;
 
               if (isSIP && items.length > 0) {
-                const latestByScheme: Record<string, any> = {};
+                // Helper: extract a sortable YYYY-MM string from a date
+                const getYearMonth = (dateStr: string): string => {
+                  if (!dateStr) return "";
+                  const parts = dateStr.split(/[-/]/);
+                  if (parts.length === 3) {
+                    const monthMap: Record<string, string> = { jan:"01", feb:"02", mar:"03", apr:"04", may:"05", jun:"06", jul:"07", aug:"08", sep:"09", oct:"10", nov:"11", dec:"12" };
+                    const year = parts[2].padStart(4, "0");
+                    const rawM = parts[1];
+                    const month = isNaN(parseInt(rawM)) ? (monthMap[rawM.toLowerCase().slice(0,3)] ?? "00") : String(parseInt(rawM)).padStart(2, "0");
+                    return `${year}-${month}`;
+                  }
+                  return "";
+                };
+
+                // For each scheme, find the latest year-month
+                const latestMonthByScheme: Record<string, string> = {};
                 items.forEach((tx: any) => {
                   const key = tx.scheme_name || "unknown";
-                  const txTime = parseDate(tx.date);
-                  if (!latestByScheme[key] || txTime > parseDate(latestByScheme[key].date)) {
-                    latestByScheme[key] = tx;
+                  const ym = getYearMonth(tx.date);
+                  if (!latestMonthByScheme[key] || ym > latestMonthByScheme[key]) {
+                    latestMonthByScheme[key] = ym;
                   }
                 });
-                filteredItems = Object.values(latestByScheme);
+
+                // Keep only entries that belong to each scheme's latest month
+                filteredItems = items.filter((tx: any) => {
+                  const key = tx.scheme_name || "unknown";
+                  return getYearMonth(tx.date) === latestMonthByScheme[key];
+                });
               }
               
               const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
