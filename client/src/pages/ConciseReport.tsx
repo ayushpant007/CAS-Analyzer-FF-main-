@@ -108,69 +108,33 @@ export default function ConciseReport() {
     if (!reportRef.current) return;
     setIsDownloading(true);
     try {
-      const { jsPDF } = await import("jspdf");
       const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
 
-      const PAGE_W_PT = 595.28;
-      const PAGE_H_PT = 841.89;
-      const MARGIN_PT = 28;
-      const CONTENT_W_PT = PAGE_W_PT - MARGIN_PT * 2;
-      const CONTENT_H_PT = PAGE_H_PT - MARGIN_PT * 2;
-
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-      const sections = Array.from(reportRef.current.children) as HTMLElement[];
-
-      let cursorY = MARGIN_PT;
-      let firstPage = true;
-
-      const h2cOptions = {
+      const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: "#f8fafc",
         logging: false,
+        backgroundColor: "#0a0e2e",
         onclone: (_doc: Document, el: HTMLElement) => {
+          el.style.background = "#0a0e2e";
+          el.style.padding = "28px";
           el.querySelectorAll<HTMLElement>("button, [role='button'], .no-print").forEach(n => { n.style.display = "none"; });
         },
-      } as any;
+      } as any);
 
-      for (const section of sections) {
-        if (!section.textContent?.trim()) continue;
-        const canvas = await html2canvas(section, { ...h2cOptions, width: section.scrollWidth });
-        const ratio = CONTENT_W_PT / canvas.width;
-        const imgH = canvas.height * ratio;
-        const imgData = canvas.toDataURL("image/jpeg", 0.93);
+      const PAGE_W_PT = 595.28;
+      const ratio = PAGE_W_PT / canvas.width;
+      const PAGE_H_PT = Math.ceil(canvas.height * ratio);
 
-        if (!firstPage && cursorY + imgH > PAGE_H_PT - MARGIN_PT) {
-          pdf.addPage();
-          cursorY = MARGIN_PT;
-        }
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: [PAGE_W_PT, PAGE_H_PT] });
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", 0, 0, PAGE_W_PT, PAGE_H_PT);
 
-        if (imgH > CONTENT_H_PT) {
-          let srcOffsetPt = 0;
-          while (srcOffsetPt < imgH) {
-            const sliceH = Math.min(CONTENT_H_PT, imgH - srcOffsetPt);
-            const srcY = srcOffsetPt / ratio;
-            const sliceCanvas = document.createElement("canvas");
-            sliceCanvas.width = canvas.width;
-            sliceCanvas.height = sliceH / ratio;
-            const ctx = sliceCanvas.getContext("2d")!;
-            ctx.drawImage(canvas, 0, -srcY);
-            const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.93);
-            if (!firstPage || srcOffsetPt > 0) { pdf.addPage(); cursorY = MARGIN_PT; }
-            pdf.addImage(sliceData, "JPEG", MARGIN_PT, cursorY, CONTENT_W_PT, sliceH);
-            srcOffsetPt += CONTENT_H_PT;
-            firstPage = false;
-          }
-        } else {
-          pdf.addImage(imgData, "JPEG", MARGIN_PT, cursorY, CONTENT_W_PT, imgH);
-          cursorY += imgH + 12;
-          firstPage = false;
-        }
-      }
-
-      const name = investorName || "Portfolio";
-      pdf.save(`${name}_Concise_Report.pdf`);
+      const name = (investorName || "Portfolio").replace(/\s+/g, "_");
+      const dateStr = format(new Date(), "dd-MMM-yyyy");
+      pdf.save(`ConciseReport_${name}_${dateStr}.pdf`);
     } catch (err) {
       console.error("PDF generation failed", err);
     } finally {
