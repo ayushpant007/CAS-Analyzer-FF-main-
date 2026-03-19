@@ -833,15 +833,31 @@ export function ReportView({ report }: ReportViewProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-3 py-2">
-        <Button
-          onClick={() => navigate(`/reports/${report.id}/concise`)}
-          variant="outline"
-          className="hover-elevate border-slate-600 text-slate-200 bg-slate-800 hover:bg-slate-700"
-          data-testid="button-generate-concise-report"
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          Generate Concise Report
-        </Button>
+        {(() => {
+          const totalFunds = (analysis.mf_snapshot || []).length;
+          const allAnalyzed = totalFunds > 0 && Object.keys(performances).length >= totalFunds;
+          const analyzedCount = Object.keys(performances).length;
+          return (
+            <div className="relative group">
+              <Button
+                onClick={() => allAnalyzed && navigate(`/reports/${report.id}/concise`)}
+                variant="outline"
+                disabled={!allAnalyzed}
+                className={`hover-elevate border-slate-600 ${allAnalyzed ? "text-slate-200 bg-slate-800 hover:bg-slate-700" : "text-slate-500 bg-slate-900/60 border-slate-700 cursor-not-allowed opacity-50"}`}
+                data-testid="button-generate-concise-report"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Generate Concise Report
+              </Button>
+              {!allAnalyzed && (
+                <div className="absolute bottom-full right-0 mb-2 w-64 bg-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 shadow-xl border border-slate-700 hidden group-hover:block z-50 pointer-events-none">
+                  Analyse all funds in the <span className="font-semibold text-blue-400">Risk Metrics Check</span> section first ({analyzedCount}/{totalFunds} done).
+                  <div className="absolute top-full right-4 border-4 border-transparent border-t-slate-800" />
+                </div>
+              )}
+            </div>
+          );
+        })()}
         <Button 
           onClick={downloadPDF} 
           disabled={isDownloading}
