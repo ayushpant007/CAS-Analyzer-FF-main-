@@ -758,58 +758,6 @@ export default function ConciseReport() {
             </div>
           </div>
 
-          {/* 5. Date Wise Investment Amount */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-4 text-white bg-[#1457f5]">
-              <h3 className="text-lg font-bold">Date Wise Investment Amount</h3>
-            </div>
-            <div className="p-6 space-y-8">
-              {Object.entries(txSections).map(([title, items]) => {
-                const isSTP = title.startsWith("STP");
-                const totalAmount = items.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
-                return (
-                  <div key={title} className="space-y-4">
-                    <h4 className="text-md font-bold text-slate-800 border-l-4 border-blue-500 pl-3">{title}</h4>
-                    <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                      <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 text-slate-500 font-medium">
-                          <tr>
-                            <th className="px-6 py-3">Date</th>
-                            <th className="px-6 py-3">Scheme Name</th>
-                            <th className="px-6 py-3 text-right">Amount in ₹</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {items.length > 0 ? items.map((item: any, idx: number) => (
-                            <tr key={idx} className="hover:bg-slate-50/50">
-                              <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">{item.date || "N/A"}</td>
-                              <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
-                              <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">₹{item.amount?.toLocaleString() || "0.00"}</td>
-                            </tr>
-                          )) : (
-                            <tr><td colSpan={3} className="px-6 py-8 text-center text-slate-400 italic">No entries found for this category</td></tr>
-                          )}
-                        </tbody>
-                        {items.length > 0 && (
-                          <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
-                            <tr>
-                              <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
-                                {isSTP ? "STP Total" : `Total ${title.split(' ')[0]} Amount`}
-                              </td>
-                              <td className="px-6 py-3 text-right font-mono text-slate-900">
-                                ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        )}
-                      </table>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
