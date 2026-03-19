@@ -101,6 +101,7 @@ Reference Ratios CSV:
 ${csvContent}
 
 Extract:
+0. Investor name: Extract the full name of the investor/account holder from the CAS report header or personal details section. Return as "investor_name": string.
 1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
 2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
 3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
@@ -126,6 +127,7 @@ Extract:
    - For amount, use the numerical value (e.g., if it says ₹1,000, extract 1000).
 
 Return ONLY valid JSON with this exact structure: {
+  "investor_name": string,
   "summary": {"net_asset_value": number, "total_cost": number}, 
   "account_summaries": [...], 
   "historical_valuations": [...], 

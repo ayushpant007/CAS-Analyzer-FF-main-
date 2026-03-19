@@ -790,12 +790,14 @@ export function ReportView({ report }: ReportViewProps) {
 
   const cleanFilename = (filename: string) => {
     if (!filename) return "";
-    // Remove .pdf extension (case insensitive)
     let name = filename.replace(/\.pdf$/i, "");
-    // Remove pattern like (AJGPA8088H) - parenthesis with alphanumeric content
     name = name.replace(/\s*\([A-Z0-9\-\s]+\)\s*/gi, " ").trim();
+    // Strip depository/platform names like CDSL, NSDL (case-insensitive)
+    name = name.replace(/\b(CDSL|NSDL|BSE|NSE)\b/gi, "").replace(/\s{2,}/g, " ").trim();
     return name;
   };
+
+  const investorName = (analysis.investor_name as string | undefined)?.trim() || cleanFilename(report.filename);
   
   const container = {
     hidden: { opacity: 0 },
@@ -838,7 +840,7 @@ export function ReportView({ report }: ReportViewProps) {
         {/* Header Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <h1 className="text-3xl font-bold font-display mb-1 text-[#d0f70f]">{cleanFilename(report.filename)}</h1>
+          <h1 className="text-3xl font-bold font-display mb-1 text-[#d0f70f]">{investorName}</h1>
           <div className="flex items-center gap-2 text-slate-500">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">Analyzed on {report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : "Unknown Date"}</span>
