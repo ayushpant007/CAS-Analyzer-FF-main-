@@ -797,7 +797,21 @@ export function ReportView({ report }: ReportViewProps) {
     return name;
   };
 
-  const investorName = (analysis.investor_name as string | undefined)?.trim() || cleanFilename(report.filename);
+  const investorName = (() => {
+    const raw = (analysis.investor_name as string | undefined)?.trim();
+    if (raw && raw.length >= 2) {
+      // Reject if no spaces (all one token — likely garbled text)
+      // Reject if it's all lowercase with no spaces (garbled PDF text)
+      // Reject if it contains non-name characters like digits or symbols
+      const hasSpace = raw.includes(" ");
+      const hasOnlyNameChars = /^[a-zA-Z\s.\-']+$/.test(raw);
+      const isAllLowerNoSpace = raw === raw.toLowerCase() && !hasSpace;
+      if (hasOnlyNameChars && !isAllLowerNoSpace) {
+        return raw;
+      }
+    }
+    return cleanFilename(report.filename);
+  })();
   
   const container = {
     hidden: { opacity: 0 },
