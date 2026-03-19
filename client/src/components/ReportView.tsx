@@ -1,6 +1,7 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, AreaChart, Area, ComposedChart, Line, CartesianGrid } from "recharts";
-import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag, ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useMemo } from "react";
@@ -442,6 +443,7 @@ const calculateRiskScore = (perf: any) => {
 
 export function ReportView({ report }: ReportViewProps) {
   const analysis = report.analysis as any;
+  const [, navigate] = useLocation();
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
@@ -830,7 +832,16 @@ export function ReportView({ report }: ReportViewProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end py-2">
+      <div className="flex justify-end gap-3 py-2">
+        <Button
+          onClick={() => navigate(`/reports/${report.id}/concise`)}
+          variant="outline"
+          className="hover-elevate border-slate-600 text-slate-200 bg-slate-800 hover:bg-slate-700"
+          data-testid="button-generate-concise-report"
+        >
+          <FileText className="w-4 h-4 mr-2" />
+          Generate Concise Report
+        </Button>
         <Button 
           onClick={downloadPDF} 
           disabled={isDownloading}
