@@ -111,15 +111,34 @@ export default function ConciseReport() {
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
 
+      const CAPTURE_WIDTH = 1200;
+
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         logging: false,
         backgroundColor: "#0a0e2e",
-        onclone: (_doc: Document, el: HTMLElement) => {
-          el.style.background = "#0a0e2e";
-          el.style.padding = "28px";
+        windowWidth: CAPTURE_WIDTH,
+        onclone: (doc: Document, el: HTMLElement) => {
+          el.style.setProperty("background", "#0a0e2e", "important");
+          el.style.setProperty("padding", "32px", "important");
+          el.style.setProperty("width", `${CAPTURE_WIDTH - 64}px`, "important");
+          el.style.setProperty("max-width", "none", "important");
+          // Remove all overflow clipping so nothing gets cut off
+          el.querySelectorAll<HTMLElement>("*").forEach(child => {
+            const cs = doc.defaultView?.getComputedStyle(child);
+            if (!cs) return;
+            if (cs.overflow === "hidden" || cs.overflow === "scroll" || cs.overflow === "auto") {
+              child.style.setProperty("overflow", "visible", "important");
+            }
+            if (cs.overflowX === "hidden" || cs.overflowX === "scroll" || cs.overflowX === "auto") {
+              child.style.setProperty("overflow-x", "visible", "important");
+            }
+            if (cs.overflowY === "hidden" || cs.overflowY === "scroll" || cs.overflowY === "auto") {
+              child.style.setProperty("overflow-y", "visible", "important");
+            }
+          });
           el.querySelectorAll<HTMLElement>("button, [role='button'], .no-print").forEach(n => { n.style.display = "none"; });
         },
       } as any);
