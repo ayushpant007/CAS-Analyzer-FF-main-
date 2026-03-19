@@ -264,7 +264,7 @@ export default function ConciseReport() {
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-4 relative z-10">
         {/* Top bar: Back + title + Download */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <button
