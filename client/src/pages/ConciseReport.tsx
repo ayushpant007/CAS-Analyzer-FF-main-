@@ -86,7 +86,12 @@ export default function ConciseReport() {
   }, [analysis.mf_snapshot]);
 
   const totalInvested = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.invested_amount || 0), 0), [mfSnapshot]);
-  const totalValuation = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.valuation || 0), 0), [mfSnapshot]);
+  const totalValuation = useMemo(() => {
+    const accounts: any[] = analysis.account_summaries || [];
+    const accountsTotal = accounts.reduce((s: number, a: any) => s + (a.value || 0), 0);
+    if (accountsTotal > 0) return accountsTotal;
+    return mfSnapshot.reduce((a: number, m: any) => a + (m.valuation || 0), 0);
+  }, [analysis.account_summaries, mfSnapshot]);
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.unrealised_profit_loss || 0), 0), [mfSnapshot]);
 
   const investorName = (() => {
