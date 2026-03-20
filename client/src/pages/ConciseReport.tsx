@@ -79,8 +79,14 @@ export default function ConciseReport() {
     return (analysis.mf_snapshot || []).map((mf: any) => {
       const units = mf.units || mf.closing_balance || 0;
       const nav = mf.nav ?? 0;
-      const valuation = units * nav;
-      const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
+      const calculatedValuation = units * nav;
+      // Use the CAS-extracted valuation when available; only fall back to units×nav
+      const valuation = (mf.valuation && mf.valuation > 0) ? mf.valuation : calculatedValuation;
+      // Use the CAS-extracted unrealised P&L when available; otherwise derive it
+      const unrealised_profit_loss =
+        (mf.unrealised_profit_loss !== undefined && mf.unrealised_profit_loss !== null && mf.unrealised_profit_loss !== 0)
+          ? mf.unrealised_profit_loss
+          : valuation - (mf.invested_amount || 0);
       return { ...mf, nav, valuation, unrealised_profit_loss };
     });
   }, [analysis.mf_snapshot]);

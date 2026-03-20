@@ -503,8 +503,18 @@ export function ReportView({ report }: ReportViewProps) {
     return (analysis.mf_snapshot || []).map((mf: any) => {
       const units = mf.units || mf.closing_balance || 0;
       const nav = manualNavs[mf.scheme_name] ?? mf.nav ?? 0;
-      const valuation = units * nav;
-      const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
+      const hasManualNav = mf.scheme_name in manualNavs;
+      const calculatedValuation = units * nav;
+      // If user has manually entered a NAV, recalculate from it.
+      // Otherwise, trust the CAS-extracted valuation when it is positive.
+      const valuation = hasManualNav
+        ? calculatedValuation
+        : (mf.valuation && mf.valuation > 0 ? mf.valuation : calculatedValuation);
+      // Use CAS-extracted unrealised P&L when available; otherwise derive it
+      const unrealised_profit_loss =
+        hasManualNav || !(mf.unrealised_profit_loss !== undefined && mf.unrealised_profit_loss !== null && mf.unrealised_profit_loss !== 0)
+          ? valuation - (mf.invested_amount || 0)
+          : mf.unrealised_profit_loss;
       return {
         ...mf,
         nav,
