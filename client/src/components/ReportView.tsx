@@ -1861,96 +1861,122 @@ export function ReportView({ report }: ReportViewProps) {
 
       {/* Mutual Fund Portfolio Snapshot Section */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center gap-4 flex-wrap">
-          <h3 className="text-lg font-bold">Portfolio Snapshot - Mutual Fund Units</h3>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-5 py-4 text-white flex justify-between items-start gap-4 flex-wrap">
+          <div>
+            <h3 className="text-lg font-bold tracking-tight">Portfolio Snapshot — Mutual Fund Units</h3>
+            <p className="text-blue-200 text-[11px] mt-0.5">As per CAS · Closing balances, NAV & valuation are directly from your statement</p>
+          </div>
           <Button
             size="sm"
             variant="outline"
             onClick={fetchAllNavs}
             disabled={isFetchingNav}
-            className="bg-white/10 border-white/30 text-white"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20 shrink-0"
             data-testid="button-fetch-all-nav"
           >
-            {isFetchingNav ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <TrendingUp className="w-4 h-4 mr-2" />
-            )}
-            {isFetchingNav ? "Fetching NAV..." : "Fetch Real-Time NAV"}
+            {isFetchingNav ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+            {isFetchingNav ? "Fetching NAV…" : "Fetch Real-Time NAV"}
           </Button>
         </div>
+
+        {/* Summary bar */}
+        <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100 bg-slate-50/60">
+          {[
+            { label: "Total Invested", value: `₹${(totalInvested / 100000).toFixed(2)} L` },
+            { label: "Total Valuation", value: `₹${(mfSnapshotValuation / 100000).toFixed(2)} L` },
+            { label: "Unrealised Gain/Loss", value: `${totalUnrealised >= 0 ? "+" : ""}₹${(Math.abs(totalUnrealised) / 100000).toFixed(2)} L`, color: totalUnrealised >= 0 ? "text-emerald-600" : "text-rose-600" },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="px-5 py-3">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+              <p className={`text-sm font-bold mt-0.5 ${color || "text-slate-800"}`}>{value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-[11px] text-left">
-            <thead className="bg-slate-50 text-slate-400 font-semibold border-b border-slate-100 uppercase tracking-wide text-[9px]">
-              <tr>
-                <th className="px-3 py-2">Scheme</th>
-                <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2">Score</th>
-                <th className="px-3 py-2 text-right">Units</th>
-                <th className="px-3 py-2 text-right">NAV (₹)</th>
-                <th className="px-3 py-2 text-right">Invested (₹)</th>
-                <th className="px-3 py-2 text-right">Value (₹)</th>
-                <th className="px-3 py-2 text-right">P/L (₹)</th>
+          <table className="w-full text-[11px] text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-500 uppercase tracking-wider text-[9px] font-bold border-b border-slate-200">
+                <th className="px-4 py-2.5">#</th>
+                <th className="px-4 py-2.5">Scheme / ISIN / Folio</th>
+                <th className="px-4 py-2.5">Category · Type</th>
+                <th className="px-4 py-2.5 text-center">Score</th>
+                <th className="px-4 py-2.5 text-right">Closing Bal<br/><span className="normal-case font-normal">(Units)</span></th>
+                <th className="px-4 py-2.5 text-right">NAV (₹)</th>
+                <th className="px-4 py-2.5 text-right">Invested (₹)</th>
+                <th className="px-4 py-2.5 text-right">Valuation (₹)</th>
+                <th className="px-4 py-2.5 text-right">Unrealised<br/><span className="normal-case font-normal">P/L (₹)</span></th>
+                <th className="px-4 py-2.5 text-right">P/L %</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {mfSnapshot.map((mf: any, i: number) => {
-                const shortName = (() => {
-                  const name: string = mf.scheme_name || "";
-                  const cleaned = name
-                    .replace(/\s*\(Erstwhile[^)]*\)/gi, "")
-                    .replace(/\s*-\s*Regular Plan\s*-?\s*/gi, " ")
-                    .replace(/\s*-\s*Direct Plan\s*-?\s*/gi, " ")
-                    .replace(/\s*Growth Option\s*/gi, "")
-                    .replace(/\s*Growth Plan\s*/gi, "")
-                    .replace(/\s*-\s*Growth\s*$/i, "")
-                    .replace(/\s+/g, " ")
-                    .trim();
-                  return cleaned.length > 38 ? cleaned.slice(0, 36) + "…" : cleaned;
-                })();
+                const plPct = mf.invested_amount > 0 ? (mf.unrealised_profit_loss / mf.invested_amount) * 100 : 0;
+                const isLive = mf.scheme_name in manualNavs;
+                const isLoading = navFetchStatus[mf.scheme_name] === "loading";
+                const isNotFound = navFetchStatus[mf.scheme_name] === "not_found";
+                const sc = scoringRecords[mf.isin];
+                const perf = performances[mf.isin];
+                const combined = sc ? sc.totalScore + (perf ? calculatePerformanceScore(perf.cagr, perf.benchmark_returns).total : 0) : null;
+                const maxScore = perf ? 80 : 40;
+                const rating: string = sc?.fundRating || "";
+                const pillStyle: Record<string, string> = {
+                  "Excellent": "bg-emerald-100 text-emerald-700",
+                  "Good": "bg-blue-100 text-blue-700",
+                  "Average": "bg-amber-100 text-amber-700",
+                  "Poor": "bg-rose-100 text-rose-700",
+                  "Very Poor": "bg-rose-200 text-rose-800",
+                };
+                const ratingCls = pillStyle[rating] ?? "bg-slate-100 text-slate-500";
+                const rowBg = i % 2 === 0 ? "bg-white" : "bg-slate-50/40";
                 return (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-3 py-2 font-semibold text-slate-700 max-w-[200px]" title={mf.scheme_name}>{shortName}</td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-col leading-tight">
-                        <span className="text-slate-600">{mf.fund_category || '—'}</span>
-                        <span className="text-slate-400 text-[9px]">{mf.fund_type || ''}</span>
+                  <tr key={i} className={`${rowBg} hover:bg-blue-50/30 transition-colors border-b border-slate-100`}>
+                    {/* # */}
+                    <td className="px-4 py-3 text-slate-400 font-mono text-[10px]">{i + 1}</td>
+                    {/* Scheme / ISIN / Folio */}
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <p className="font-semibold text-slate-800 leading-snug" title={mf.scheme_name}>
+                        {mf.scheme_name || "—"}
+                      </p>
+                      <div className="flex flex-wrap gap-x-3 mt-1">
+                        {mf.isin && (
+                          <span className="font-mono text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{mf.isin}</span>
+                        )}
+                        {mf.folio_no && (
+                          <span className="text-[9px] text-slate-400">Folio: {mf.folio_no}</span>
+                        )}
                       </div>
                     </td>
-                    <td className="px-3 py-2">
-                      {(() => {
-                        const sc = scoringRecords[mf.isin];
-                        const perf = performances[mf.isin];
-                        if (!sc) return <span className="text-slate-300 text-[10px]">—</span>;
-                        const combined = sc.totalScore + (perf ? calculatePerformanceScore(perf.cagr, perf.benchmark_returns).total : 0);
-                        const maxScore = perf ? 80 : 40;
-                        const rating: string = sc.fundRating || "";
-                        const pillStyle: Record<string, string> = {
-                          "Excellent": "bg-emerald-100 text-emerald-700",
-                          "Good": "bg-blue-100 text-blue-700",
-                          "Average": "bg-amber-100 text-amber-700",
-                          "Poor": "bg-rose-100 text-rose-700",
-                          "Very Poor": "bg-rose-200 text-rose-800",
-                        };
-                        const cls = pillStyle[rating] ?? "bg-slate-100 text-slate-600";
-                        return (
-                          <div className="flex flex-col items-start gap-0.5">
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${cls}`}>{rating || "—"}</span>
-                            <span className="text-[9px] text-slate-400 font-mono">{combined}/{maxScore}</span>
-                          </div>
-                        );
-                      })()}
+                    {/* Category · Type */}
+                    <td className="px-4 py-3">
+                      <span className="block text-slate-700 font-medium">{mf.fund_category || "—"}</span>
+                      {mf.fund_type && <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded mt-1 inline-block">{mf.fund_type}</span>}
                     </td>
-                    <td className="px-3 py-2 text-right text-slate-600">{(mf.units || mf.closing_balance)?.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
-                    <td className="px-3 py-2 text-right">
+                    {/* Score */}
+                    <td className="px-4 py-3 text-center">
+                      {combined !== null ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${ratingCls}`}>{rating || "—"}</span>
+                          <span className="text-[9px] text-slate-400 font-mono">{combined}/{maxScore}</span>
+                        </div>
+                      ) : <span className="text-slate-300">—</span>}
+                    </td>
+                    {/* Units */}
+                    <td className="px-4 py-3 text-right font-mono text-slate-700">
+                      {(mf.units ?? mf.closing_balance)?.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 4 }) ?? "—"}
+                    </td>
+                    {/* NAV */}
+                    <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {navFetchStatus[mf.scheme_name] === "loading" && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
-                        {navFetchStatus[mf.scheme_name] === "done" && <span className="text-[7px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded">LIVE</span>}
-                        {navFetchStatus[mf.scheme_name] === "not_found" && <span className="text-[7px] font-bold text-amber-600 bg-amber-50 px-1 rounded">N/F</span>}
+                        {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
+                        {isLive && !isLoading && <span className="text-[7px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">LIVE</span>}
+                        {isNotFound && <span className="text-[7px] font-bold text-amber-600 bg-amber-50 px-1 py-0.5 rounded">N/F</span>}
                         <Input
                           type="number"
                           step="0.0001"
-                          className="h-6 text-right w-20 ml-auto text-[11px] font-mono px-1"
+                          className="h-6 text-right w-24 text-[11px] font-mono px-1 border-slate-200"
                           value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value);
@@ -1959,21 +1985,41 @@ export function ReportView({ report }: ReportViewProps) {
                         />
                       </div>
                     </td>
-                    <td className="px-3 py-2 text-right text-slate-600">{mf.invested_amount?.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-right font-bold text-slate-900">{mf.valuation?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                    <td className={`px-3 py-2 text-right font-semibold ${mf.unrealised_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {mf.unrealised_profit_loss?.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    {/* Invested */}
+                    <td className="px-4 py-3 text-right font-mono text-slate-600">
+                      {mf.invested_amount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}
+                    </td>
+                    {/* Valuation */}
+                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">
+                      {mf.valuation?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}
+                    </td>
+                    {/* P/L ₹ */}
+                    <td className={`px-4 py-3 text-right font-mono font-semibold ${mf.unrealised_profit_loss >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      {mf.unrealised_profit_loss != null
+                        ? `${mf.unrealised_profit_loss >= 0 ? "+" : ""}${mf.unrealised_profit_loss.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : "—"}
+                    </td>
+                    {/* P/L % */}
+                    <td className={`px-4 py-3 text-right font-mono font-semibold ${plPct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      {mf.invested_amount > 0 ? `${plPct >= 0 ? "+" : ""}${plPct.toFixed(2)}%` : "—"}
                     </td>
                   </tr>
                 );
               })}
-              <tr className="bg-slate-800 text-white font-bold text-[10px]">
-                <td colSpan={5} className="px-3 py-2 text-right uppercase tracking-wider text-[9px]">Grand Total</td>
-                <td className="px-3 py-2 text-right">₹{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                <td className="px-3 py-2 text-right">₹{mfSnapshotValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                <td className="px-3 py-2 text-right">₹{totalUnrealised.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-              </tr>
             </tbody>
+            <tfoot>
+              <tr className="bg-slate-800 text-white font-bold text-[11px]">
+                <td colSpan={6} className="px-4 py-3 text-right text-[9px] uppercase tracking-widest text-slate-300">Grand Total</td>
+                <td className="px-4 py-3 text-right font-mono">₹{totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="px-4 py-3 text-right font-mono">₹{mfSnapshotValuation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className={`px-4 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  {totalUnrealised >= 0 ? "+" : ""}₹{totalUnrealised.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className={`px-4 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  {totalInvested > 0 ? `${totalUnrealised >= 0 ? "+" : ""}${((totalUnrealised / totalInvested) * 100).toFixed(2)}%` : "—"}
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </motion.div>
