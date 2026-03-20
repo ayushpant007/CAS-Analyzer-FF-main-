@@ -510,10 +510,16 @@ export function ReportView({ report }: ReportViewProps) {
         const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
         return { ...mf, nav, valuation, unrealised_profit_loss };
       }
-      // Default: show CAS-extracted values strictly as-is, no recalculation
+      // Default: show CAS-extracted values strictly as-is, no recalculation.
+      // If NAV is missing but units + valuation are present, derive it.
+      const casNav = mf.nav;
+      const nav =
+        (casNav == null || casNav === 0) && mf.units && mf.valuation
+          ? mf.valuation / mf.units
+          : (casNav ?? 0);
       return {
         ...mf,
-        nav: mf.nav ?? 0,
+        nav,
         valuation: mf.valuation ?? 0,
         unrealised_profit_loss: mf.unrealised_profit_loss ?? 0,
       };

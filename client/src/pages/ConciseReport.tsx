@@ -76,12 +76,19 @@ export default function ConciseReport() {
   const analysis = (report?.analysis as any) || {};
 
   const mfSnapshot = useMemo(() => {
-    return (analysis.mf_snapshot || []).map((mf: any) => ({
-      ...mf,
-      nav: mf.nav ?? 0,
-      valuation: mf.valuation ?? 0,
-      unrealised_profit_loss: mf.unrealised_profit_loss ?? 0,
-    }));
+    return (analysis.mf_snapshot || []).map((mf: any) => {
+      const casNav = mf.nav;
+      const nav =
+        (casNav == null || casNav === 0) && mf.units && mf.valuation
+          ? mf.valuation / mf.units
+          : (casNav ?? 0);
+      return {
+        ...mf,
+        nav,
+        valuation: mf.valuation ?? 0,
+        unrealised_profit_loss: mf.unrealised_profit_loss ?? 0,
+      };
+    });
   }, [analysis.mf_snapshot]);
 
   const totalInvested = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.invested_amount || 0), 0), [mfSnapshot]);
