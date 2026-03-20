@@ -501,25 +501,21 @@ export function ReportView({ report }: ReportViewProps) {
 
   const mfSnapshot = useMemo(() => {
     return (analysis.mf_snapshot || []).map((mf: any) => {
-      const units = mf.units || mf.closing_balance || 0;
-      const nav = manualNavs[mf.scheme_name] ?? mf.nav ?? 0;
-      const hasManualNav = mf.scheme_name in manualNavs;
-      const calculatedValuation = units * nav;
-      // If user has manually entered a NAV, recalculate from it.
-      // Otherwise, trust the CAS-extracted valuation when it is positive.
-      const valuation = hasManualNav
-        ? calculatedValuation
-        : (mf.valuation && mf.valuation > 0 ? mf.valuation : calculatedValuation);
-      // Use CAS-extracted unrealised P&L when available; otherwise derive it
-      const unrealised_profit_loss =
-        hasManualNav || !(mf.unrealised_profit_loss !== undefined && mf.unrealised_profit_loss !== null && mf.unrealised_profit_loss !== 0)
-          ? valuation - (mf.invested_amount || 0)
-          : mf.unrealised_profit_loss;
+      const hasLiveNav = mf.scheme_name in manualNavs;
+      if (hasLiveNav) {
+        // User fetched or manually entered a NAV — recalculate from it
+        const units = mf.units || mf.closing_balance || 0;
+        const nav = manualNavs[mf.scheme_name];
+        const valuation = units * nav;
+        const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
+        return { ...mf, nav, valuation, unrealised_profit_loss };
+      }
+      // Default: show CAS-extracted values strictly as-is, no recalculation
       return {
         ...mf,
-        nav,
-        valuation,
-        unrealised_profit_loss
+        nav: mf.nav ?? 0,
+        valuation: mf.valuation ?? 0,
+        unrealised_profit_loss: mf.unrealised_profit_loss ?? 0,
       };
     });
   }, [analysis.mf_snapshot, manualNavs]);
@@ -532,6 +528,7 @@ export function ReportView({ report }: ReportViewProps) {
     return mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
   }, [(analysis as any).account_summaries, mfSnapshot]);
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0), [mfSnapshot]);
+  const mfSnapshotValuation = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0), [mfSnapshot]);
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
@@ -1967,7 +1964,7 @@ export function ReportView({ report }: ReportViewProps) {
               <tr className="bg-slate-800 text-white font-bold text-[10px]">
                 <td colSpan={5} className="px-3 py-2 text-right uppercase tracking-wider text-[9px]">Grand Total</td>
                 <td className="px-3 py-2 text-right">₹{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                <td className="px-3 py-2 text-right">₹{totalValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                <td className="px-3 py-2 text-right">₹{mfSnapshotValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                 <td className="px-3 py-2 text-right">₹{totalUnrealised.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
               </tr>
             </tbody>
