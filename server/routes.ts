@@ -239,29 +239,10 @@ ${text}`;
       const benchmarkName = benchmarkReturns?.resolvedName || reportedBenchmarkName;
 
       const formatCagr = (val: number | null) => val !== null ? `${val.toFixed(2)}%` : "N/A";
-      
-      let aiInsight = null;
-      try {
-        const insightPrompt = `You are a financial analyst. For the Indian mutual fund "${fundName}" (ISIN: ${isin}), provide ONLY textual insights. Do NOT provide any numerical data like NAV, returns, ratios, or AUM.
 
-Provide:
-1. A brief 2-3 sentence qualitative assessment of this fund's investment strategy
-2. Top 5 sector names this fund typically invests in (just names, no percentages)
-3. Top 5 stock holding names (just names, no percentages)
-
-Return JSON:
-{
-  "sectors": [{"name": string, "weight": 0}],
-  "holdings": [{"name": string, "weight": 0}]
-}
-
-Return ONLY JSON. No markdown.`;
-        const insightText = await generateWithFallback(insightPrompt);
-        const jsonMatch = insightText?.match(/\{[\s\S]*\}/);
-        aiInsight = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
-      } catch (e) {
-        console.log("AI insight fetch failed, using empty data");
-      }
+      // Sectors/holdings are not fetched from AI to keep analysis fast.
+      // They are available from the fund factsheet if needed in future.
+      const aiInsight = null;
 
       const performance = {
         nav: {

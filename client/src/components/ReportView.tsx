@@ -730,8 +730,10 @@ export function ReportView({ report }: ReportViewProps) {
     const funds = (analysis.mf_snapshot || []).filter((mf: any) => mf.isin);
     if (!funds.length) return;
     setIsAnalyzingAll(true);
-    for (const mf of funds) {
-      await analyzePerformance(mf.isin, mf.scheme_name);
+    const BATCH = 3;
+    for (let i = 0; i < funds.length; i += BATCH) {
+      const batch = funds.slice(i, i + BATCH);
+      await Promise.all(batch.map((mf: any) => analyzePerformance(mf.isin, mf.scheme_name)));
     }
     setIsAnalyzingAll(false);
   };
