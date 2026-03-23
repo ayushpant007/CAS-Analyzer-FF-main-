@@ -155,6 +155,70 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
               </div>
             </motion.div>
 
+            {/* Download links */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mb-4 rounded-xl px-4 py-3 text-sm"
+              style={{
+                background: "rgba(59,111,255,0.08)",
+                border: "1px solid rgba(96,165,250,0.18)",
+              }}
+            >
+              <p className="mb-2" style={{ color: "rgba(148,163,184,0.85)" }}>
+                Don't have your CAS report? Download it from the official website:
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="https://nsdlcas.nsdl.com/ecas/ecas.php"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
+                  style={{
+                    background: "rgba(59,111,255,0.18)",
+                    color: "#60a5fa",
+                    border: "1px solid rgba(96,165,250,0.3)",
+                    textDecoration: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(59,111,255,0.3)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(96,165,250,0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(59,111,255,0.18)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(96,165,250,0.3)";
+                  }}
+                  data-testid="link-nsdl-cas"
+                >
+                  ↗ NSDL CAS
+                </a>
+                <a
+                  href="https://www.cdslindia.com/cas/logincas.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
+                  style={{
+                    background: "rgba(147,51,234,0.18)",
+                    color: "#c084fc",
+                    border: "1px solid rgba(167,139,250,0.3)",
+                    textDecoration: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(147,51,234,0.3)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(167,139,250,0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(147,51,234,0.18)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(167,139,250,0.3)";
+                  }}
+                  data-testid="link-cdsl-cas"
+                >
+                  ↗ CDSL CAS
+                </a>
+              </div>
+            </motion.div>
+
             <AnimatePresence mode="wait">
               {!file ? (
                 <motion.div
