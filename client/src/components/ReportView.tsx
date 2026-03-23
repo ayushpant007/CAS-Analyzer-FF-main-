@@ -4,7 +4,7 @@ import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChar
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -449,6 +449,7 @@ export function ReportView({ report }: ReportViewProps) {
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
   const [scoringRecords, setScoringRecords] = useState<Record<string, any>>({});
   const [manualRemarks, setManualRemarks] = useState<Record<string, string>>({});
+  const [actionSelections, setActionSelections] = useState<Record<string, string>>({});
   const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFetchingNav, setIsFetchingNav] = useState(false);
@@ -535,6 +536,19 @@ export function ReportView({ report }: ReportViewProps) {
   }, [(analysis as any).account_summaries, mfSnapshot]);
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0), [mfSnapshot]);
   const mfSnapshotValuation = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0), [mfSnapshot]);
+
+  const sipAmounts = useMemo(() => {
+    const txns: any[] = (analysis as any).transactions || [];
+    const map: Record<string, number> = {};
+    for (const t of txns) {
+      if (!t.scheme_name || !t.amount) continue;
+      const type = (t.type || "").toUpperCase();
+      if (type === "SIP" || type === "STP-IN" || type === "PURCHASE") {
+        if (!(t.scheme_name in map)) map[t.scheme_name] = t.amount;
+      }
+    }
+    return map;
+  }, [(analysis as any).transactions]);
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
@@ -1867,19 +1881,8 @@ export function ReportView({ report }: ReportViewProps) {
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-5 py-4 text-white flex justify-between items-start gap-4 flex-wrap">
           <div>
             <h3 className="text-lg font-bold tracking-tight">Portfolio Snapshot — Mutual Fund Units</h3>
-            <p className="text-blue-200 text-[11px] mt-0.5">As per CAS · Closing balances, NAV & valuation are directly from your statement</p>
+            <p className="text-blue-200 text-[11px] mt-0.5">As per CAS · Closing balances & valuation directly from your statement</p>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={fetchAllNavs}
-            disabled={isFetchingNav}
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20 shrink-0"
-            data-testid="button-fetch-all-nav"
-          >
-            {isFetchingNav ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
-            {isFetchingNav ? "Fetching NAV…" : "Fetch Real-Time NAV"}
-          </Button>
         </div>
 
         {/* Summary bar */}
@@ -1901,24 +1904,18 @@ export function ReportView({ report }: ReportViewProps) {
           <table className="w-full text-[11px] text-left border-collapse">
             <thead>
               <tr className="bg-slate-100 text-slate-500 uppercase tracking-wider text-[9px] font-bold border-b border-slate-200">
-                <th className="px-4 py-2.5">#</th>
-                <th className="px-4 py-2.5">Scheme / ISIN / Folio</th>
-                <th className="px-4 py-2.5">Category · Type</th>
-                <th className="px-4 py-2.5 text-center">Score</th>
-                <th className="px-4 py-2.5 text-right">Closing Bal<br/><span className="normal-case font-normal">(Units)</span></th>
-                <th className="px-4 py-2.5 text-right">NAV (₹)</th>
-                <th className="px-4 py-2.5 text-right">Invested (₹)</th>
-                <th className="px-4 py-2.5 text-right">Valuation (₹)</th>
-                <th className="px-4 py-2.5 text-right">Unrealised<br/><span className="normal-case font-normal">P/L (₹)</span></th>
-                <th className="px-4 py-2.5 text-right">P/L %</th>
+                <th className="px-3 py-2.5 w-8">#</th>
+                <th className="px-3 py-2.5">Fund Name</th>
+                <th className="px-3 py-2.5">Category / Sub-category</th>
+                <th className="px-3 py-2.5 text-center">Score</th>
+                <th className="px-3 py-2.5 text-right">Invested (₹)</th>
+                <th className="px-3 py-2.5 text-right">Valuation (₹)</th>
+                <th className="px-3 py-2.5 text-right">SIP Amount</th>
+                <th className="px-3 py-2.5 text-center w-28">Action</th>
               </tr>
             </thead>
             <tbody>
               {mfSnapshot.map((mf: any, i: number) => {
-                const plPct = mf.invested_amount > 0 ? (mf.unrealised_profit_loss / mf.invested_amount) * 100 : 0;
-                const isLive = mf.scheme_name in manualNavs;
-                const isLoading = navFetchStatus[mf.scheme_name] === "loading";
-                const isNotFound = navFetchStatus[mf.scheme_name] === "not_found";
                 const sc = scoringRecords[mf.isin];
                 const perf = performances[mf.isin];
                 const combined = sc ? sc.totalScore + (perf ? calculatePerformanceScore(perf.cagr, perf.benchmark_returns).total : 0) : null;
@@ -1932,93 +1929,113 @@ export function ReportView({ report }: ReportViewProps) {
                   "Very Poor": "bg-rose-200 text-rose-800",
                 };
                 const ratingCls = pillStyle[rating] ?? "bg-slate-100 text-slate-500";
-                const rowBg = i % 2 === 0 ? "bg-white" : "bg-slate-50/40";
+                const rowBg = i % 2 === 0 ? "bg-white" : "bg-slate-50/30";
+                const action = actionSelections[mf.scheme_name] || "hold";
+                const sipAmt = sipAmounts[mf.scheme_name];
+                const actionStyles: Record<string, string> = {
+                  hold:   "bg-blue-50 text-blue-700 border-blue-200",
+                  switch: "bg-amber-50 text-amber-700 border-amber-200",
+                  merge:  "bg-violet-50 text-violet-700 border-violet-200",
+                  sell:   "bg-rose-50 text-rose-700 border-rose-200",
+                };
+                const actionCls = actionStyles[action] ?? actionStyles.hold;
+                const remarks = manualRemarks[mf.scheme_name] || "";
                 return (
-                  <tr key={i} className={`${rowBg} hover:bg-blue-50/30 transition-colors border-b border-slate-100`}>
-                    {/* # */}
-                    <td className="px-4 py-3 text-slate-400 font-mono text-[10px]">{i + 1}</td>
-                    {/* Scheme / ISIN / Folio */}
-                    <td className="px-4 py-3 max-w-[220px]">
-                      <p className="font-semibold text-slate-800 leading-snug" title={mf.scheme_name}>
-                        {mf.scheme_name || "—"}
-                      </p>
-                      <div className="flex flex-wrap gap-x-3 mt-1">
-                        {mf.isin && (
-                          <span className="font-mono text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{mf.isin}</span>
-                        )}
-                        {mf.folio_no && (
-                          <span className="text-[9px] text-slate-400">Folio: {mf.folio_no}</span>
-                        )}
-                      </div>
-                    </td>
-                    {/* Category · Type */}
-                    <td className="px-4 py-3">
-                      <span className="block text-slate-700 font-medium">{mf.fund_category || "—"}</span>
-                      {mf.fund_type && <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded mt-1 inline-block">{mf.fund_type}</span>}
-                    </td>
-                    {/* Score */}
-                    <td className="px-4 py-3 text-center">
-                      {combined !== null ? (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${ratingCls}`}>{rating || "—"}</span>
-                          <span className="text-[9px] text-slate-400 font-mono">{combined}/{maxScore}</span>
+                  <Fragment key={i}>
+                    {/* Line 1 — data row */}
+                    <tr className={`${rowBg} border-b border-slate-100/80 transition-colors hover:bg-blue-50/20`}>
+                      {/* # */}
+                      <td className="px-3 py-2.5 text-slate-400 font-mono text-[10px] align-top">{i + 1}</td>
+                      {/* Fund Name */}
+                      <td className="px-3 py-2.5 max-w-[200px] align-top">
+                        <p className="font-semibold text-slate-800 leading-snug text-[11px]" title={mf.scheme_name}>
+                          {mf.scheme_name || "—"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-2 mt-1">
+                          {mf.isin && <span className="font-mono text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{mf.isin}</span>}
+                          {mf.folio_no && <span className="text-[9px] text-slate-400">Folio: {mf.folio_no}</span>}
                         </div>
-                      ) : <span className="text-slate-300">—</span>}
-                    </td>
-                    {/* Units */}
-                    <td className="px-4 py-3 text-right font-mono text-slate-700">
-                      {(mf.units ?? mf.closing_balance)?.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 4 }) ?? "—"}
-                    </td>
-                    {/* NAV */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
-                        {isLive && !isLoading && <span className="text-[7px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">LIVE</span>}
-                        {isNotFound && <span className="text-[7px] font-bold text-amber-600 bg-amber-50 px-1 py-0.5 rounded">N/F</span>}
-                        <Input
-                          type="number"
-                          step="0.0001"
-                          className="h-6 text-right w-24 text-[11px] font-mono px-1 border-slate-200"
-                          value={manualNavs[mf.scheme_name] ?? mf.nav ?? 0}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            setManualNavs(prev => ({ ...prev, [mf.scheme_name]: isNaN(val) ? 0 : val }));
-                          }}
-                        />
-                      </div>
-                    </td>
-                    {/* Invested */}
-                    <td className="px-4 py-3 text-right font-mono text-slate-600">
-                      {mf.invested_amount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}
-                    </td>
-                    {/* Valuation */}
-                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">
-                      {mf.valuation?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}
-                    </td>
-                    {/* P/L ₹ */}
-                    <td className={`px-4 py-3 text-right font-mono font-semibold ${mf.unrealised_profit_loss >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                      {mf.unrealised_profit_loss != null
-                        ? `${mf.unrealised_profit_loss >= 0 ? "+" : ""}${mf.unrealised_profit_loss.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                        : "—"}
-                    </td>
-                    {/* P/L % */}
-                    <td className={`px-4 py-3 text-right font-mono font-semibold ${plPct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                      {mf.invested_amount > 0 ? `${plPct >= 0 ? "+" : ""}${plPct.toFixed(2)}%` : "—"}
-                    </td>
-                  </tr>
+                      </td>
+                      {/* Category / Sub-category */}
+                      <td className="px-3 py-2.5 align-top">
+                        <span className="block font-medium text-slate-700">{mf.fund_category || "—"}</span>
+                        {mf.fund_type && (
+                          <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded mt-0.5 inline-block">{mf.fund_type}</span>
+                        )}
+                      </td>
+                      {/* Score */}
+                      <td className="px-3 py-2.5 text-center align-top">
+                        {combined !== null ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${ratingCls}`}>{rating || "—"}</span>
+                            <span className="text-[9px] text-slate-400 font-mono">{combined}/{maxScore}</span>
+                          </div>
+                        ) : <span className="text-slate-300 text-[10px]">—</span>}
+                      </td>
+                      {/* Invested */}
+                      <td className="px-3 py-2.5 text-right font-mono text-slate-600 align-top">
+                        {mf.invested_amount != null
+                          ? `₹${mf.invested_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : "—"}
+                      </td>
+                      {/* Valuation */}
+                      <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-900 align-top">
+                        {mf.valuation != null
+                          ? `₹${mf.valuation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : "—"}
+                      </td>
+                      {/* SIP Amount */}
+                      <td className="px-3 py-2.5 text-right align-top">
+                        {sipAmt != null ? (
+                          <span className="font-mono text-slate-700">₹{sipAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                        ) : (
+                          <span className="text-slate-300 text-[10px]">—</span>
+                        )}
+                      </td>
+                      {/* Action */}
+                      <td className="px-3 py-2.5 text-center align-top">
+                        <select
+                          value={action}
+                          onChange={(e) => setActionSelections(prev => ({ ...prev, [mf.scheme_name]: e.target.value }))}
+                          className={`text-[10px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none ${actionCls}`}
+                          data-testid={`action-select-${i}`}
+                        >
+                          <option value="hold">Hold</option>
+                          <option value="switch">Switch</option>
+                          <option value="merge">Merge</option>
+                          <option value="sell">Sell</option>
+                        </select>
+                      </td>
+                    </tr>
+                    {/* Line 2 — remarks row */}
+                    <tr key={`${i}-remarks`} className={`${rowBg} border-b border-slate-200`}>
+                      <td className="px-3 pb-2 text-slate-300 text-[9px] font-mono align-top pt-0">{/* empty */}</td>
+                      <td colSpan={7} className="px-3 pb-2.5 pt-0">
+                        <div className="flex items-start gap-2">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-300 mt-1.5 shrink-0">Remarks</span>
+                          <input
+                            type="text"
+                            placeholder="Add notes, target fund for switch, reason for action…"
+                            value={remarks}
+                            onChange={(e) => setManualRemarks(prev => ({ ...prev, [mf.scheme_name]: e.target.value }))}
+                            className="flex-1 text-[11px] text-slate-600 placeholder-slate-300 bg-transparent border-b border-slate-100 focus:border-blue-300 focus:outline-none py-0.5"
+                            data-testid={`remarks-input-${i}`}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  </Fragment>
                 );
               })}
             </tbody>
             <tfoot>
               <tr className="bg-slate-800 text-white font-bold text-[11px]">
-                <td colSpan={6} className="px-4 py-3 text-right text-[9px] uppercase tracking-widest text-slate-300">Grand Total</td>
-                <td className="px-4 py-3 text-right font-mono">₹{totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td className="px-4 py-3 text-right font-mono">₹{mfSnapshotValuation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td className={`px-4 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                <td colSpan={4} className="px-3 py-3 text-right text-[9px] uppercase tracking-widest text-slate-300">Grand Total</td>
+                <td className="px-3 py-3 text-right font-mono">₹{totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="px-3 py-3 text-right font-mono">₹{mfSnapshotValuation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td colSpan={2} className={`px-3 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {totalUnrealised >= 0 ? "+" : ""}₹{totalUnrealised.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </td>
-                <td className={`px-4 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                  {totalInvested > 0 ? `${totalUnrealised >= 0 ? "+" : ""}${((totalUnrealised / totalInvested) * 100).toFixed(2)}%` : "—"}
+                  {totalInvested > 0 && <span className="ml-2 text-[9px] opacity-70">({totalUnrealised >= 0 ? "+" : ""}{((totalUnrealised / totalInvested) * 100).toFixed(1)}%)</span>}
                 </td>
               </tr>
             </tfoot>
@@ -2192,7 +2209,6 @@ export function ReportView({ report }: ReportViewProps) {
         <div className="p-6 space-y-8">
           {(() => {
             const transactions = analysis.transactions || [];
-            console.log("All transactions read from analysis:", transactions);
             
             const categorize = (type: string) => {
               const t = type.toLowerCase().trim();
