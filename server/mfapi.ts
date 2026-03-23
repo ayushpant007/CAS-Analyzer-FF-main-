@@ -303,43 +303,65 @@ function calculateCAGR(currentNav: number, oldNav: number, years: number): numbe
   return (Math.pow(currentNav / oldNav, 1 / years) - 1) * 100;
 }
 
-export async function fetchNavData(schemeCode: number): Promise<NavData | null> {
+async function fetchWithTimeout(url: string, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`https://api.mfapi.in/mf/${schemeCode}`);
-    if (!response.ok) return null;
-
-    const result: MFAPIResponse = await response.json();
-    if (!result.data || result.data.length === 0) return null;
-
-    const latestNav = parseFloat(result.data[0].nav);
-    const latestDate = result.data[0].date;
-    const currentDate = parseMFAPIDate(latestDate);
-
-    const date1y = new Date(currentDate);
-    date1y.setFullYear(date1y.getFullYear() - 1);
-    const date3y = new Date(currentDate);
-    date3y.setFullYear(date3y.getFullYear() - 3);
-    const date5y = new Date(currentDate);
-    date5y.setFullYear(date5y.getFullYear() - 5);
-
-    const nav1y = findNavOnOrBefore(result.data, date1y);
-    const nav3y = findNavOnOrBefore(result.data, date3y);
-    const nav5y = findNavOnOrBefore(result.data, date5y);
-
-    return {
-      current_nav: latestNav,
-      nav_date: latestDate,
-      scheme_name: result.meta.scheme_name,
-      scheme_code: schemeCode,
-      fund_house: result.meta.fund_house,
-      cagr_1y: nav1y ? calculateCAGR(latestNav, nav1y.nav, 1) : null,
-      cagr_3y: nav3y ? calculateCAGR(latestNav, nav3y.nav, 3) : null,
-      cagr_5y: nav5y ? calculateCAGR(latestNav, nav5y.nav, 5) : null,
-    };
-  } catch (error) {
-    console.error(`MFAPI fetch error for scheme ${schemeCode}:`, error);
-    return null;
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; FinAnalyze/1.0)" },
+    });
+    return response;
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+export async function fetchNavData(schemeCode: number): Promise<NavData | null> {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const response = await fetchWithTimeout(`https://api.mfapi.in/mf/${schemeCode}`, 15000);
+      if (!response.ok) {
+        console.warn(`MFAPI HTTP ${response.status} for scheme ${schemeCode}`);
+        return null;
+      }
+
+      const result: MFAPIResponse = await response.json();
+      if (!result.data || result.data.length === 0) return null;
+
+      const latestNav = parseFloat(result.data[0].nav);
+      const latestDate = result.data[0].date;
+      const currentDate = parseMFAPIDate(latestDate);
+
+      const date1y = new Date(currentDate);
+      date1y.setFullYear(date1y.getFullYear() - 1);
+      const date3y = new Date(currentDate);
+      date3y.setFullYear(date3y.getFullYear() - 3);
+      const date5y = new Date(currentDate);
+      date5y.setFullYear(date5y.getFullYear() - 5);
+
+      const nav1y = findNavOnOrBefore(result.data, date1y);
+      const nav3y = findNavOnOrBefore(result.data, date3y);
+      const nav5y = findNavOnOrBefore(result.data, date5y);
+
+      return {
+        current_nav: latestNav,
+        nav_date: latestDate,
+        scheme_name: result.meta.scheme_name,
+        scheme_code: schemeCode,
+        fund_house: result.meta.fund_house,
+        cagr_1y: nav1y ? calculateCAGR(latestNav, nav1y.nav, 1) : null,
+        cagr_3y: nav3y ? calculateCAGR(latestNav, nav3y.nav, 3) : null,
+        cagr_5y: nav5y ? calculateCAGR(latestNav, nav5y.nav, 5) : null,
+      };
+    } catch (error: any) {
+      const isTimeout = error?.name === "AbortError";
+      console.warn(`MFAPI fetch attempt ${attempt} failed for scheme ${schemeCode}: ${isTimeout ? "timeout" : error?.message || error}`);
+      if (attempt === 2) return null;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+  return null;
 }
 
 export async function fetchNavByISIN(isin: string, fallbackSchemeName?: string): Promise<NavData | null> {
