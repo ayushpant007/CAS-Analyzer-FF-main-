@@ -121,6 +121,19 @@ export default function ConciseReport() {
   }, [analysis.account_summaries, mfSnapshot]);
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.unrealised_profit_loss || 0), 0), [mfSnapshot]);
 
+  const sipAmounts = useMemo(() => {
+    const txns: any[] = analysis.transactions || [];
+    const map: Record<string, number> = {};
+    for (const t of txns) {
+      if (!t.scheme_name || !t.amount) continue;
+      const type = (t.type || "").toUpperCase();
+      if (type === "SIP" || type === "STP-IN" || type === "PURCHASE") {
+        if (!(t.scheme_name in map)) map[t.scheme_name] = t.amount;
+      }
+    }
+    return map;
+  }, [analysis.transactions]);
+
   const investorName = (() => {
     const raw = (analysis.investor_name as string | undefined)?.trim();
     if (raw && raw.length >= 2) {
@@ -297,7 +310,7 @@ export default function ConciseReport() {
       const perfRows: any[][] = [
         ["Concise Performance Check"],
         [],
-        ["#", "Fund Name", "ISIN", "Category", "Risk Type",
+        ["#", "Fund Name", "ISIN", "Category", "Risk Type", "SIP Amount (₹)",
           "1Y CAGR (%)", "BM 1Y (%)", "3Y CAGR (%)", "BM 3Y (%)", "5Y CAGR (%)", "BM 5Y (%)",
           "Financial Score (/40)", "Perf Score (/40)", "Total Score (/80)", "Rating", "Action"],
         ...snap
@@ -320,8 +333,9 @@ export default function ConciseReport() {
             const action = (actionSelections[mf.scheme_name] || "hold").toUpperCase();
             const cagrVal = (k: string) => { const v2 = pv(cagr[k]); return isNaN(v2) ? "N/A" : v2; };
             const bmVal = (k: string) => { const v2 = pv(bm[k]); return isNaN(v2) ? "N/A" : v2; };
+            const sipAmt = sipAmounts[mf.scheme_name] ?? "—";
             return [
-              i + 1, mf.scheme_name, mf.isin, mf.fund_category || "—", mf.fund_type || "—",
+              i + 1, mf.scheme_name, mf.isin, mf.fund_category || "—", mf.fund_type || "—", sipAmt,
               cagrVal("1y"), bmVal("1y"), cagrVal("3y"), bmVal("3y"), cagrVal("5y"), bmVal("5y"),
               finScore, perfScore, total, rating, action,
             ];
@@ -827,6 +841,7 @@ export default function ConciseReport() {
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 w-8">#</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">Fund Name</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Risk Type</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">SIP Amount</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">1Y CAGR</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">3Y CAGR</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">5Y CAGR</th>
@@ -868,6 +883,18 @@ export default function ConciseReport() {
                               <span className="px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
                                 {r.mf.fund_type || "—"}
                               </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {(() => {
+                                const sipAmt = sipAmounts[r.mf.scheme_name];
+                                return sipAmt != null ? (
+                                  <span className="font-mono text-[11px] font-semibold text-slate-700">
+                                    ₹{sipAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300 text-[11px]">—</span>
+                                );
+                              })()}
                             </td>
                             <td className="px-4 py-3 text-center">{fmtCagr(r.cagr1y, r.bm1y)}</td>
                             <td className="px-4 py-3 text-center">{fmtCagr(r.cagr3y, r.bm3y)}</td>
