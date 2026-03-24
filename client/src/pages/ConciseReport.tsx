@@ -55,6 +55,13 @@ function calcPerfScore(schemeReturns: any, benchmarkReturns: any) {
   return { total: s1 + s3 + s5, breakDown: { "1y": s1, "3y": s3, "5y": s5 } };
 }
 
+const ACTION_STYLES: Record<string, string> = {
+  hold:   "bg-blue-50 text-blue-700 border-blue-200",
+  switch: "bg-amber-50 text-amber-700 border-amber-200",
+  merge:  "bg-violet-50 text-violet-700 border-violet-200",
+  sell:   "bg-rose-50 text-rose-700 border-rose-200",
+};
+
 export default function ConciseReport() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -62,6 +69,19 @@ export default function ConciseReport() {
   const { data: report, isLoading } = useReport(reportId);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const [actionSelections, setActionSelections] = useState<Record<string, string>>(() => {
+    if (!reportId) return {};
+    try { return JSON.parse(localStorage.getItem(`fin_actions_${reportId}`) || "{}"); } catch { return {}; }
+  });
+
+  const updateAction = (schemeName: string, value: string) => {
+    setActionSelections(prev => {
+      const next = { ...prev, [schemeName]: value };
+      if (reportId) localStorage.setItem(`fin_actions_${reportId}`, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const storedPerformances = useMemo<Record<string, any>>(() => {
     if (!reportId) return {};
@@ -636,6 +656,7 @@ export default function ConciseReport() {
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">5Y CAGR</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Score</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Rating</th>
+                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -689,6 +710,25 @@ export default function ConciseReport() {
                                   {r.rating}
                                 </span>
                               ) : <span className="text-slate-300 text-[10px]">—</span>}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {(() => {
+                                const action = actionSelections[r.mf.scheme_name] || "hold";
+                                const cls = ACTION_STYLES[action] ?? ACTION_STYLES.hold;
+                                return (
+                                  <select
+                                    value={action}
+                                    onChange={(e) => updateAction(r.mf.scheme_name, e.target.value)}
+                                    className={`text-[9px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none ${cls}`}
+                                    data-testid={`concise-action-select-${idx}`}
+                                  >
+                                    <option value="hold">Hold</option>
+                                    <option value="switch">Switch</option>
+                                    <option value="merge">Merge</option>
+                                    <option value="sell">Sell</option>
+                                  </select>
+                                );
+                              })()}
                             </td>
                           </tr>
                         );

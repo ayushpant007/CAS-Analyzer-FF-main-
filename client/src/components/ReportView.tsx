@@ -449,7 +449,9 @@ export function ReportView({ report }: ReportViewProps) {
   const [performances, setPerformances] = useState<Record<string, PerformanceData>>({});
   const [scoringRecords, setScoringRecords] = useState<Record<string, any>>({});
   const [manualRemarks, setManualRemarks] = useState<Record<string, string>>({});
-  const [actionSelections, setActionSelections] = useState<Record<string, string>>({});
+  const [actionSelections, setActionSelections] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem(`fin_actions_${report.id}`) || "{}"); } catch { return {}; }
+  });
   const [manualNavs, setManualNavs] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFetchingNav, setIsFetchingNav] = useState(false);
@@ -1996,7 +1998,11 @@ export function ReportView({ report }: ReportViewProps) {
                       <td className="px-3 py-2.5 text-center align-top">
                         <select
                           value={action}
-                          onChange={(e) => setActionSelections(prev => ({ ...prev, [mf.scheme_name]: e.target.value }))}
+                          onChange={(e) => setActionSelections(prev => {
+                            const next = { ...prev, [mf.scheme_name]: e.target.value };
+                            localStorage.setItem(`fin_actions_${report.id}`, JSON.stringify(next));
+                            return next;
+                          })}
                           className={`text-[10px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none ${actionCls}`}
                           data-testid={`action-select-${i}`}
                         >
