@@ -303,9 +303,25 @@ function calculateCAGR(currentNav: number, oldNav: number, years: number): numbe
   return (Math.pow(currentNav / oldNav, 1 / years) - 1) * 100;
 }
 
+async function fetchWithRetry(url: string, retries = 3, delayMs = 1000): Promise<Response> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const response = await fetch(url);
+    if (response.ok) return response;
+    if (attempt < retries) {
+      console.log(`MFAPI attempt ${attempt} failed (HTTP ${response.status}) for ${url}, retrying in ${delayMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      delayMs *= 2;
+    } else {
+      console.log(`MFAPI all ${retries} attempts failed (HTTP ${response.status}) for ${url}`);
+      return response;
+    }
+  }
+  throw new Error("Unreachable");
+}
+
 export async function fetchNavData(schemeCode: number): Promise<NavData | null> {
   try {
-    const response = await fetch(`https://api.mfapi.in/mf/${schemeCode}`);
+    const response = await fetchWithRetry(`https://api.mfapi.in/mf/${schemeCode}`);
     if (!response.ok) return null;
 
     const result: MFAPIResponse = await response.json();

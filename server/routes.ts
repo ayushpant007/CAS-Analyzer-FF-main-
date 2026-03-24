@@ -216,6 +216,7 @@ ${text}`;
   app.get("/api/scrape-performance/:isin", async (req, res) => {
     const isin = req.params.isin;
     const reportId = req.query.reportId;
+    res.setHeader("Cache-Control", "no-store");
 
     try {
       let fundName = "";
