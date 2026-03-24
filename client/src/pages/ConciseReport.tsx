@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useReport } from "@/hooks/use-reports";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, ArrowLeft, Calendar, TrendingUp, FileSpreadsheet } from "lucide-react";
@@ -83,6 +83,46 @@ export default function ConciseReport() {
       return next;
     });
   };
+
+  const [targetCategory, setTargetCategory] = useState<Record<string, string>>(() => {
+    if (!reportId) return {};
+    try { return JSON.parse(localStorage.getItem(`fin_target_cat_${reportId}`) || "{}"); } catch { return {}; }
+  });
+
+  const [targetFund, setTargetFund] = useState<Record<string, string>>(() => {
+    if (!reportId) return {};
+    try { return JSON.parse(localStorage.getItem(`fin_target_fund_${reportId}`) || "{}"); } catch { return {}; }
+  });
+
+  const updateTargetCategory = useCallback((schemeName: string, value: string) => {
+    setTargetCategory(prev => {
+      const next = { ...prev, [schemeName]: value };
+      if (reportId) localStorage.setItem(`fin_target_cat_${reportId}`, JSON.stringify(next));
+      return next;
+    });
+  }, [reportId]);
+
+  const updateTargetFund = useCallback((schemeName: string, value: string) => {
+    setTargetFund(prev => {
+      const next = { ...prev, [schemeName]: value };
+      if (reportId) localStorage.setItem(`fin_target_fund_${reportId}`, JSON.stringify(next));
+      return next;
+    });
+  }, [reportId]);
+
+  const [fundSchemes, setFundSchemes] = useState<string[]>([]);
+  const [fundSearchQuery, setFundSearchQuery] = useState<Record<string, string>>({});
+  const [openFundDropdown, setOpenFundDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/fund-schemes.csv")
+      .then(r => r.text())
+      .then(text => {
+        const lines = text.split("\n").map(l => l.trim()).filter(l => l && l !== "Scheme Name");
+        setFundSchemes(lines);
+      })
+      .catch(() => {});
+  }, []);
 
   const storedPerformances = useMemo<Record<string, any>>(() => {
     if (!reportId) return {};
@@ -322,7 +362,8 @@ export default function ConciseReport() {
         [],
         ["#", "Fund Name", "ISIN", "Category", "Risk Type", "SIP Amount (₹)",
           "1Y CAGR (%)", "BM 1Y (%)", "3Y CAGR (%)", "BM 3Y (%)", "5Y CAGR (%)", "BM 5Y (%)",
-          "Financial Score (/40)", "Perf Score (/40)", "Total Score (/80)", "Rating", "Action"],
+          "Financial Score (/40)", "Perf Score (/40)", "Total Score (/80)", "Rating", "Action",
+          "Target Category", "Target Fund"],
         ...snap
           .filter((mf: any) => storedPerformances[mf.isin])
           .map((mf: any, i: number) => {
@@ -344,14 +385,40 @@ export default function ConciseReport() {
             const cagrVal = (k: string) => { const v2 = pv(cagr[k]); return isNaN(v2) ? "N/A" : v2; };
             const bmVal = (k: string) => { const v2 = pv(bm[k]); return isNaN(v2) ? "N/A" : v2; };
             const sipAmt = sipAmounts[mf.scheme_name] ?? "—";
+            const tCat = targetCategory[mf.scheme_name] || "—";
+            const tFund = targetFund[mf.scheme_name] || "—";
             return [
               i + 1, mf.scheme_name, mf.isin, mf.fund_category || "—", mf.fund_type || "—", sipAmt,
               cagrVal("1y"), bmVal("1y"), cagrVal("3y"), bmVal("3y"), cagrVal("5y"), bmVal("5y"),
-              finScore, perfScore, total, rating, action,
+              finScore, perfScore, total, rating, action, tCat, tFund,
             ];
           }),
       ];
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(perfRows), "Performance Check");
+
+      // ── Sheet 6: New Allocation ────────────────────────────────────────
+      const actionableFunds = snap.filter((mf: any) => {
+        const act = actionSelections[mf.scheme_name] || "hold";
+        return act !== "hold";
+      });
+      const newAllocRows: any[][] = [
+        ["New Allocation – Recommended Changes"],
+        ["Generated on", dateStr],
+        [],
+        ["#", "Current Fund Name", "Current Category", "Action", "Target Category", "Target Fund Name", "Current Invested (₹)", "Current Valuation (₹)"],
+        ...actionableFunds.map((mf: any, i: number) => [
+          i + 1,
+          mf.scheme_name || "—",
+          mf.fund_category || "—",
+          (actionSelections[mf.scheme_name] || "hold").toUpperCase(),
+          targetCategory[mf.scheme_name] || "—",
+          targetFund[mf.scheme_name] || "—",
+          mf.invested_amount ?? 0,
+          parseFloat((mf.valuation || 0).toFixed(2)),
+        ]),
+        ...(actionableFunds.length === 0 ? [["No funds marked for Switch / Merge / Sell"]] : []),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newAllocRows), "New Allocation");
 
       // ── Sheet 5: Portfolio Snapshot ───────────────────────────────────
       const snapshotRows: any[][] = [
@@ -936,22 +1003,85 @@ export default function ConciseReport() {
                                 </span>
                               ) : <span className="text-slate-300 text-[10px]">—</span>}
                             </td>
-                            <td className="px-4 py-3 text-center">
+                            <td className="px-4 py-3">
                               {(() => {
-                                const action = actionSelections[r.mf.scheme_name] || "hold";
+                                const sn = r.mf.scheme_name;
+                                const action = actionSelections[sn] || "hold";
                                 const cls = ACTION_STYLES[action] ?? ACTION_STYLES.hold;
+                                const tCat = targetCategory[sn] || "";
+                                const tFund = targetFund[sn] || "";
+                                const query = fundSearchQuery[sn] || "";
+                                const isOpen = openFundDropdown === sn;
+                                const filtered = query.length >= 2
+                                  ? fundSchemes.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, 60)
+                                  : [];
                                 return (
-                                  <select
-                                    value={action}
-                                    onChange={(e) => updateAction(r.mf.scheme_name, e.target.value)}
-                                    className={`text-[9px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none ${cls}`}
-                                    data-testid={`concise-action-select-${idx}`}
-                                  >
-                                    <option value="hold">Hold</option>
-                                    <option value="switch">Switch</option>
-                                    <option value="merge">Merge</option>
-                                    <option value="sell">Sell</option>
-                                  </select>
+                                  <div className="flex flex-col gap-1.5 min-w-[180px]">
+                                    <select
+                                      value={action}
+                                      onChange={(e) => updateAction(sn, e.target.value)}
+                                      className={`text-[9px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none w-full ${cls}`}
+                                      data-testid={`concise-action-select-${idx}`}
+                                    >
+                                      <option value="hold">Hold</option>
+                                      <option value="switch">Switch</option>
+                                      <option value="merge">Merge</option>
+                                      <option value="sell">Sell</option>
+                                    </select>
+                                    {action !== "hold" && (
+                                      <div className="flex flex-col gap-1 mt-0.5">
+                                        <select
+                                          value={tCat}
+                                          onChange={(e) => updateTargetCategory(sn, e.target.value)}
+                                          className="text-[9px] border border-slate-200 rounded px-1.5 py-1 focus:outline-none focus:border-blue-400 bg-white text-slate-700 w-full"
+                                          data-testid={`target-cat-${idx}`}
+                                        >
+                                          <option value="">Category…</option>
+                                          <option value="Equity">Equity</option>
+                                          <option value="Debt">Debt</option>
+                                          <option value="Hybrid">Hybrid</option>
+                                          <option value="Others">Others</option>
+                                        </select>
+                                        <div className="relative">
+                                          <input
+                                            type="text"
+                                            placeholder="Search fund…"
+                                            value={isOpen ? query : (tFund || query)}
+                                            onFocus={() => {
+                                              setOpenFundDropdown(sn);
+                                              setFundSearchQuery(prev => ({ ...prev, [sn]: tFund || "" }));
+                                            }}
+                                            onChange={(e) => setFundSearchQuery(prev => ({ ...prev, [sn]: e.target.value }))}
+                                            onBlur={() => setTimeout(() => setOpenFundDropdown(null), 200)}
+                                            className="text-[9px] border border-slate-200 rounded px-1.5 py-1 focus:outline-none focus:border-blue-400 bg-white text-slate-700 w-full"
+                                            data-testid={`target-fund-search-${idx}`}
+                                          />
+                                          {isOpen && filtered.length > 0 && (
+                                            <div className="absolute z-50 left-0 right-0 top-full mt-0.5 bg-white border border-slate-200 rounded shadow-lg max-h-40 overflow-y-auto text-[9px]">
+                                              {filtered.map((s, fi) => (
+                                                <div
+                                                  key={fi}
+                                                  className="px-2 py-1.5 hover:bg-blue-50 cursor-pointer text-slate-700 border-b border-slate-50 last:border-0"
+                                                  onMouseDown={() => {
+                                                    updateTargetFund(sn, s);
+                                                    setFundSearchQuery(prev => ({ ...prev, [sn]: s }));
+                                                    setOpenFundDropdown(null);
+                                                  }}
+                                                >
+                                                  {s}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                          {isOpen && query.length >= 2 && filtered.length === 0 && (
+                                            <div className="absolute z-50 left-0 right-0 top-full mt-0.5 bg-white border border-slate-200 rounded shadow-lg px-2 py-2 text-[9px] text-slate-400">
+                                              No matching funds
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 );
                               })()}
                             </td>
