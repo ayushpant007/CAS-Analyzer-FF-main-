@@ -116,13 +116,15 @@ Extract:
    - Transactions (STP/SIP/SWP extraction): [{"date": string, "scheme_name": string, "type": string, "amount": number}]
    
    IMPORTANT: For transactions, carefully identify the type based on transaction keywords in the text:
-   - "SIP" or "Systematic Investment" or "Purchase" -> type: "SIP"
-   - "Switch Out" or "Systematic Transfer Plan - Switch Out" -> type: "STP-OUT"
-   - "Switch In" or "Systematic Transfer Plan - Switch In" -> type: "STP-IN"
-   - "STP" or "Systematic Transfer" (direction unclear) -> type: "STP-OUT"
-   - "SWP", "Systematic Withdrawal", "Redemption" -> type: "SWP"
+   - Explicitly says "SIP", "Purchase – SIP", "Purchase – Systematic", or "Systematic Investment" → type: "SIP"
+   - Says "Purchase – Lumpsum", "Purchase – Online", "Purchase – Initial", "Purchase – NFO", or is clearly a one-time purchase without SIP/Systematic qualifier → type: "PURCHASE"
+   - "Switch Out" or "Systematic Transfer Plan - Switch Out" → type: "STP-OUT"
+   - "Switch In" or "Systematic Transfer Plan - Switch In" → type: "STP-IN"
+   - "STP" or "Systematic Transfer" (direction unclear) → type: "STP-OUT"
+   - "SWP", "Systematic Withdrawal", "Redemption" → type: "SWP"
    - Extract the correct date (e.g., DD-MMM-YYYY or DD/MM/YYYY), scheme name, and amount.
    - CRITICAL: Distinguish Switch In (receiving fund, destination) from Switch Out (source fund, money leaving). Only use "STP-OUT" for the fund from which money is transferred out.
+   - CRITICAL: Do NOT classify STP-IN as SIP. STP-IN is money arriving from a debt fund via transfer, NOT a new SIP investment.
    - Be comprehensive: extract ALL systematic transactions found in the text.
    - For amount, use the numerical value (e.g., if it says ₹1,000, extract 1000).
 

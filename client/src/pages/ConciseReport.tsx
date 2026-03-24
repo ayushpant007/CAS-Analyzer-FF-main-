@@ -123,13 +123,23 @@ export default function ConciseReport() {
 
   const sipAmounts = useMemo(() => {
     const txns: any[] = analysis.transactions || [];
+    // Count occurrences of scheme+amount for repeat detection
+    const repeatCount: Record<string, number> = {};
+    txns.forEach((t: any) => {
+      if (!t.scheme_name || !t.amount) return;
+      const type = (t.type || "").toUpperCase();
+      if (type === "SIP" || type === "PURCHASE") {
+        const key = `${t.scheme_name}||${Math.round(t.amount)}`;
+        repeatCount[key] = (repeatCount[key] || 0) + 1;
+      }
+    });
     const map: Record<string, number> = {};
     for (const t of txns) {
       if (!t.scheme_name || !t.amount) continue;
       const type = (t.type || "").toUpperCase();
-      if (type === "SIP" || type === "STP-IN" || type === "PURCHASE") {
-        if (!(t.scheme_name in map)) map[t.scheme_name] = t.amount;
-      }
+      const key = `${t.scheme_name}||${Math.round(t.amount)}`;
+      const isTrueSip = type === "SIP" || (type === "PURCHASE" && (repeatCount[key] || 0) >= 2);
+      if (isTrueSip && !(t.scheme_name in map)) map[t.scheme_name] = t.amount;
     }
     return map;
   }, [analysis.transactions]);
@@ -409,11 +419,23 @@ export default function ConciseReport() {
     typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + pct;
   });
 
-  const categorize = (type: string) => {
+  // Build repeat-count map for SIP detection: same scheme + same amount appearing 2+ times = recurring SIP
+  const txRepeatMap: Record<string, number> = {};
+  (analysis.transactions || []).forEach((tx: any) => {
+    if (!tx.scheme_name || !tx.amount) return;
+    const type = (tx.type || "").toUpperCase();
+    if (type === "SIP" || type === "PURCHASE") {
+      const key = `${tx.scheme_name}||${Math.round(tx.amount)}`;
+      txRepeatMap[key] = (txRepeatMap[key] || 0) + 1;
+    }
+  });
+  const categorize = (type: string, tx: any) => {
     const t = type.toLowerCase().trim();
-    if (t === "sip" || ["systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
+    const key = `${tx.scheme_name}||${Math.round(tx.amount)}`;
+    if (t === "sip" || (t === "purchase" && (txRepeatMap[key] || 0) >= 2)) return "SIP";
+    if (t === "purchase") return null;
     if (t === "swp" || ["systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
-    if (["stp", "stp-out", "stp-in", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
+    if (["stp-out", "stp", "switch out", "systematic transfer"].some(k => t.includes(k)) || t === "stp-in") return "STP";
     return null;
   };
   const fundCategoryMap: Record<string, string> = {};
@@ -427,9 +449,9 @@ export default function ConciseReport() {
   };
   (analysis.transactions || []).forEach((tx: any) => {
     const rawType = (tx.type || "").toLowerCase().trim();
-    const category = categorize(rawType);
+    const category = categorize(rawType, tx);
     if (category === "STP") {
-      if (rawType === "stp-in" || rawType.includes("switch in")) return;
+      if (rawType === "stp-in") return;
       if (rawType === "stp") {
         const fundCat = fundCategoryMap[tx.scheme_name] || "";
         if (fundCat && fundCat !== "debt") return;

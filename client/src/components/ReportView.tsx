@@ -541,13 +541,23 @@ export function ReportView({ report }: ReportViewProps) {
 
   const sipAmounts = useMemo(() => {
     const txns: any[] = (analysis as any).transactions || [];
+    // Count occurrences of scheme+amount for repeat detection
+    const repeatCount: Record<string, number> = {};
+    txns.forEach(t => {
+      if (!t.scheme_name || !t.amount) return;
+      const type = (t.type || "").toUpperCase();
+      if (type === "SIP" || type === "PURCHASE") {
+        const key = `${t.scheme_name}||${Math.round(t.amount)}`;
+        repeatCount[key] = (repeatCount[key] || 0) + 1;
+      }
+    });
     const map: Record<string, number> = {};
     for (const t of txns) {
       if (!t.scheme_name || !t.amount) continue;
       const type = (t.type || "").toUpperCase();
-      if (type === "SIP" || type === "STP-IN" || type === "PURCHASE") {
-        if (!(t.scheme_name in map)) map[t.scheme_name] = t.amount;
-      }
+      const key = `${t.scheme_name}||${Math.round(t.amount)}`;
+      const isTrueSip = type === "SIP" || (type === "PURCHASE" && (repeatCount[key] || 0) >= 2);
+      if (isTrueSip && !(t.scheme_name in map)) map[t.scheme_name] = t.amount;
     }
     return map;
   }, [(analysis as any).transactions]);
@@ -2216,11 +2226,32 @@ export function ReportView({ report }: ReportViewProps) {
           {(() => {
             const transactions = analysis.transactions || [];
             
-            const categorize = (type: string) => {
+            // Build a repeat-count map: "scheme||amount" -> count of occurrences
+            // Used to detect genuine SIPs (same scheme + same amount appearing 2+ times)
+            const repeatMap: Record<string, number> = {};
+            transactions.forEach((tx: any) => {
+              if (!tx.scheme_name || !tx.amount) return;
+              const type = (tx.type || "").toUpperCase();
+              if (type === "SIP" || type === "PURCHASE") {
+                const key = `${tx.scheme_name}||${Math.round(tx.amount)}`;
+                repeatMap[key] = (repeatMap[key] || 0) + 1;
+              }
+            });
+
+            const isRepeatingSip = (tx: any) => {
+              const key = `${tx.scheme_name}||${Math.round(tx.amount)}`;
+              return (repeatMap[key] || 0) >= 2;
+            };
+
+            const categorize = (type: string, tx: any) => {
               const t = type.toLowerCase().trim();
-              if (t === "sip" || t === "stp-in" || t === "switch in" || ["systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
+              // Genuine SIP: explicitly tagged as SIP by AI, OR repeating same amount for same scheme
+              if (t === "sip" || (t === "purchase" && isRepeatingSip(tx))) return "SIP";
+              // Lumpsum: one-time purchase → exclude from SIP section
+              if (t === "purchase") return null;
               if (t === "swp" || ["systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
-              if (["stp", "stp-out", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
+              // STP: switch-out / transfer-out (STP-IN is NOT a SIP)
+              if (["stp-out", "stp", "switch out", "systematic transfer"].some(k => t.includes(k)) || t === "stp-in") return "STP";
               return null;
             };
 
@@ -2238,9 +2269,11 @@ export function ReportView({ report }: ReportViewProps) {
 
             transactions.forEach((tx: any) => {
               const rawType = (tx.type || "").toLowerCase().trim();
-              const category = categorize(rawType);
+              const category = categorize(rawType, tx);
 
               if (category === "STP") {
+                // Exclude STP-IN (money arriving into equity fund — shown in SIP section if recurring)
+                if (rawType === "stp-in") return;
                 // Old data (plain "stp"): fall back to fund_category — equity funds are switch-in destinations
                 if (rawType === "stp") {
                   const fundCat = fundCategoryMap[tx.scheme_name] || "";
