@@ -3,7 +3,7 @@ import { useReport } from "@/hooks/use-reports";
 import { useRef, useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ArrowLeft, Calendar, TrendingUp } from "lucide-react";
+import { Download, Loader2, ArrowLeft, Calendar, TrendingUp, FileSpreadsheet } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip } from "recharts";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { BarChart2 } from "lucide-react";
@@ -69,6 +69,7 @@ export default function ConciseReport() {
   const { data: report, isLoading } = useReport(reportId);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [actionSelections, setActionSelections] = useState<Record<string, string>>(() => {
     if (!reportId) return {};
@@ -192,6 +193,170 @@ export default function ConciseReport() {
     }
   };
 
+  const downloadExcel = async () => {
+    if (!report) return;
+    setIsExporting(true);
+    try {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.utils.book_new();
+      const name = (investorName || "Portfolio").replace(/\s+/g, "_");
+      const dateStr = format(new Date(), "dd-MMM-yyyy");
+
+      const snap = mfSnapshot;
+      const accounts: any[] = analysis.account_summaries || [];
+      const totalVal = snap.reduce((a: number, m: any) => a + (m.valuation || 0), 0);
+      const absReturn = totalValuation - totalInvested;
+      const absReturnPct = totalInvested > 0 ? (absReturn / totalInvested) * 100 : 0;
+      const approxCagr = totalInvested > 0 ? (Math.pow(totalValuation / totalInvested, 1 / 2) - 1) * 100 : 0;
+
+      // ── Sheet 1: Portfolio Overview ──────────────────────────────────
+      const overviewRows: any[][] = [
+        ["Concise Report – " + (investorName || "Portfolio")],
+        ["Analyzed on", report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : ""],
+        ["Investor Type", report.investorType || "—", "Age Group", report.ageGroup || "—"],
+        [],
+        ["PORTFOLIO SUMMARY"],
+        ["Total Value (₹)", totalValuation],
+        ["Total Invested (₹)", totalInvested],
+        ["Absolute Gain (₹)", absReturn],
+        ["Overall Return (%)", parseFloat(absReturnPct.toFixed(2))],
+        ["Approx 2-Yr CAGR (%)", parseFloat(approxCagr.toFixed(2))],
+        ["Total Schemes", snap.length],
+        ["Total Accounts", accounts.length],
+        [],
+        ["ACCOUNT BREAKDOWN"],
+        ["Account Type", "Schemes/Count", "Value (₹)", "% of Total"],
+        ...accounts.map((a: any) => {
+          const pct = totalValuation > 0 ? ((a.value / totalValuation) * 100).toFixed(2) : "0.00";
+          return [a.type, a.count, a.value, parseFloat(pct)];
+        }),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(overviewRows), "Portfolio Overview");
+
+      // ── Sheet 2: Asset Allocation ─────────────────────────────────────
+      const allCats = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
+      const parseIdealPct = (v: string) => parseFloat(v?.replace("%", "") || "0");
+      const idealMap2 = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
+      const actMap2: Record<string, number> = {};
+      snap.forEach((mf: any) => {
+        const cat = (mf.fund_category || "").toLowerCase();
+        const pct = totalVal > 0 ? (mf.valuation / totalVal) * 100 : 0;
+        if (cat.includes("equity")) actMap2["Equity"] = (actMap2["Equity"] || 0) + pct;
+        else if (cat.includes("debt")) actMap2["Debt"] = (actMap2["Debt"] || 0) + pct;
+        else if (cat.includes("hybrid")) actMap2["Hybrid"] = (actMap2["Hybrid"] || 0) + pct;
+        else if (cat.includes("gold") || cat.includes("silver")) actMap2["Gold/Silver"] = (actMap2["Gold/Silver"] || 0) + pct;
+        else actMap2["Others"] = (actMap2["Others"] || 0) + pct;
+      });
+      let healthScore2 = 100;
+      allCats.forEach(c => { healthScore2 -= Math.abs((actMap2[c] || 0) - (parseIdealPct(idealMap2[c] || "0"))) * 0.8; });
+      healthScore2 = Math.max(0, Math.min(100, Math.round(healthScore2)));
+      const allocationRows: any[][] = [
+        ["Asset Allocation Check"],
+        ["Investor Type", report.investorType || "—", "Age Group", report.ageGroup || "—"],
+        ["Overall Health Score", healthScore2 + "/100"],
+        [],
+        ["Category", "Actual (%)", "Ideal (%)", "Difference (%)", "Status"],
+        ...allCats.map(cat => {
+          const actual = actMap2[cat] || 0;
+          const ideal = parseIdealPct(idealMap2[cat] || "0");
+          const diff = actual - ideal;
+          const status = Math.abs(diff) < 1 ? "On target" : diff > 0 ? "Over" : "Under";
+          return [cat, parseFloat(actual.toFixed(2)), ideal, parseFloat(diff.toFixed(2)), status];
+        }),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allocationRows), "Asset Allocation");
+
+      // ── Sheet 3: Category Distribution ───────────────────────────────
+      const typeMap2: Record<string, Record<string, number>> = {};
+      snap.forEach((mf: any) => {
+        const cat = (mf.fund_category || "").toLowerCase();
+        const type = mf.fund_type || "Other";
+        const pct = totalVal > 0 ? (mf.valuation / totalVal) * 100 : 0;
+        let mainCat = "Others";
+        if (cat.includes("equity")) mainCat = "Equity";
+        else if (cat.includes("debt")) mainCat = "Debt";
+        else if (cat.includes("hybrid")) mainCat = "Hybrid";
+        else if (cat.includes("gold") || cat.includes("silver")) mainCat = "Gold/Silver";
+        if (!typeMap2[mainCat]) typeMap2[mainCat] = {};
+        typeMap2[mainCat][type] = (typeMap2[mainCat][type] || 0) + pct;
+      });
+      const distRows: any[][] = [
+        ["Category Wise Distribution"],
+        [],
+        ["Main Category", "Sub-Category / Type", "Percentage (%)"],
+        ...allCats.flatMap(cat => {
+          const subs = Object.entries(typeMap2[cat] || {}).sort((a, b) => b[1] - a[1]);
+          if (subs.length === 0) return [[cat, "—", 0]];
+          return subs.map(([type, pct], i) => [i === 0 ? cat : "", type, parseFloat(pct.toFixed(2))]);
+        }),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(distRows), "Category Distribution");
+
+      // ── Sheet 4: Concise Performance Check ───────────────────────────
+      const pv = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, "") || "0");
+      const perfRows: any[][] = [
+        ["Concise Performance Check"],
+        [],
+        ["#", "Fund Name", "ISIN", "Category", "Risk Type",
+          "1Y CAGR (%)", "BM 1Y (%)", "3Y CAGR (%)", "BM 3Y (%)", "5Y CAGR (%)", "BM 5Y (%)",
+          "Financial Score (/40)", "Perf Score (/40)", "Total Score (/80)", "Rating", "Action"],
+        ...snap
+          .filter((mf: any) => storedPerformances[mf.isin])
+          .map((mf: any, i: number) => {
+            const perf = storedPerformances[mf.isin];
+            const sc = storedScoring[mf.isin];
+            const cagr = perf?.cagr || {};
+            const bm = perf?.benchmark_returns || {};
+            const diff1 = pv(cagr["1y"]) - pv(bm["1y"]);
+            const diff3 = pv(cagr["3y"]) - pv(bm["3y"]);
+            const diff5 = pv(cagr["5y"]) - pv(bm["5y"]);
+            const s1 = diff1 >= 3 ? 10 : diff1 >= 1.5 ? 8 : diff1 >= 0 ? 6 : diff1 >= -1.49 ? 4 : diff1 >= -2.99 ? 2 : 0;
+            const s3 = diff3 >= 3 ? 15 : diff3 >= 1.5 ? 13 : diff3 >= 0 ? 11 : diff3 >= -1.49 ? 9 : diff3 >= -2.99 ? 7 : 0;
+            const s5 = diff5 >= 3 ? 15 : diff5 >= 1.5 ? 13 : diff5 >= 0 ? 11 : diff5 >= -1.49 ? 9 : diff5 >= -2.99 ? 7 : 0;
+            const perfScore = s1 + s3 + s5;
+            const finScore = sc?.totalScore ?? 0;
+            const total = finScore + perfScore;
+            const rating = sc?.fundRating || "—";
+            const action = (actionSelections[mf.scheme_name] || "hold").toUpperCase();
+            const cagrVal = (k: string) => { const v2 = pv(cagr[k]); return isNaN(v2) ? "N/A" : v2; };
+            const bmVal = (k: string) => { const v2 = pv(bm[k]); return isNaN(v2) ? "N/A" : v2; };
+            return [
+              i + 1, mf.scheme_name, mf.isin, mf.fund_category || "—", mf.fund_type || "—",
+              cagrVal("1y"), bmVal("1y"), cagrVal("3y"), bmVal("3y"), cagrVal("5y"), bmVal("5y"),
+              finScore, perfScore, total, rating, action,
+            ];
+          }),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(perfRows), "Performance Check");
+
+      // ── Sheet 5: Portfolio Snapshot ───────────────────────────────────
+      const snapshotRows: any[][] = [
+        ["Portfolio Snapshot – Mutual Fund Units"],
+        [],
+        ["#", "Scheme Name", "Category", "Fund Type", "Units", "NAV (₹)", "Invested (₹)", "Value (₹)", "P/L (₹)"],
+        ...snap.map((mf: any, i: number) => [
+          i + 1,
+          mf.scheme_name || "—",
+          mf.fund_category || "—",
+          mf.fund_type || "—",
+          mf.units ?? mf.closing_balance ?? 0,
+          parseFloat((mf.nav || 0).toFixed(4)),
+          mf.invested_amount ?? 0,
+          parseFloat((mf.valuation || 0).toFixed(2)),
+          parseFloat((mf.unrealised_profit_loss || 0).toFixed(2)),
+        ]),
+        ["", "", "", "Grand Total", "", "", totalInvested, parseFloat(totalValuation.toFixed(2)), parseFloat(totalUnrealised.toFixed(2))],
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(snapshotRows), "Portfolio Snapshot");
+
+      XLSX.writeFile(wb, `ConciseReport_${name}_${dateStr}.xlsx`);
+    } catch (err) {
+      console.error("Excel export failed", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -310,15 +475,26 @@ export default function ConciseReport() {
             <ArrowLeft className="w-4 h-4" />
             Back to Full Report
           </button>
-          <Button
-            onClick={downloadPDF}
-            disabled={isDownloading}
-            className="bg-slate-900 text-white hover:bg-slate-700"
-            data-testid="button-download-concise-pdf"
-          >
-            {isDownloading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-            {isDownloading ? "Generating PDF..." : "Download PDF"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={downloadExcel}
+              disabled={isExporting}
+              className="bg-emerald-700 text-white hover:bg-emerald-600"
+              data-testid="button-download-concise-excel"
+            >
+              {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
+              {isExporting ? "Exporting..." : "Download Excel"}
+            </Button>
+            <Button
+              onClick={downloadPDF}
+              disabled={isDownloading}
+              className="bg-slate-900 text-white hover:bg-slate-700"
+              data-testid="button-download-concise-pdf"
+            >
+              {isDownloading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              {isDownloading ? "Generating PDF..." : "Download PDF"}
+            </Button>
+          </div>
         </div>
 
         {/* Report content */}
