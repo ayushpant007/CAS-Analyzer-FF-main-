@@ -260,10 +260,140 @@ export default function ConciseReport() {
     if (!report) return;
     setIsExporting(true);
     try {
-      const XLSX = await import("xlsx");
+      const XLSX = await import("xlsx-js-style") as any;
       const wb = XLSX.utils.book_new();
       const name = (investorName || "Portfolio").replace(/\s+/g, "_");
       const dateStr = format(new Date(), "dd-MMM-yyyy");
+
+      // ── Design System ─────────────────────────────────────────────────
+      const C = {
+        NAVY:      "1E3A5F",
+        BLUE:      "1E40AF",
+        MIDBLUE:   "2563EB",
+        LTBLUE:    "DBEAFE",
+        ALTROW:    "EFF6FF",
+        WHITE:     "FFFFFF",
+        OFFWHITE:  "F8FAFC",
+        SLATE:     "64748B",
+        SLATEL:    "F1F5F9",
+        GREEN:     "065F46",
+        GREENL:    "D1FAE5",
+        RED:       "991B1B",
+        REDL:      "FEE2E2",
+        AMBER:     "92400E",
+        AMBERL:    "FEF3C7",
+        BORDER:    "CBD5E1",
+        TOTALBG:   "0F2442",
+      };
+
+      const border = {
+        top:    { style: "thin", color: { rgb: C.BORDER } },
+        bottom: { style: "thin", color: { rgb: C.BORDER } },
+        left:   { style: "thin", color: { rgb: C.BORDER } },
+        right:  { style: "thin", color: { rgb: C.BORDER } },
+      };
+      const borderMed = {
+        top:    { style: "medium", color: { rgb: C.NAVY } },
+        bottom: { style: "medium", color: { rgb: C.NAVY } },
+        left:   { style: "medium", color: { rgb: C.NAVY } },
+        right:  { style: "medium", color: { rgb: C.NAVY } },
+      };
+
+      // Cell factories
+      const title = (v: string) => ({ v, t: "s", s: {
+        font: { bold: true, sz: 14, color: { rgb: C.WHITE }, name: "Calibri" },
+        fill: { fgColor: { rgb: C.NAVY } },
+        alignment: { horizontal: "left", vertical: "center", wrapText: true },
+        border: borderMed,
+      }});
+
+      const sec = (v: string) => ({ v, t: "s", s: {
+        font: { bold: true, sz: 10, color: { rgb: C.WHITE }, name: "Calibri" },
+        fill: { fgColor: { rgb: C.MIDBLUE } },
+        alignment: { horizontal: "left", vertical: "center" },
+        border,
+      }});
+
+      const hdr = (v: string) => ({ v, t: "s", s: {
+        font: { bold: true, sz: 9, color: { rgb: C.WHITE }, name: "Calibri" },
+        fill: { fgColor: { rgb: C.BLUE } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border,
+      }});
+
+      const lbl = (v: string) => ({ v, t: "s", s: {
+        font: { bold: true, sz: 10, color: { rgb: C.NAVY }, name: "Calibri" },
+        fill: { fgColor: { rgb: C.SLATEL } },
+        alignment: { horizontal: "left", vertical: "center" },
+        border,
+      }});
+
+      const meta = (v: string) => ({ v, t: "s", s: {
+        font: { sz: 10, color: { rgb: C.SLATE }, name: "Calibri" },
+        fill: { fgColor: { rgb: C.SLATEL } },
+        alignment: { horizontal: "left", vertical: "center" },
+        border,
+      }});
+
+      const txt = (v: string, row = 0, wrap = false) => ({ v: v ?? "—", t: "s", s: {
+        font: { sz: 9, color: { rgb: "1E293B" }, name: "Calibri" },
+        fill: { fgColor: { rgb: row % 2 === 0 ? C.WHITE : C.ALTROW } },
+        alignment: { horizontal: "left", vertical: "center", wrapText: wrap },
+        border,
+      }});
+
+      const num = (v: number, fmt: string, row = 0, color?: string) => ({ v: isNaN(v) ? 0 : v, t: "n", z: fmt, s: {
+        font: { sz: 9, color: { rgb: color ?? "1E293B" }, name: "Calibri" },
+        fill: { fgColor: { rgb: row % 2 === 0 ? C.WHITE : C.ALTROW } },
+        alignment: { horizontal: "right", vertical: "center" },
+        border,
+        numFmt: fmt,
+      }});
+
+      const pctCell = (v: number, row = 0) => {
+        const color = v > 0.5 ? C.GREEN : v < -0.5 ? C.RED : "1E293B";
+        return num(v, "0.00", row, color);
+      };
+
+      const tot = (v: string | number, fmt?: string) => ({
+        v, t: typeof v === "number" ? "n" : "s",
+        ...(fmt ? { z: fmt } : {}),
+        s: {
+          font: { bold: true, sz: 10, color: { rgb: C.WHITE }, name: "Calibri" },
+          fill: { fgColor: { rgb: C.TOTALBG } },
+          alignment: { horizontal: typeof v === "number" ? "right" : "center", vertical: "center" },
+          border: borderMed,
+        }
+      });
+
+      const plCell = (v: number, row = 0) => {
+        const color = v >= 0 ? C.GREEN : C.RED;
+        const bg = v >= 0 ? (row % 2 === 0 ? C.WHITE : C.ALTROW) : (row % 2 === 0 ? C.WHITE : C.ALTROW);
+        return { v, t: "n", z: '#,##0.00', s: {
+          font: { sz: 9, bold: false, color: { rgb: color }, name: "Calibri" },
+          fill: { fgColor: { rgb: bg } },
+          alignment: { horizontal: "right", vertical: "center" },
+          border,
+        }};
+      };
+
+      const empty = () => ({ v: "", t: "s", s: {
+        fill: { fgColor: { rgb: C.WHITE } },
+        border,
+      }});
+
+      // Utility: set column widths
+      const setColWidths = (ws: any, widths: number[]) => {
+        ws["!cols"] = widths.map(w => ({ wch: w }));
+      };
+
+      // Utility: set row heights
+      const setRowHeights = (ws: any, heights: Record<number, number>) => {
+        ws["!rows"] = ws["!rows"] || [];
+        Object.entries(heights).forEach(([r, h]) => {
+          ws["!rows"][parseInt(r)] = { hpt: h };
+        });
+      };
 
       const snap = mfSnapshot;
       const accounts: any[] = analysis.account_summaries || [];
@@ -273,28 +403,37 @@ export default function ConciseReport() {
       const approxCagr = totalInvested > 0 ? (Math.pow(totalValuation / totalInvested, 1 / 2) - 1) * 100 : 0;
 
       // ── Sheet 1: Portfolio Overview ──────────────────────────────────
-      const overviewRows: any[][] = [
-        ["Concise Report – " + (investorName || "Portfolio")],
-        ["Analyzed on", report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : ""],
-        ["Investor Type", report.investorType || "—", "Age Group", report.ageGroup || "—"],
-        [],
-        ["PORTFOLIO SUMMARY"],
-        ["Total Value (₹)", totalValuation],
-        ["Total Invested (₹)", totalInvested],
-        ["Absolute Gain (₹)", absReturn],
-        ["Overall Return (%)", parseFloat(absReturnPct.toFixed(2))],
-        ["Approx 2-Yr CAGR (%)", parseFloat(approxCagr.toFixed(2))],
-        ["Total Schemes", snap.length],
-        ["Total Accounts", accounts.length],
-        [],
-        ["ACCOUNT BREAKDOWN"],
-        ["Account Type", "Schemes/Count", "Value (₹)", "% of Total"],
-        ...accounts.map((a: any) => {
-          const pct = totalValuation > 0 ? ((a.value / totalValuation) * 100).toFixed(2) : "0.00";
-          return [a.type, a.count, a.value, parseFloat(pct)];
+      const ov: any[][] = [
+        [title("Portfolio Report – " + (investorName || "Portfolio")), empty(), empty(), empty()],
+        [lbl("Analyzed on"), meta(report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : ""), empty(), empty()],
+        [lbl("Investor Type"), meta(report.investorType || "—"), lbl("Age Group"), meta(report.ageGroup || "—")],
+        [empty(), empty(), empty(), empty()],
+        [sec("PORTFOLIO SUMMARY"), empty(), empty(), empty()],
+        [lbl("Total Portfolio Value"), num(totalValuation, '"₹"#,##0.00'), empty(), empty()],
+        [lbl("Total Invested"), num(totalInvested, '"₹"#,##0.00'), empty(), empty()],
+        [lbl("Absolute Gain / Loss"), plCell(absReturn), empty(), empty()],
+        [lbl("Overall Return (%)"), pctCell(absReturnPct), empty(), empty()],
+        [lbl("Approx 2-Yr CAGR (%)"), pctCell(approxCagr), empty(), empty()],
+        [lbl("Total Schemes"), num(snap.length, "0"), empty(), empty()],
+        [lbl("Total Accounts"), num(accounts.length, "0"), empty(), empty()],
+        [empty(), empty(), empty(), empty()],
+        [sec("ACCOUNT BREAKDOWN"), empty(), empty(), empty()],
+        [hdr("Account Type"), hdr("Schemes / Count"), hdr("Value (₹)"), hdr("% of Total")],
+        ...accounts.map((a: any, i: number) => {
+          const pct = totalValuation > 0 ? (a.value / totalValuation) * 100 : 0;
+          return [txt(a.type, i), num(a.count, "0", i), num(a.value, '"₹"#,##0.00', i), pctCell(pct, i)];
         }),
       ];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(overviewRows), "Portfolio Overview");
+      const ws1 = XLSX.utils.aoa_to_sheet(ov);
+      setColWidths(ws1, [32, 22, 18, 14]);
+      setRowHeights(ws1, { 0: 28, 4: 22, 13: 22 });
+      ws1["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+        { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
+        { s: { r: 13, c: 0 }, e: { r: 13, c: 3 } },
+        ...([5,6,7,8,9,10,11].map(r => ({ s: { r, c: 2 }, e: { r, c: 3 } }))),
+      ];
+      XLSX.utils.book_append_sheet(wb, ws1, "Portfolio Overview");
 
       // ── Sheet 2: Asset Allocation ─────────────────────────────────────
       const allCats = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
@@ -313,21 +452,42 @@ export default function ConciseReport() {
       let healthScore2 = 100;
       allCats.forEach(c => { healthScore2 -= Math.abs((actMap2[c] || 0) - (parseIdealPct(idealMap2[c] || "0"))) * 0.8; });
       healthScore2 = Math.max(0, Math.min(100, Math.round(healthScore2)));
-      const allocationRows: any[][] = [
-        ["Asset Allocation Check"],
-        ["Investor Type", report.investorType || "—", "Age Group", report.ageGroup || "—"],
-        ["Overall Health Score", healthScore2 + "/100"],
-        [],
-        ["Category", "Actual (%)", "Ideal (%)", "Difference (%)", "Status"],
-        ...allCats.map(cat => {
+
+      const statusCell = (status: string, row: number) => {
+        const bg = status === "On target" ? C.GREENL : status === "Over" ? C.AMBERL : C.REDL;
+        const fg = status === "On target" ? C.GREEN : status === "Over" ? C.AMBER : C.RED;
+        return { v: status, t: "s", s: {
+          font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" },
+          fill: { fgColor: { rgb: bg } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border,
+        }};
+      };
+
+      const al: any[][] = [
+        [title("Asset Allocation Check"), empty(), empty(), empty(), empty()],
+        [lbl("Investor Type"), meta(report.investorType || "—"), empty(), lbl("Age Group"), meta(report.ageGroup || "—")],
+        [lbl("Health Score"), { v: healthScore2 + " / 100", t: "s", s: { font: { bold: true, sz: 12, color: { rgb: healthScore2 >= 70 ? C.GREEN : healthScore2 >= 50 ? C.AMBER : C.RED }, name: "Calibri" }, fill: { fgColor: { rgb: C.SLATEL } }, alignment: { horizontal: "left" }, border } }, empty(), empty(), empty()],
+        [empty(), empty(), empty(), empty(), empty()],
+        [hdr("Category"), hdr("Actual (%)"), hdr("Ideal (%)"), hdr("Difference (%)"), hdr("Status")],
+        ...allCats.map((cat, i) => {
           const actual = actMap2[cat] || 0;
           const ideal = parseIdealPct(idealMap2[cat] || "0");
           const diff = actual - ideal;
           const status = Math.abs(diff) < 1 ? "On target" : diff > 0 ? "Over" : "Under";
-          return [cat, parseFloat(actual.toFixed(2)), ideal, parseFloat(diff.toFixed(2)), status];
+          return [txt(cat, i), pctCell(actual, i), pctCell(ideal, i), pctCell(diff, i), statusCell(status, i)];
         }),
       ];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allocationRows), "Asset Allocation");
+      const ws2 = XLSX.utils.aoa_to_sheet(al);
+      setColWidths(ws2, [20, 14, 14, 16, 14]);
+      setRowHeights(ws2, { 0: 28, 4: 20 });
+      ws2["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+        { s: { r: 1, c: 2 }, e: { r: 1, c: 2 } },
+        { s: { r: 2, c: 1 }, e: { r: 2, c: 4 } },
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } },
+      ];
+      XLSX.utils.book_append_sheet(wb, ws2, "Asset Allocation");
 
       // ── Sheet 3: Category Distribution ───────────────────────────────
       const typeMap2: Record<string, Record<string, number>> = {};
@@ -343,102 +503,188 @@ export default function ConciseReport() {
         if (!typeMap2[mainCat]) typeMap2[mainCat] = {};
         typeMap2[mainCat][type] = (typeMap2[mainCat][type] || 0) + pct;
       });
-      const distRows: any[][] = [
-        ["Category Wise Distribution"],
-        [],
-        ["Main Category", "Sub-Category / Type", "Percentage (%)"],
-        ...allCats.flatMap(cat => {
-          const subs = Object.entries(typeMap2[cat] || {}).sort((a, b) => b[1] - a[1]);
-          if (subs.length === 0) return [[cat, "—", 0]];
-          return subs.map(([type, pct], i) => [i === 0 ? cat : "", type, parseFloat(pct.toFixed(2))]);
+      const distData = allCats.flatMap(cat => {
+        const subs = Object.entries(typeMap2[cat] || {}).sort((a, b) => b[1] - a[1]);
+        if (subs.length === 0) return [[cat, "—", 0]];
+        return subs.map(([type, pct], i) => [i === 0 ? cat : "", type, pct]);
+      });
+      const di: any[][] = [
+        [title("Category Wise Distribution"), empty(), empty()],
+        [empty(), empty(), empty()],
+        [hdr("Main Category"), hdr("Sub-Category / Type"), hdr("Allocation (%)")],
+        ...distData.map(([cat, type, pct], i) => [
+          cat ? txt(String(cat), i) : empty(),
+          txt(String(type), i),
+          pctCell(Number(pct), i),
+        ]),
+      ];
+      const ws3 = XLSX.utils.aoa_to_sheet(di);
+      setColWidths(ws3, [20, 30, 16]);
+      setRowHeights(ws3, { 0: 28, 2: 20 });
+      ws3["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+      XLSX.utils.book_append_sheet(wb, ws3, "Category Distribution");
+
+      // ── Sheet 4: Performance Check ────────────────────────────────────
+      const pv = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, "") || "0");
+      const perfFunds = snap.filter((mf: any) => storedPerformances[mf.isin]);
+      const perfHdrs = ["#", "Fund Name", "ISIN", "Category", "Risk Type", "SIP Amt (₹)",
+        "1Y CAGR%", "BM 1Y%", "3Y CAGR%", "BM 3Y%", "5Y CAGR%", "BM 5Y%",
+        "Fin Score", "Perf Score", "Total /80", "Rating", "Action", "Target Category", "Target Fund"];
+      const cagrColor = (val: number, bm: number) => isNaN(val) ? "1E293B" : val >= bm ? C.GREEN : C.RED;
+
+      const perf: any[][] = [
+        [title("Concise Performance Check"), ...Array(perfHdrs.length - 1).fill(empty())],
+        [empty(), ...Array(perfHdrs.length - 1).fill(empty())],
+        perfHdrs.map(h => hdr(h)),
+        ...perfFunds.map((mf: any, i: number) => {
+          const p = storedPerformances[mf.isin];
+          const sc = storedScoring[mf.isin];
+          const cagr = p?.cagr || {};
+          const bm = p?.benchmark_returns || {};
+          const diff1 = pv(cagr["1y"]) - pv(bm["1y"]);
+          const diff3 = pv(cagr["3y"]) - pv(bm["3y"]);
+          const diff5 = pv(cagr["5y"]) - pv(bm["5y"]);
+          const s1 = diff1 >= 3 ? 10 : diff1 >= 1.5 ? 8 : diff1 >= 0 ? 6 : diff1 >= -1.49 ? 4 : diff1 >= -2.99 ? 2 : 0;
+          const s3 = diff3 >= 3 ? 15 : diff3 >= 1.5 ? 13 : diff3 >= 0 ? 11 : diff3 >= -1.49 ? 9 : diff3 >= -2.99 ? 7 : 0;
+          const s5 = diff5 >= 3 ? 15 : diff5 >= 1.5 ? 13 : diff5 >= 0 ? 11 : diff5 >= -1.49 ? 9 : diff5 >= -2.99 ? 7 : 0;
+          const perfScore = s1 + s3 + s5;
+          const finScore = sc?.totalScore ?? 0;
+          const total = finScore + perfScore;
+          const rating = sc?.fundRating || "—";
+          const action = (actionSelections[mf.scheme_name] || "hold").toUpperCase();
+          const sip = sipAmounts[mf.scheme_name];
+          const c1 = pv(cagr["1y"]), c3 = pv(cagr["3y"]), c5 = pv(cagr["5y"]);
+          const b1 = pv(bm["1y"]), b3 = pv(bm["3y"]), b5 = pv(bm["5y"]);
+
+          const ratingStyle = (r: string) => {
+            const map: Record<string, [string, string]> = {
+              "Excellent": [C.GREEN, C.GREENL], "Good": [C.BLUE, C.LTBLUE],
+              "Average": [C.AMBER, C.AMBERL], "Poor": [C.RED, C.REDL], "Very Poor": [C.RED, C.REDL],
+            };
+            const [fg, bg] = map[r] || [C.SLATE, C.SLATEL];
+            return { v: r, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: bg } }, alignment: { horizontal: "center" }, border } };
+          };
+
+          const cagrCell = (val: number, bmVal: number, row: number) => ({
+            v: isNaN(val) ? "N/A" : val,
+            t: isNaN(val) ? "s" : "n",
+            z: isNaN(val) ? undefined : "0.00",
+            s: {
+              font: { bold: !isNaN(val), sz: 9, color: { rgb: isNaN(val) ? C.SLATE : cagrColor(val, bmVal) }, name: "Calibri" },
+              fill: { fgColor: { rgb: row % 2 === 0 ? C.WHITE : C.ALTROW } },
+              alignment: { horizontal: "right" },
+              border,
+            }
+          });
+
+          const actionStyle = (a: string) => {
+            const map: Record<string, [string, string]> = {
+              "HOLD": [C.BLUE, C.LTBLUE], "SWITCH": [C.AMBER, C.AMBERL],
+              "MERGE": ["4C1D95", "EDE9FE"], "SELL": [C.RED, C.REDL],
+            };
+            const [fg, bg] = map[a] || [C.SLATE, C.SLATEL];
+            return { v: a, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: bg } }, alignment: { horizontal: "center" }, border } };
+          };
+
+          return [
+            num(i + 1, "0", i),
+            txt(mf.scheme_name || "—", i, true),
+            txt(mf.isin || "—", i),
+            txt(mf.fund_category || "—", i),
+            txt(mf.fund_type || "—", i),
+            sip != null ? num(sip, '"₹"#,##0', i) : txt("—", i),
+            cagrCell(c1, b1, i),
+            cagrCell(b1, b1, i),
+            cagrCell(c3, b3, i),
+            cagrCell(b3, b3, i),
+            cagrCell(c5, b5, i),
+            cagrCell(b5, b5, i),
+            num(finScore, "0", i),
+            num(perfScore, "0", i),
+            num(total, "0", i),
+            ratingStyle(rating),
+            actionStyle(action),
+            txt(targetCategory[mf.scheme_name] || "—", i),
+            txt(targetFund[mf.scheme_name] || "—", i, true),
+          ];
         }),
       ];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(distRows), "Category Distribution");
-
-      // ── Sheet 4: Concise Performance Check ───────────────────────────
-      const pv = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, "") || "0");
-      const perfRows: any[][] = [
-        ["Concise Performance Check"],
-        [],
-        ["#", "Fund Name", "ISIN", "Category", "Risk Type", "SIP Amount (₹)",
-          "1Y CAGR (%)", "BM 1Y (%)", "3Y CAGR (%)", "BM 3Y (%)", "5Y CAGR (%)", "BM 5Y (%)",
-          "Financial Score (/40)", "Perf Score (/40)", "Total Score (/80)", "Rating", "Action",
-          "Target Category", "Target Fund"],
-        ...snap
-          .filter((mf: any) => storedPerformances[mf.isin])
-          .map((mf: any, i: number) => {
-            const perf = storedPerformances[mf.isin];
-            const sc = storedScoring[mf.isin];
-            const cagr = perf?.cagr || {};
-            const bm = perf?.benchmark_returns || {};
-            const diff1 = pv(cagr["1y"]) - pv(bm["1y"]);
-            const diff3 = pv(cagr["3y"]) - pv(bm["3y"]);
-            const diff5 = pv(cagr["5y"]) - pv(bm["5y"]);
-            const s1 = diff1 >= 3 ? 10 : diff1 >= 1.5 ? 8 : diff1 >= 0 ? 6 : diff1 >= -1.49 ? 4 : diff1 >= -2.99 ? 2 : 0;
-            const s3 = diff3 >= 3 ? 15 : diff3 >= 1.5 ? 13 : diff3 >= 0 ? 11 : diff3 >= -1.49 ? 9 : diff3 >= -2.99 ? 7 : 0;
-            const s5 = diff5 >= 3 ? 15 : diff5 >= 1.5 ? 13 : diff5 >= 0 ? 11 : diff5 >= -1.49 ? 9 : diff5 >= -2.99 ? 7 : 0;
-            const perfScore = s1 + s3 + s5;
-            const finScore = sc?.totalScore ?? 0;
-            const total = finScore + perfScore;
-            const rating = sc?.fundRating || "—";
-            const action = (actionSelections[mf.scheme_name] || "hold").toUpperCase();
-            const cagrVal = (k: string) => { const v2 = pv(cagr[k]); return isNaN(v2) ? "N/A" : v2; };
-            const bmVal = (k: string) => { const v2 = pv(bm[k]); return isNaN(v2) ? "N/A" : v2; };
-            const sipAmt = sipAmounts[mf.scheme_name] ?? "—";
-            const tCat = targetCategory[mf.scheme_name] || "—";
-            const tFund = targetFund[mf.scheme_name] || "—";
-            return [
-              i + 1, mf.scheme_name, mf.isin, mf.fund_category || "—", mf.fund_type || "—", sipAmt,
-              cagrVal("1y"), bmVal("1y"), cagrVal("3y"), bmVal("3y"), cagrVal("5y"), bmVal("5y"),
-              finScore, perfScore, total, rating, action, tCat, tFund,
-            ];
-          }),
-      ];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(perfRows), "Performance Check");
-
-      // ── Sheet 6: New Allocation ────────────────────────────────────────
-      const actionableFunds = snap.filter((mf: any) => {
-        const act = actionSelections[mf.scheme_name] || "hold";
-        return act !== "hold";
-      });
-      const newAllocRows: any[][] = [
-        ["New Allocation – Recommended Changes"],
-        ["Generated on", dateStr],
-        [],
-        ["#", "Current Fund Name", "Current Category", "Action", "Target Category", "Target Fund Name", "Current Invested (₹)", "Current Valuation (₹)"],
-        ...actionableFunds.map((mf: any, i: number) => [
-          i + 1,
-          mf.scheme_name || "—",
-          mf.fund_category || "—",
-          (actionSelections[mf.scheme_name] || "hold").toUpperCase(),
-          targetCategory[mf.scheme_name] || "—",
-          targetFund[mf.scheme_name] || "—",
-          mf.invested_amount ?? 0,
-          parseFloat((mf.valuation || 0).toFixed(2)),
-        ]),
-        ...(actionableFunds.length === 0 ? [["No funds marked for Switch / Merge / Sell"]] : []),
-      ];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newAllocRows), "New Allocation");
+      const ws4 = XLSX.utils.aoa_to_sheet(perf);
+      setColWidths(ws4, [4, 38, 14, 16, 14, 12, 9, 9, 9, 9, 9, 9, 10, 10, 10, 12, 10, 18, 38]);
+      setRowHeights(ws4, { 0: 28, 2: 32 });
+      ws4["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: perfHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws4, "Performance Check");
 
       // ── Sheet 5: Portfolio Snapshot ───────────────────────────────────
-      const snapshotRows: any[][] = [
-        ["Portfolio Snapshot – Mutual Fund Units"],
-        [],
-        ["#", "Scheme Name", "Category", "Fund Type", "Units", "NAV (₹)", "Invested (₹)", "Value (₹)", "P/L (₹)"],
+      const snapHdrs = ["#", "Scheme Name", "Category", "Fund Type", "Units", "NAV (₹)", "Invested (₹)", "Value (₹)", "P/L (₹)"];
+      const sn: any[][] = [
+        [title("Portfolio Snapshot – Mutual Fund Units"), ...Array(snapHdrs.length - 1).fill(empty())],
+        [empty(), ...Array(snapHdrs.length - 1).fill(empty())],
+        snapHdrs.map(h => hdr(h)),
         ...snap.map((mf: any, i: number) => [
-          i + 1,
-          mf.scheme_name || "—",
-          mf.fund_category || "—",
-          mf.fund_type || "—",
-          mf.units ?? mf.closing_balance ?? 0,
-          parseFloat((mf.nav || 0).toFixed(4)),
-          mf.invested_amount ?? 0,
-          parseFloat((mf.valuation || 0).toFixed(2)),
-          parseFloat((mf.unrealised_profit_loss || 0).toFixed(2)),
+          num(i + 1, "0", i),
+          txt(mf.scheme_name || "—", i, true),
+          txt(mf.fund_category || "—", i),
+          txt(mf.fund_type || "—", i),
+          num(mf.units ?? mf.closing_balance ?? 0, "0.0000", i),
+          num(mf.nav || 0, '"₹"#,##0.0000', i),
+          num(mf.invested_amount ?? 0, '"₹"#,##0.00', i),
+          num(mf.valuation || 0, '"₹"#,##0.00', i),
+          plCell(mf.unrealised_profit_loss || 0, i),
         ]),
-        ["", "", "", "Grand Total", "", "", totalInvested, parseFloat(totalValuation.toFixed(2)), parseFloat(totalUnrealised.toFixed(2))],
+        [tot("GRAND TOTAL"), tot(""), tot(""), tot(""), tot(""), tot(""),
+          tot(totalInvested, '"₹"#,##0.00'),
+          tot(totalValuation, '"₹"#,##0.00'),
+          { ...tot(totalUnrealised, '"₹"#,##0.00'), s: { ...tot("").s, font: { bold: true, sz: 10, color: { rgb: totalUnrealised >= 0 ? "6EE7B7" : "FCA5A5" }, name: "Calibri" }, fill: { fgColor: { rgb: C.TOTALBG } }, alignment: { horizontal: "right" }, border: borderMed } },
+        ],
       ];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(snapshotRows), "Portfolio Snapshot");
+      const ws5 = XLSX.utils.aoa_to_sheet(sn);
+      setColWidths(ws5, [4, 42, 16, 16, 12, 12, 16, 16, 16]);
+      setRowHeights(ws5, { 0: 28, 2: 28 });
+      ws5["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: snapHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws5, "Portfolio Snapshot");
+
+      // ── Sheet 6: New Allocation ────────────────────────────────────────
+      const actionableFunds = snap.filter((mf: any) => (actionSelections[mf.scheme_name] || "hold") !== "hold");
+      const naHdrs = ["#", "Current Fund Name", "Category", "Action", "Target Category", "Target Fund Name", "Invested (₹)", "Valuation (₹)"];
+      const na: any[][] = [
+        [title("New Allocation – Recommended Changes"), ...Array(naHdrs.length - 1).fill(empty())],
+        [lbl("Generated on"), meta(dateStr), ...Array(naHdrs.length - 2).fill(empty())],
+        [empty(), ...Array(naHdrs.length - 1).fill(empty())],
+        naHdrs.map(h => hdr(h)),
+        ...(actionableFunds.length === 0
+          ? [[{ v: "No funds marked for Switch / Merge / Sell", t: "s", s: { font: { italic: true, sz: 10, color: { rgb: C.SLATE } }, fill: { fgColor: { rgb: C.SLATEL } }, alignment: { horizontal: "left" }, border } }, ...Array(naHdrs.length - 1).fill(empty())]
+          ]
+          : actionableFunds.map((mf: any, i: number) => {
+              const act = (actionSelections[mf.scheme_name] || "hold").toUpperCase();
+              const actionStyle = (a: string) => {
+                const map: Record<string, [string, string]> = {
+                  "SWITCH": [C.AMBER, C.AMBERL], "MERGE": ["4C1D95", "EDE9FE"], "SELL": [C.RED, C.REDL],
+                };
+                const [fg, bg] = map[a] || [C.SLATE, C.SLATEL];
+                return { v: a, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: bg } }, alignment: { horizontal: "center" }, border } };
+              };
+              return [
+                num(i + 1, "0", i),
+                txt(mf.scheme_name || "—", i, true),
+                txt(mf.fund_category || "—", i),
+                actionStyle(act),
+                txt(targetCategory[mf.scheme_name] || "—", i),
+                txt(targetFund[mf.scheme_name] || "—", i, true),
+                num(mf.invested_amount ?? 0, '"₹"#,##0.00', i),
+                num(mf.valuation || 0, '"₹"#,##0.00', i),
+              ];
+            })
+        ),
+      ];
+      const ws6 = XLSX.utils.aoa_to_sheet(na);
+      setColWidths(ws6, [4, 42, 16, 12, 18, 42, 16, 16]);
+      setRowHeights(ws6, { 0: 28, 3: 28 });
+      ws6["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: naHdrs.length - 1 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: naHdrs.length - 1 } },
+      ];
+      XLSX.utils.book_append_sheet(wb, ws6, "New Allocation");
 
       XLSX.writeFile(wb, `ConciseReport_${name}_${dateStr}.xlsx`);
     } catch (err) {
