@@ -2218,9 +2218,9 @@ export function ReportView({ report }: ReportViewProps) {
             
             const categorize = (type: string) => {
               const t = type.toLowerCase().trim();
-              if (t === "sip" || ["systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
+              if (t === "sip" || t === "stp-in" || t === "switch in" || ["systematic investment", "purchase"].some(k => t.includes(k))) return "SIP";
               if (t === "swp" || ["systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
-              if (["stp", "stp-out", "stp-in", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
+              if (["stp", "stp-out", "systematic transfer", "switch"].some(k => t.includes(k))) return "STP";
               return null;
             };
 
@@ -2241,8 +2241,6 @@ export function ReportView({ report }: ReportViewProps) {
               const category = categorize(rawType);
 
               if (category === "STP") {
-                // New data: explicit direction tag
-                if (rawType === "stp-in" || rawType.includes("switch in")) return;
                 // Old data (plain "stp"): fall back to fund_category — equity funds are switch-in destinations
                 if (rawType === "stp") {
                   const fundCat = fundCategoryMap[tx.scheme_name] || "";
