@@ -303,14 +303,49 @@ function calculateCAGR(currentNav: number, oldNav: number, years: number): numbe
   return (Math.pow(currentNav / oldNav, 1 / years) - 1) * 100;
 }
 
-async function fetchWithRetry(url: string, retries = 3, delayMs = 1000): Promise<Response> {
+// ── In-memory NAV cache (24-hour TTL) ────────────────────────────────
+const navCache = new Map<number, { data: NavData; ts: number }>();
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+
+// ── Concurrency limiter (max 2 simultaneous MFAPI requests) ───────────
+const MAX_CONCURRENT = 2;
+const MIN_DELAY_MS = 400; // minimum gap between consecutive MFAPI calls
+let activeCount = 0;
+let lastRequestTime = 0;
+const waitQueue: Array<() => void> = [];
+
+async function acquireSlot(): Promise<void> {
+  if (activeCount < MAX_CONCURRENT) {
+    const now = Date.now();
+    const sinceLastRequest = now - lastRequestTime;
+    if (sinceLastRequest < MIN_DELAY_MS) {
+      await new Promise(resolve => setTimeout(resolve, MIN_DELAY_MS - sinceLastRequest));
+    }
+    activeCount++;
+    lastRequestTime = Date.now();
+    return;
+  }
+  await new Promise<void>(resolve => waitQueue.push(resolve));
+  activeCount++;
+  lastRequestTime = Date.now();
+}
+
+function releaseSlot(): void {
+  activeCount--;
+  if (waitQueue.length > 0) {
+    const next = waitQueue.shift()!;
+    setTimeout(next, MIN_DELAY_MS); // enforce gap even between queued requests
+  }
+}
+
+async function fetchWithRetry(url: string, retries = 5, delayMs = 2000): Promise<Response> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     const response = await fetch(url);
     if (response.ok) return response;
     if (attempt < retries) {
       console.log(`MFAPI attempt ${attempt} failed (HTTP ${response.status}) for ${url}, retrying in ${delayMs}ms...`);
       await new Promise(resolve => setTimeout(resolve, delayMs));
-      delayMs *= 2;
+      delayMs = Math.min(delayMs * 2, 30000); // cap at 30s
     } else {
       console.log(`MFAPI all ${retries} attempts failed (HTTP ${response.status}) for ${url}`);
       return response;
@@ -320,6 +355,13 @@ async function fetchWithRetry(url: string, retries = 3, delayMs = 1000): Promise
 }
 
 export async function fetchNavData(schemeCode: number): Promise<NavData | null> {
+  // Return from cache if fresh
+  const cached = navCache.get(schemeCode);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) {
+    return cached.data;
+  }
+
+  await acquireSlot();
   try {
     const response = await fetchWithRetry(`https://api.mfapi.in/mf/${schemeCode}`);
     if (!response.ok) return null;
@@ -342,7 +384,7 @@ export async function fetchNavData(schemeCode: number): Promise<NavData | null> 
     const nav3y = findNavOnOrBefore(result.data, date3y);
     const nav5y = findNavOnOrBefore(result.data, date5y);
 
-    return {
+    const navData: NavData = {
       current_nav: latestNav,
       nav_date: latestDate,
       scheme_name: result.meta.scheme_name,
@@ -352,9 +394,14 @@ export async function fetchNavData(schemeCode: number): Promise<NavData | null> 
       cagr_3y: nav3y ? calculateCAGR(latestNav, nav3y.nav, 3) : null,
       cagr_5y: nav5y ? calculateCAGR(latestNav, nav5y.nav, 5) : null,
     };
+
+    navCache.set(schemeCode, { data: navData, ts: Date.now() });
+    return navData;
   } catch (error) {
     console.error(`MFAPI fetch error for scheme ${schemeCode}:`, error);
     return null;
+  } finally {
+    releaseSlot();
   }
 }
 
