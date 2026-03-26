@@ -504,21 +504,30 @@ export function ReportView({ report }: ReportViewProps) {
 
   const mfSnapshot = useMemo(() => {
     return (analysis.mf_snapshot || []).map((mf: any) => {
-      const hasLiveNav = mf.scheme_name in manualNavs;
-      if (hasLiveNav) {
-        // User fetched or manually entered a NAV — recalculate from it
-        const units = mf.units || mf.closing_balance || 0;
+      const units = mf.units || mf.closing_balance || 0;
+
+      // Priority 1: manually fetched NAV (user clicked "Refresh NAV")
+      if (mf.scheme_name in manualNavs) {
         const nav = manualNavs[mf.scheme_name];
         const valuation = units * nav;
         const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
         return { ...mf, nav, valuation, unrealised_profit_loss };
       }
-      // Default: show CAS-extracted values strictly as-is, no recalculation.
-      // If NAV is missing but units + valuation are present, derive it.
+
+      // Priority 2: latest NAV from Risk Metrics performance data (auto-updated)
+      const perfNav = performances[mf.isin]?.nav?.value;
+      if (perfNav && units > 0) {
+        const nav = perfNav;
+        const valuation = units * nav;
+        const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
+        return { ...mf, nav, valuation, unrealised_profit_loss };
+      }
+
+      // Priority 3: CAS-extracted values as-is
       const casNav = mf.nav;
       const nav =
-        (casNav == null || casNav === 0) && mf.units && mf.valuation
-          ? mf.valuation / mf.units
+        (casNav == null || casNav === 0) && units && mf.valuation
+          ? mf.valuation / units
           : (casNav ?? 0);
       return {
         ...mf,
@@ -527,7 +536,7 @@ export function ReportView({ report }: ReportViewProps) {
         unrealised_profit_loss: mf.unrealised_profit_loss ?? 0,
       };
     });
-  }, [analysis.mf_snapshot, manualNavs]);
+  }, [analysis.mf_snapshot, manualNavs, performances]);
 
   const totalInvested = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0), [mfSnapshot]);
   const totalValuation = useMemo(() => {

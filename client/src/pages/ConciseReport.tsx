@@ -138,10 +138,22 @@ export default function ConciseReport() {
 
   const mfSnapshot = useMemo(() => {
     return (analysis.mf_snapshot || []).map((mf: any) => {
+      const units = mf.units || mf.closing_balance || 0;
+
+      // Use latest NAV from Risk Metrics performance data if available
+      const perfNav = storedPerformances[mf.isin]?.nav?.value;
+      if (perfNav && units > 0) {
+        const nav = perfNav;
+        const valuation = units * nav;
+        const unrealised_profit_loss = valuation - (mf.invested_amount || 0);
+        return { ...mf, nav, valuation, unrealised_profit_loss };
+      }
+
+      // Fallback: CAS-extracted values as-is
       const casNav = mf.nav;
       const nav =
-        (casNav == null || casNav === 0) && mf.units && mf.valuation
-          ? mf.valuation / mf.units
+        (casNav == null || casNav === 0) && units && mf.valuation
+          ? mf.valuation / units
           : (casNav ?? 0);
       return {
         ...mf,
@@ -150,7 +162,7 @@ export default function ConciseReport() {
         unrealised_profit_loss: mf.unrealised_profit_loss ?? 0,
       };
     });
-  }, [analysis.mf_snapshot]);
+  }, [analysis.mf_snapshot, storedPerformances]);
 
   const totalInvested = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.invested_amount || 0), 0), [mfSnapshot]);
   const totalValuation = useMemo(() => {
