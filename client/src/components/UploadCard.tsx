@@ -215,6 +215,29 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
                 >
                   ↗ CDSL CAS
                 </a>
+                <a
+                  href="https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
+                  style={{
+                    background: "rgba(16,185,129,0.18)",
+                    color: "#34d399",
+                    border: "1px solid rgba(52,211,153,0.3)",
+                    textDecoration: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(16,185,129,0.3)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(52,211,153,0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(16,185,129,0.18)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(52,211,153,0.3)";
+                  }}
+                  data-testid="link-cams-cas"
+                >
+                  ↗ CAMS CAS
+                </a>
               </div>
             </motion.div>
 
