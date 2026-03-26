@@ -149,9 +149,8 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
                 >
                   Upload CAS Statement
                 </h2>
-                <p className="text-sm" style={{ color: "rgba(148,163,184,0.7)" }}>
-                  Upload your NSDL/CDSL Consolidated Account Statement
-                </p>
+                <p className="text-sm" style={{ color: "rgba(148,163,184,0.7)" }}>Upload your any 
+                NSDL/CDSL Consolidated Account Statement</p>
               </div>
             </motion.div>
 
