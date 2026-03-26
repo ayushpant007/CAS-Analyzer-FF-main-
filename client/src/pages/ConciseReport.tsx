@@ -698,6 +698,64 @@ export default function ConciseReport() {
       ];
       XLSX.utils.book_append_sheet(wb, ws6, "New Allocation");
 
+      // ── Sheet 7: MF Transactions ─────────────────────────────────────────
+      const transactions = (analysis.transactions || []).filter((tx: any) => 
+        tx.type && ["SIP", "STP", "SWP", "PURCHASE", "REDEMPTION", "SWITCH"].some(t => (tx.type || "").toUpperCase().includes(t))
+      );
+      const txnHdrs = ["#", "Date", "Scheme Name", "Folio No.", "Transaction Type", "Amount (₹)", "Stamp Duty (₹)", "NAV (₹)", "Units"];
+      const txn: any[][] = [
+        [title("MF Transactions"), ...Array(txnHdrs.length - 1).fill(empty())],
+        [empty(), ...Array(txnHdrs.length - 1).fill(empty())],
+        txnHdrs.map(h => hdr(h)),
+        ...transactions.map((t: any, i: number) => [
+          num(i + 1, "0", i),
+          txt(t.date || "—", i),
+          txt(t.scheme_name || "—", i, true),
+          txt(t.folio_no || "—", i),
+          txt(t.type || "—", i),
+          num(t.amount ?? 0, '"₹"#,##0.00', i),
+          num(t.stamp_duty ?? 0, '"₹"#,##0.00', i),
+          num(t.nav ?? 0, '"₹"#,##0.0000', i),
+          num(t.units ?? 0, "0.0000", i),
+        ]),
+        transactions.length > 0 && [
+          tot("TOTAL"),
+          tot(""),
+          tot(""),
+          tot(""),
+          tot(""),
+          tot(transactions.reduce((s: number, t: any) => s + (t.amount || 0), 0), '"₹"#,##0.00'),
+          tot(transactions.reduce((s: number, t: any) => s + (t.stamp_duty || 0), 0), '"₹"#,##0.00'),
+          tot(""),
+          tot(transactions.reduce((s: number, t: any) => s + (t.units || 0), 0), "0.0000"),
+        ]
+      ].filter(Boolean);
+      const ws7 = XLSX.utils.aoa_to_sheet(txn);
+      setColWidths(ws7, [4, 12, 42, 14, 18, 14, 14, 12, 12]);
+      setRowHeights(ws7, { 0: 28, 2: 24 });
+      ws7["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: txnHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws7, "MF Transactions");
+
+      // ── Sheet 8: Monthly Portfolio Value Trend ──────────────────────────
+      const monthlyData = (analysis.monthly_portfolio_trend || []).map((m: any) => [
+        txt(m.month || "—", 0),
+        num(m.portfolio_value ?? 0, '"₹"#,##0.00', 0),
+        m.change_value ? num(m.change_value, '"₹"#,##0.00', 0) : txt("—", 0),
+        m.change_percent ? num(m.change_percent, "0.00%", 0) : txt("—", 0),
+      ]);
+      const mtHdrs = ["Month", "Portfolio Value (₹)", "Change (₹)", "Change (%)"];
+      const mt: any[][] = [
+        [title("Monthly Portfolio Value Trend"), ...Array(mtHdrs.length - 1).fill(empty())],
+        [empty(), ...Array(mtHdrs.length - 1).fill(empty())],
+        mtHdrs.map(h => hdr(h)),
+        ...monthlyData,
+      ];
+      const ws8 = XLSX.utils.aoa_to_sheet(mt);
+      setColWidths(ws8, [16, 18, 16, 14]);
+      setRowHeights(ws8, { 0: 28, 2: 24 });
+      ws8["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mtHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws8, "Monthly Trend");
+
       XLSX.writeFile(wb, `ConciseReport_${name}_${dateStr}.xlsx`);
     } catch (err) {
       console.error("Excel export failed", err);
