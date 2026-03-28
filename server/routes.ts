@@ -16,6 +16,7 @@ import { extractMetricsFromFactsheet } from "./factsheet";
 import { getMetricsFromJson } from "./json_factsheet";
 import { getBenchmarkReturns } from "./benchmarks";
 import { lookupByIsinOrName } from "./scoring";
+import { detectCasSource, calculateFundVsBenchmark } from "./fund-benchmark";
 
 const execAsync = promisify(exec);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -154,6 +155,9 @@ ${text}`;
       const analysisRawStr = typeof analysisRawResult === 'string' ? analysisRawResult : "";
       const analysis = JSON.parse(analysisRawStr || "{}");
 
+      // Detect CAS source (CAMS / NSDL / CDSL) from raw text
+      analysis.cas_source = detectCasSource(text);
+
       const report = await storage.createReport({
         filename: req.file.originalname,
         investorType,
@@ -182,6 +186,28 @@ ${text}`;
     const report = await storage.getReport(Number(req.params.id));
     if (!report) return res.status(404).json({ message: "Report not found" });
     res.json(report);
+  });
+
+  // Fund vs Benchmark (since inception) — CAMS reports only
+  app.get("/api/fund-vs-benchmark/:id", async (req, res) => {
+    try {
+      const report = await storage.getReport(Number(req.params.id));
+      if (!report) return res.status(404).json({ message: "Report not found" });
+
+      const analysis    = (report.analysis as any) || {};
+      const snapshot    = (analysis.mf_snapshot    || []) as any[];
+      const transactions = (analysis.transactions  || []) as any[];
+
+      if (snapshot.length === 0) {
+        return res.json({ results: [], cas_source: analysis.cas_source || "UNKNOWN" });
+      }
+
+      const results = await calculateFundVsBenchmark(snapshot, transactions);
+      res.json({ results, cas_source: analysis.cas_source || "UNKNOWN" });
+    } catch (err: any) {
+      console.error("fund-vs-benchmark error:", err);
+      res.status(500).json({ message: "Failed to calculate benchmark: " + err.message });
+    }
   });
 
   app.get("/api/nav/:schemeName", async (req, res) => {

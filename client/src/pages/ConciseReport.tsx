@@ -7,6 +7,7 @@ import { Download, Loader2, ArrowLeft, Calendar, TrendingUp, FileSpreadsheet } f
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip } from "recharts";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { BarChart2 } from "lucide-react";
+import FundVsBenchmark from "@/components/FundVsBenchmark";
 
 const IDEAL_ALLOCATIONS: Record<string, Record<string, Record<string, string>>> = {
   "20-35": {
@@ -1033,6 +1034,11 @@ export default function ConciseReport() {
               })()}
             </div>
           </div>
+
+          {/* Fund vs Benchmark — CAMS reports only */}
+          {analysis.cas_source === "CAMS" && reportId !== null && (
+            <FundVsBenchmark reportId={reportId} />
+          )}
 
           {/* 2. Asset Allocation Check */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
