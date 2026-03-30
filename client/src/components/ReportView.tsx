@@ -2267,12 +2267,16 @@ export function ReportView({ report }: ReportViewProps) {
                   }
                 });
                 
-                // Only show schemes where the latest transaction is SIP
+                // Only show schemes where the latest transaction is SIP (and not status change)
                 filteredItems = Object.entries(latestSipByScheme)
                   .filter(([schemeName, sipTx]) => {
                     const overallLatest = latestOverallByScheme[schemeName];
                     if (!overallLatest) return false;
                     const rawType = (overallLatest.type || "").toLowerCase().trim();
+                    // Exclude status changes and admin transactions
+                    if (["status", "change", "updated from", "address", "bank", "tax", "rejected", "pending"].some(k => rawType.includes(k))) {
+                      return false;
+                    }
                     return rawType === "sip" || rawType === "recurring";
                   })
                   .map(([_, sipTx]) => sipTx);
