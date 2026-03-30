@@ -2174,7 +2174,36 @@ export function ReportView({ report }: ReportViewProps) {
 
               let filteredItems = items;
 
-              if (isSIP && items.length > 0) {
+              if (isSTP && items.length > 0) {
+                // Group STP transactions by scheme name with date range and totals
+                const groupedByScheme: Record<string, { dates: string[], amounts: number[], firstAmount: number }> = {};
+                items.forEach((tx: any) => {
+                  const key = tx.scheme_name || "unknown";
+                  if (!groupedByScheme[key]) {
+                    groupedByScheme[key] = { dates: [], amounts: [], firstAmount: tx.amount || 0 };
+                  }
+                  groupedByScheme[key].dates.push(tx.date);
+                  groupedByScheme[key].amounts.push(tx.amount || 0);
+                });
+                
+                filteredItems = Object.entries(groupedByScheme).map(([schemeName, data]) => {
+                  const sortedDates = data.dates.sort((a, b) => parseDate(a) - parseDate(b));
+                  const dateRange = sortedDates.length > 0 
+                    ? sortedDates.length > 1 
+                      ? `${sortedDates[0]} to ${sortedDates[sortedDates.length - 1]}`
+                      : sortedDates[0]
+                    : "N/A";
+                  const totalAmount = data.amounts.reduce((sum, amt) => sum + amt, 0);
+                  
+                  return {
+                    scheme_name: schemeName,
+                    date: dateRange,
+                    amount: data.firstAmount,
+                    total_amount: totalAmount,
+                    transaction_count: data.dates.length
+                  };
+                });
+              } else if (isSIP && items.length > 0) {
                 // Keep only the single most-recent entry per scheme
                 const latestByScheme: Record<string, any> = {};
                 items.forEach((tx: any) => {
@@ -2187,7 +2216,7 @@ export function ReportView({ report }: ReportViewProps) {
                 filteredItems = Object.values(latestByScheme);
               }
               
-              const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0);
+              const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.total_amount || tx.amount || 0), 0);
 
               return (
                 <div key={title} className="space-y-4">
@@ -2198,7 +2227,8 @@ export function ReportView({ report }: ReportViewProps) {
                         <tr>
                           <th className="px-6 py-3">Date</th>
                           <th className="px-6 py-3">Scheme Name</th>
-                          <th className="px-6 py-3 text-right">Amount in ₹</th>
+                          {isSTP && <th className="px-6 py-3 text-right">STP Amount</th>}
+                          <th className="px-6 py-3 text-right">Total Amount in ₹</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -2206,19 +2236,24 @@ export function ReportView({ report }: ReportViewProps) {
                           filteredItems.map((item: any, idx: number) => {
                             return (
                               <tr key={idx} className="hover:bg-slate-50/50">
-                                <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap">
+                                <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap text-xs">
                                   {item.date || "N/A"}
                                 </td>
                                 <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
+                                {isSTP && (
+                                  <td className="px-6 py-3 text-right font-mono font-semibold text-slate-800">
+                                    ₹{item.amount?.toLocaleString() || "0.00"}
+                                  </td>
+                                )}
                                 <td className="px-6 py-3 text-right font-mono font-bold text-slate-900">
-                                  ₹{item.amount?.toLocaleString() || "0.00"}
+                                  ₹{(item.total_amount || item.amount || 0).toLocaleString()}
                                 </td>
                               </tr>
                             );
                           })
                         ) : (
                           <tr>
-                            <td colSpan={3} className="px-6 py-8 text-center text-slate-400 italic">
+                            <td colSpan={isSTP ? 4 : 3} className="px-6 py-8 text-center text-slate-400 italic">
                               No entries found for this category
                             </td>
                           </tr>
@@ -2227,9 +2262,10 @@ export function ReportView({ report }: ReportViewProps) {
                       {filteredItems.length > 0 && (
                         <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
                           <tr>
-                            <td colSpan={2} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
+                            <td colSpan={isSTP ? 2 : 1} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
                               {isSTP ? "STP Total" : `Total ${title.split(' ')[0]} Amount`}
                             </td>
+                            {isSTP && <td className="px-6 py-3"></td>}
                             <td className="px-6 py-3 text-right font-mono text-slate-900">
                               ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
