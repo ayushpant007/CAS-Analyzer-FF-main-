@@ -1036,9 +1036,9 @@ export default function ConciseReport() {
           </div>
 
           {/* Fund vs Benchmark — CAMS reports only */}
-          {analysis.cas_source === "CAMS" && reportId !== null && (
+          {analysis?.cas_source === "CAMS" && reportId !== null ? (
             <FundVsBenchmark reportId={reportId} />
-          )}
+          ) : null}
 
           {/* 2. Asset Allocation Check */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">

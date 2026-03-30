@@ -1153,11 +1153,11 @@ export function ReportView({ report }: ReportViewProps) {
       </motion.div>
 
       {/* Fund vs Benchmark — CAMS reports only */}
-      {analysis.cas_source === "CAMS" && (
+      {analysis?.cas_source === "CAMS" ? (
         <motion.div variants={item}>
           <FundVsBenchmark reportId={report.id} />
         </motion.div>
-      )}
+      ) : null}
 
       {/* Asset Allocation Check */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
