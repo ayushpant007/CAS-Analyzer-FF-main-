@@ -2247,7 +2247,7 @@ export function ReportView({ report }: ReportViewProps) {
                   };
                 });
               } else if (isSIP && items.length > 0) {
-                // Keep only the single most-recent entry per scheme
+                // Keep only the single most-recent entry per scheme, and only if it's a SIP type
                 const latestByScheme: Record<string, any> = {};
                 items.forEach((tx: any) => {
                   const key = tx.scheme_name || "unknown";
@@ -2256,7 +2256,12 @@ export function ReportView({ report }: ReportViewProps) {
                     latestByScheme[key] = tx;
                   }
                 });
-                filteredItems = Object.values(latestByScheme);
+                
+                // Filter to only show schemes where the latest transaction is actually SIP
+                filteredItems = Object.values(latestByScheme).filter((tx: any) => {
+                  const rawType = (tx.type || "").toLowerCase().trim();
+                  return rawType === "sip" || rawType === "recurring";
+                });
               }
               
               const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.total_amount || tx.amount || 0), 0);
