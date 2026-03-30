@@ -2176,11 +2176,11 @@ export function ReportView({ report }: ReportViewProps) {
 
               if (isSTP && items.length > 0) {
                 // Group STP transactions by scheme name with date range and totals
-                const groupedByScheme: Record<string, { dates: string[], amounts: number[], firstAmount: number, destinations: Set<string> }> = {};
+                const groupedByScheme: Record<string, { dates: string[], amounts: number[], firstAmount: number, destinationMap: Record<string, string> }> = {};
                 items.forEach((tx: any) => {
                   const key = tx.scheme_name || "unknown";
                   if (!groupedByScheme[key]) {
-                    groupedByScheme[key] = { dates: [], amounts: [], firstAmount: tx.amount || 0, destinations: new Set() };
+                    groupedByScheme[key] = { dates: [], amounts: [], firstAmount: tx.amount || 0, destinationMap: {} };
                   }
                   groupedByScheme[key].dates.push(tx.date);
                   groupedByScheme[key].amounts.push(tx.amount || 0);
@@ -2192,17 +2192,30 @@ export function ReportView({ report }: ReportViewProps) {
                   return rawType === "stp-in" || (rawType === "stp" && fundCategoryMap[tx.scheme_name] && fundCategoryMap[tx.scheme_name] === "equity");
                 });
                 
-                // For each STP-OUT, find matching STP-IN on the same or next few days
+                // For each STP-OUT transaction, find the best matching STP-IN
                 Object.entries(groupedByScheme).forEach(([schemeName, data]) => {
-                  data.dates.forEach((outDate: string) => {
+                  data.amounts.forEach((outAmount: number, idx: number) => {
+                    const outDate = data.dates[idx];
                     const outTime = parseDate(outDate);
-                    // Find STP-IN within 10 days after STP-OUT
+                    
+                    // Find best matching STP-IN: closest date and closest amount within 10 days
+                    let bestMatch: any = null;
+                    let bestDiff = Infinity;
+                    
                     stpInTransactions.forEach((inTx: any) => {
                       const inTime = parseDate(inTx.date);
-                      if (inTime >= outTime && inTime <= outTime + 10 * 86400000) {
-                        data.destinations.add(inTx.scheme_name || "Unknown");
+                      const timeDiff = Math.abs(inTime - outTime);
+                      
+                      // Only consider STPs within 10 days and closest to the STP-OUT
+                      if (inTime >= outTime && inTime <= outTime + 10 * 86400000 && timeDiff < bestDiff) {
+                        bestMatch = inTx;
+                        bestDiff = timeDiff;
                       }
                     });
+                    
+                    if (bestMatch) {
+                      data.destinationMap[outDate] = bestMatch.scheme_name || "Unknown";
+                    }
                   });
                 });
                 
@@ -2214,7 +2227,15 @@ export function ReportView({ report }: ReportViewProps) {
                       : sortedDates[0]
                     : "N/A";
                   const totalAmount = data.amounts.reduce((sum, amt) => sum + amt, 0);
-                  const destinationList = Array.from(data.destinations).join(", ");
+                  
+                  // Get the most common destination from this scheme's STP-OUTs
+                  const destCounts: Record<string, number> = {};
+                  Object.values(data.destinationMap).forEach((dest: string) => {
+                    destCounts[dest] = (destCounts[dest] || 0) + 1;
+                  });
+                  const mainDestination = Object.keys(destCounts).length > 0 
+                    ? Object.keys(destCounts).reduce((a, b) => destCounts[a] > destCounts[b] ? a : b)
+                    : "N/A";
                   
                   return {
                     scheme_name: schemeName,
@@ -2222,7 +2243,7 @@ export function ReportView({ report }: ReportViewProps) {
                     amount: data.firstAmount,
                     total_amount: totalAmount,
                     transaction_count: data.dates.length,
-                    destination: destinationList || "N/A"
+                    destination: mainDestination
                   };
                 });
               } else if (isSIP && items.length > 0) {
