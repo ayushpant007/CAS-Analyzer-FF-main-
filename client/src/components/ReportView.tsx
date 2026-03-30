@@ -2247,21 +2247,35 @@ export function ReportView({ report }: ReportViewProps) {
                   };
                 });
               } else if (isSIP && items.length > 0) {
-                // Keep only the single most-recent entry per scheme, and only if it's a SIP type
-                const latestByScheme: Record<string, any> = {};
-                items.forEach((tx: any) => {
+                // Find the latest overall transaction (any type) for each scheme
+                const latestOverallByScheme: Record<string, any> = {};
+                transactions.forEach((tx: any) => {
                   const key = tx.scheme_name || "unknown";
                   const ts = parseDate(tx.date);
-                  if (!latestByScheme[key] || ts > parseDate(latestByScheme[key].date)) {
-                    latestByScheme[key] = tx;
+                  if (!latestOverallByScheme[key] || ts > parseDate(latestOverallByScheme[key].date)) {
+                    latestOverallByScheme[key] = tx;
                   }
                 });
                 
-                // Filter to only show schemes where the latest transaction is actually SIP
-                filteredItems = Object.values(latestByScheme).filter((tx: any) => {
-                  const rawType = (tx.type || "").toLowerCase().trim();
-                  return rawType === "sip" || rawType === "recurring";
+                // Find the latest SIP transaction for each scheme
+                const latestSipByScheme: Record<string, any> = {};
+                items.forEach((tx: any) => {
+                  const key = tx.scheme_name || "unknown";
+                  const ts = parseDate(tx.date);
+                  if (!latestSipByScheme[key] || ts > parseDate(latestSipByScheme[key].date)) {
+                    latestSipByScheme[key] = tx;
+                  }
                 });
+                
+                // Only show schemes where the overall latest transaction is SIP
+                filteredItems = Object.entries(latestSipByScheme)
+                  .filter(([schemeName, sipTx]) => {
+                    const overallLatest = latestOverallByScheme[schemeName];
+                    if (!overallLatest) return false;
+                    const rawType = (overallLatest.type || "").toLowerCase().trim();
+                    return rawType === "sip" || rawType === "recurring";
+                  })
+                  .map(([_, sipTx]) => sipTx);
               }
               
               const totalAmount = filteredItems.reduce((sum: number, tx: any) => sum + (tx.total_amount || tx.amount || 0), 0);
