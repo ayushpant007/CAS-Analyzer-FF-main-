@@ -2116,9 +2116,9 @@ export function ReportView({ report }: ReportViewProps) {
             const categorize = (type: string, tx: any) => {
               const t = type.toLowerCase().trim();
               // Genuine SIP: explicitly tagged as SIP by AI, OR repeating same amount for same scheme
-              if (t === "sip" || (t === "purchase" && isRepeatingSip(tx))) return "SIP";
+              if (t === "sip" || (t.includes("purchase") && isRepeatingSip(tx))) return "SIP";
               // Lumpsum: one-time purchase → exclude from SIP section
-              if (t === "purchase") return null;
+              if (t.includes("purchase")) return null;
               if (t === "swp" || ["systematic withdrawal", "redemption"].some(k => t.includes(k))) return "SWP";
               // STP: switch-out / transfer-out (STP-IN is NOT a SIP)
               if (["stp-out", "stp", "switch out", "systematic transfer"].some(k => t.includes(k)) || t === "stp-in") return "STP";
