@@ -414,7 +414,7 @@ export default function ConciseReport() {
       const absReturnPct = totalInvested > 0 ? (absReturn / totalInvested) * 100 : 0;
       const approxCagr = totalInvested > 0 ? (Math.pow(totalValuation / totalInvested, 1 / 2) - 1) * 100 : 0;
 
-      // ── Sheet 1: Portfolio Overview ──────────────────────────────────
+      // ── Sheet 1: Portfolio Overview + Asset Allocation + Category Distribution ──
       const ov: any[][] = [
         [title("Portfolio Report – " + (investorName || "Portfolio")), empty(), empty(), empty()],
         [lbl("Analyzed on"), meta(report.createdAt ? format(new Date(report.createdAt), "MMMM d, yyyy") : ""), empty(), empty()],
@@ -436,18 +436,8 @@ export default function ConciseReport() {
           return [txt(a.type, i), num(a.count, "0", i), num(a.value, '"₹"#,##0.00', i), pctCell(pct, i)];
         }),
       ];
-      const ws1 = XLSX.utils.aoa_to_sheet(ov);
-      setColWidths(ws1, [32, 22, 18, 14]);
-      setRowHeights(ws1, { 0: 28, 4: 22, 13: 22 });
-      ws1["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-        { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
-        { s: { r: 13, c: 0 }, e: { r: 13, c: 3 } },
-        ...([5,6,7,8,9,10,11].map(r => ({ s: { r, c: 2 }, e: { r, c: 3 } }))),
-      ];
-      XLSX.utils.book_append_sheet(wb, ws1, "Portfolio Overview");
-
-      // ── Sheet 2: Asset Allocation ─────────────────────────────────────
+      
+      // Asset Allocation section - start row after portfolio overview
       const allCats = ["Equity", "Debt", "Hybrid", "Gold/Silver", "Others"];
       const parseIdealPct = (v: string) => parseFloat(v?.replace("%", "") || "0");
       const idealMap2 = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
@@ -462,7 +452,7 @@ export default function ConciseReport() {
         else actMap2["Others"] = (actMap2["Others"] || 0) + pct;
       });
       let healthScore2 = 100;
-      allCats.forEach(c => { healthScore2 -= Math.abs((actMap2[c] || 0) - (parseIdealPct(idealMap2[c] || "0"))) * 0.8; });
+      allCats.forEach((c: string) => { healthScore2 -= Math.abs((actMap2[c] || 0) - (parseIdealPct(idealMap2[c] || "0"))) * 0.8; });
       healthScore2 = Math.max(0, Math.min(100, Math.round(healthScore2)));
 
       const statusCell = (status: string, row: number) => {
@@ -476,7 +466,8 @@ export default function ConciseReport() {
         }};
       };
 
-      const al: any[][] = [
+      const alData: any[][] = [
+        [empty(), empty(), empty(), empty(), empty()],
         [title("Asset Allocation Check"), empty(), empty(), empty(), empty()],
         [lbl("Investor Type"), meta(report.investorType || "—"), empty(), lbl("Age Group"), meta(report.ageGroup || "—")],
         [lbl("Health Score"), { v: healthScore2 + " / 100", t: "s", s: { font: { bold: true, sz: 12, color: { rgb: healthScore2 >= 70 ? C.GREEN : healthScore2 >= 50 ? C.AMBER : C.RED }, name: "Calibri" }, fill: { fgColor: { rgb: C.SLATEL } }, alignment: { horizontal: "left" }, border } }, empty(), empty(), empty()],
@@ -490,18 +481,8 @@ export default function ConciseReport() {
           return [txt(cat, i), pctCell(actual, i), pctCell(ideal, i), pctCell(diff, i), statusCell(status, i)];
         }),
       ];
-      const ws2 = XLSX.utils.aoa_to_sheet(al);
-      setColWidths(ws2, [20, 14, 14, 16, 14]);
-      setRowHeights(ws2, { 0: 28, 4: 20 });
-      ws2["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
-        { s: { r: 1, c: 2 }, e: { r: 1, c: 2 } },
-        { s: { r: 2, c: 1 }, e: { r: 2, c: 4 } },
-        { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } },
-      ];
-      XLSX.utils.book_append_sheet(wb, ws2, "Asset Allocation");
-
-      // ── Sheet 3: Category Distribution ───────────────────────────────
+      
+      // Category Distribution section
       const typeMap2: Record<string, Record<string, number>> = {};
       snap.forEach((mf: any) => {
         const cat = (mf.fund_category || "").toLowerCase();
@@ -520,7 +501,9 @@ export default function ConciseReport() {
         if (subs.length === 0) return [[cat, "—", 0]];
         return subs.map(([type, pct], i) => [i === 0 ? cat : "", type, pct]);
       });
-      const di: any[][] = [
+      
+      const distData2: any[][] = [
+        [empty(), empty(), empty()],
         [title("Category Wise Distribution"), empty(), empty()],
         [empty(), empty(), empty()],
         [hdr("Main Category"), hdr("Sub-Category / Type"), hdr("Allocation (%)")],
@@ -530,13 +513,21 @@ export default function ConciseReport() {
           pctCell(Number(pct), i),
         ]),
       ];
-      const ws3 = XLSX.utils.aoa_to_sheet(di);
-      setColWidths(ws3, [20, 30, 16]);
-      setRowHeights(ws3, { 0: 28, 2: 20 });
-      ws3["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
-      XLSX.utils.book_append_sheet(wb, ws3, "Category Distribution");
+      
+      // Combine all three sections into one sheet
+      const combinedData = [...ov, ...alData, ...distData2];
+      const ws1 = XLSX.utils.aoa_to_sheet(combinedData);
+      setColWidths(ws1, [32, 22, 18, 14]);
+      setRowHeights(ws1, { 0: 28, 4: 22, 13: 22 });
+      ws1["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+        { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
+        { s: { r: 13, c: 0 }, e: { r: 13, c: 3 } },
+        ...([5,6,7,8,9,10,11].map(r => ({ s: { r, c: 2 }, e: { r, c: 3 } }))),
+      ];
+      XLSX.utils.book_append_sheet(wb, ws1, "Portfolio Overview");
 
-      // ── Sheet 4: Performance Check ────────────────────────────────────
+      // ── Sheet 2: Performance Check + Portfolio Snapshot ────────────────
       const pv = (v: string) => parseFloat(v?.replace(/[^\d.-]/g, "") || "0");
       const perfFunds = snap.filter((mf: any) => storedPerformances[mf.isin]);
       const perfHdrs = ["#", "Fund Name", "ISIN", "Category", "Risk Type", "SIP Amt (₹)",
@@ -621,15 +612,11 @@ export default function ConciseReport() {
           ];
         }),
       ];
-      const ws4 = XLSX.utils.aoa_to_sheet(perf);
-      setColWidths(ws4, [4, 38, 14, 16, 14, 12, 9, 9, 9, 9, 9, 9, 10, 10, 10, 12, 10, 18, 38]);
-      setRowHeights(ws4, { 0: 28, 2: 32 });
-      ws4["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: perfHdrs.length - 1 } }];
-      XLSX.utils.book_append_sheet(wb, ws4, "Performance Check");
-
-      // ── Sheet 5: Portfolio Snapshot ───────────────────────────────────
+      
+      // Portfolio Snapshot section
       const snapHdrs = ["#", "Scheme Name", "Category", "Fund Type", "Units", "NAV (₹)", "Invested (₹)", "Value (₹)", "P/L (₹)"];
-      const sn: any[][] = [
+      const snData: any[][] = [
+        [empty(), ...Array(snapHdrs.length - 1).fill(empty())],
         [title("Portfolio Snapshot – Mutual Fund Units"), ...Array(snapHdrs.length - 1).fill(empty())],
         [empty(), ...Array(snapHdrs.length - 1).fill(empty())],
         snapHdrs.map(h => hdr(h)),
@@ -650,13 +637,16 @@ export default function ConciseReport() {
           { ...tot(totalUnrealised, '"₹"#,##0.00'), s: { ...tot("").s, font: { bold: true, sz: 10, color: { rgb: totalUnrealised >= 0 ? "6EE7B7" : "FCA5A5" }, name: "Calibri" }, fill: { fgColor: { rgb: C.TOTALBG } }, alignment: { horizontal: "right" }, border: borderMed } },
         ],
       ];
-      const ws5 = XLSX.utils.aoa_to_sheet(sn);
-      setColWidths(ws5, [4, 42, 16, 16, 12, 12, 16, 16, 16]);
-      setRowHeights(ws5, { 0: 28, 2: 28 });
-      ws5["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: snapHdrs.length - 1 } }];
-      XLSX.utils.book_append_sheet(wb, ws5, "Portfolio Snapshot");
+      
+      // Combine Performance Check and Portfolio Snapshot
+      const combinedPerfSnap = [...perf, ...snData];
+      const ws2 = XLSX.utils.aoa_to_sheet(combinedPerfSnap);
+      setColWidths(ws2, [4, 38, 14, 16, 14, 12, 9, 9, 9, 9, 9, 9, 10, 10, 10, 12, 10, 18, 38]);
+      setRowHeights(ws2, { 0: 28, 2: 32 });
+      ws2["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: perfHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws2, "Performance Check");
 
-      // ── Sheet 6: New Allocation ────────────────────────────────────────
+      // ── Sheet 3: New Allocation ────────────────────────────────────────
       const actionableFunds = snap.filter((mf: any) => (actionSelections[mf.scheme_name] || "hold") !== "hold");
       const naHdrs = ["#", "Current Fund Name", "Category", "Action", "Target Category", "Target Fund Name", "Invested (₹)", "Valuation (₹)"];
       const na: any[][] = [
@@ -689,16 +679,16 @@ export default function ConciseReport() {
             })
         ),
       ];
-      const ws6 = XLSX.utils.aoa_to_sheet(na);
-      setColWidths(ws6, [4, 42, 16, 12, 18, 42, 16, 16]);
-      setRowHeights(ws6, { 0: 28, 3: 28 });
-      ws6["!merges"] = [
+      const ws3 = XLSX.utils.aoa_to_sheet(na);
+      setColWidths(ws3, [4, 42, 16, 12, 18, 42, 16, 16]);
+      setRowHeights(ws3, { 0: 28, 3: 28 });
+      ws3["!merges"] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: naHdrs.length - 1 } },
         { s: { r: 2, c: 0 }, e: { r: 2, c: naHdrs.length - 1 } },
       ];
-      XLSX.utils.book_append_sheet(wb, ws6, "New Allocation");
+      XLSX.utils.book_append_sheet(wb, ws3, "New Allocation");
 
-      // ── Sheet 7: MF Transactions ─────────────────────────────────────────
+      // ── Sheet 4: MF Transactions ─────────────────────────────────────────
       const transactions = (analysis.transactions || []).filter((tx: any) => 
         tx.type && ["SIP", "STP", "SWP", "PURCHASE", "REDEMPTION", "SWITCH"].some(t => (tx.type || "").toUpperCase().includes(t))
       );
@@ -730,13 +720,13 @@ export default function ConciseReport() {
           tot(transactions.reduce((s: number, t: any) => s + (t.units || 0), 0), "0.0000"),
         ]
       ].filter(Boolean);
-      const ws7 = XLSX.utils.aoa_to_sheet(txn);
-      setColWidths(ws7, [4, 12, 42, 14, 18, 14, 14, 12, 12]);
-      setRowHeights(ws7, { 0: 28, 2: 24 });
-      ws7["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: txnHdrs.length - 1 } }];
-      XLSX.utils.book_append_sheet(wb, ws7, "MF Transactions");
+      const ws4 = XLSX.utils.aoa_to_sheet(txn);
+      setColWidths(ws4, [4, 12, 42, 14, 18, 14, 14, 12, 12]);
+      setRowHeights(ws4, { 0: 28, 2: 24 });
+      ws4["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: txnHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws4, "MF Transactions");
 
-      // ── Sheet 8: Monthly Portfolio Value Trend ──────────────────────────
+      // ── Sheet 5: Monthly Portfolio Value Trend ──────────────────────────
       const monthlyData = (analysis.monthly_portfolio_trend || []).map((m: any) => [
         txt(m.month || "—", 0),
         num(m.portfolio_value ?? 0, '"₹"#,##0.00', 0),
@@ -750,11 +740,11 @@ export default function ConciseReport() {
         mtHdrs.map(h => hdr(h)),
         ...monthlyData,
       ];
-      const ws8 = XLSX.utils.aoa_to_sheet(mt);
-      setColWidths(ws8, [16, 18, 16, 14]);
-      setRowHeights(ws8, { 0: 28, 2: 24 });
-      ws8["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mtHdrs.length - 1 } }];
-      XLSX.utils.book_append_sheet(wb, ws8, "Monthly Trend");
+      const ws5 = XLSX.utils.aoa_to_sheet(mt);
+      setColWidths(ws5, [16, 18, 16, 14]);
+      setRowHeights(ws5, { 0: 28, 2: 24 });
+      ws5["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mtHdrs.length - 1 } }];
+      XLSX.utils.book_append_sheet(wb, ws5, "Monthly Trend");
 
       XLSX.writeFile(wb, `ConciseReport_${name}_${dateStr}.xlsx`);
     } catch (err) {
