@@ -1,6 +1,5 @@
 import { type EnhancedReport } from "@/hooks/use-reports";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, AreaChart, Area, ComposedChart, Line, CartesianGrid } from "recharts";
-import FundVsBenchmark from "@/components/FundVsBenchmark";
 import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChartIcon, Calendar, Activity, Loader2, Download, Flag, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
@@ -1151,13 +1150,6 @@ export function ReportView({ report }: ReportViewProps) {
           })()}
         </div>
       </motion.div>
-
-      {/* Fund vs Benchmark — CAMS reports only */}
-      {analysis?.cas_source === "CAMS" ? (
-        <motion.div variants={item}>
-          <FundVsBenchmark reportId={report.id} />
-        </motion.div>
-      ) : null}
 
       {/* Asset Allocation Check */}
       <motion.div variants={item} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
