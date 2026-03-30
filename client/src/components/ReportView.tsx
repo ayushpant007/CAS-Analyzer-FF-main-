@@ -2267,7 +2267,7 @@ export function ReportView({ report }: ReportViewProps) {
                   }
                 });
                 
-                // Only show schemes where the overall latest transaction is SIP
+                // Only show schemes where the latest transaction is SIP
                 filteredItems = Object.entries(latestSipByScheme)
                   .filter(([schemeName, sipTx]) => {
                     const overallLatest = latestOverallByScheme[schemeName];
