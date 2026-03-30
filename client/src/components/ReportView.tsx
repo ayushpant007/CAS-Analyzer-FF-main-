@@ -2176,14 +2176,34 @@ export function ReportView({ report }: ReportViewProps) {
 
               if (isSTP && items.length > 0) {
                 // Group STP transactions by scheme name with date range and totals
-                const groupedByScheme: Record<string, { dates: string[], amounts: number[], firstAmount: number }> = {};
+                const groupedByScheme: Record<string, { dates: string[], amounts: number[], firstAmount: number, destinations: Set<string> }> = {};
                 items.forEach((tx: any) => {
                   const key = tx.scheme_name || "unknown";
                   if (!groupedByScheme[key]) {
-                    groupedByScheme[key] = { dates: [], amounts: [], firstAmount: tx.amount || 0 };
+                    groupedByScheme[key] = { dates: [], amounts: [], firstAmount: tx.amount || 0, destinations: new Set() };
                   }
                   groupedByScheme[key].dates.push(tx.date);
                   groupedByScheme[key].amounts.push(tx.amount || 0);
+                });
+                
+                // Match STP-OUT with STP-IN to find destination funds
+                const stpInTransactions = transactions.filter((tx: any) => {
+                  const rawType = (tx.type || "").toLowerCase().trim();
+                  return rawType === "stp-in" || (rawType === "stp" && fundCategoryMap[tx.scheme_name] && fundCategoryMap[tx.scheme_name] === "equity");
+                });
+                
+                // For each STP-OUT, find matching STP-IN on the same or next few days
+                Object.entries(groupedByScheme).forEach(([schemeName, data]) => {
+                  data.dates.forEach((outDate: string) => {
+                    const outTime = parseDate(outDate);
+                    // Find STP-IN within 10 days after STP-OUT
+                    stpInTransactions.forEach((inTx: any) => {
+                      const inTime = parseDate(inTx.date);
+                      if (inTime >= outTime && inTime <= outTime + 10 * 86400000) {
+                        data.destinations.add(inTx.scheme_name || "Unknown");
+                      }
+                    });
+                  });
                 });
                 
                 filteredItems = Object.entries(groupedByScheme).map(([schemeName, data]) => {
@@ -2194,13 +2214,15 @@ export function ReportView({ report }: ReportViewProps) {
                       : sortedDates[0]
                     : "N/A";
                   const totalAmount = data.amounts.reduce((sum, amt) => sum + amt, 0);
+                  const destinationList = Array.from(data.destinations).join(", ");
                   
                   return {
                     scheme_name: schemeName,
                     date: dateRange,
                     amount: data.firstAmount,
                     total_amount: totalAmount,
-                    transaction_count: data.dates.length
+                    transaction_count: data.dates.length,
+                    destination: destinationList || "N/A"
                   };
                 });
               } else if (isSIP && items.length > 0) {
@@ -2227,6 +2249,7 @@ export function ReportView({ report }: ReportViewProps) {
                         <tr>
                           <th className="px-6 py-3">Date</th>
                           <th className="px-6 py-3">Scheme Name</th>
+                          {isSTP && <th className="px-6 py-3">Switch To</th>}
                           {isSTP && <th className="px-6 py-3 text-right">STP Amount</th>}
                           <th className="px-6 py-3 text-right">Total Amount in ₹</th>
                         </tr>
@@ -2239,7 +2262,15 @@ export function ReportView({ report }: ReportViewProps) {
                                 <td className="px-6 py-3 text-slate-500 font-medium whitespace-nowrap text-xs">
                                   {item.date || "N/A"}
                                 </td>
-                                <td className="px-6 py-3 text-slate-700">{item.scheme_name || "N/A"}</td>
+                                <td className="px-6 py-3 text-slate-700 text-sm">{item.scheme_name || "N/A"}</td>
+                                {isSTP && (
+                                  <td className="px-6 py-3 text-slate-600 text-sm">
+                                    {item.destination && item.destination !== "N/A" 
+                                      ? `${item.destination.replace(/\s*-\s*(Direct|Regular)\s*(Growth|Plan)?/i, '').trim()}`
+                                      : "—"
+                                    }
+                                  </td>
+                                )}
                                 {isSTP && (
                                   <td className="px-6 py-3 text-right font-mono font-semibold text-slate-800">
                                     ₹{item.amount?.toLocaleString() || "0.00"}
@@ -2253,7 +2284,7 @@ export function ReportView({ report }: ReportViewProps) {
                           })
                         ) : (
                           <tr>
-                            <td colSpan={isSTP ? 4 : 3} className="px-6 py-8 text-center text-slate-400 italic">
+                            <td colSpan={isSTP ? 5 : 3} className="px-6 py-8 text-center text-slate-400 italic">
                               No entries found for this category
                             </td>
                           </tr>
@@ -2262,7 +2293,7 @@ export function ReportView({ report }: ReportViewProps) {
                       {filteredItems.length > 0 && (
                         <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
                           <tr>
-                            <td colSpan={isSTP ? 2 : 1} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
+                            <td colSpan={isSTP ? 3 : 1} className="px-6 py-3 text-right text-slate-600 uppercase tracking-wider text-[10px]">
                               {isSTP ? "STP Total" : `Total ${title.split(' ')[0]} Amount`}
                             </td>
                             {isSTP && <td className="px-6 py-3"></td>}
