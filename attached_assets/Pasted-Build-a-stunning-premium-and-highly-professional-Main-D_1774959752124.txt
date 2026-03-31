@@ -1,0 +1,48 @@
+Build a stunning, premium, and highly professional Main Dashboard. The design must use a modern 'gaming-analytics' aesthetic: deep dark mode backgrounds (e.g., #0B0F19), frosted glassmorphism panels with very subtle borders, and striking neon accent colors (like cyber-cyan and electric purple) used sparingly for data highlights.
+
+Core Design & UX Principles:
+
+Zero Clutter: Display only high-value, relevant information. Use whitespace generously to separate data zones.
+
+High-End Animations: Implement smooth, 60fps animations. Cards should fade and slide up on mount. Hover states on interactive elements should have a slight scale effect and a soft neon glow. Number counters should animate from zero to their values.
+
+Responsive & Optimized: The layout must be a CSS Grid/Flexbox masterpiece that looks incredible on desktop and cleanly stacks on mobile.
+
+Dashboard Architecture (Please build this exact layout):
+
+1. Global Navigation:
+
+Sidebar (Left): A sleek, collapsible sidebar with highly legible, minimalist icons for: Dashboard, Analytics, Reports, Settings, and Log Out. Highlight the 'Dashboard' item to show it is active.
+
+Top Bar: A clean header featuring a global search bar (with a keyboard shortcut hint like '⌘K'), a notification bell with a subtle pulse animation if there are unread alerts, and the user's profile avatar.
+
+2. Main Content Area (The Command Center):
+
+Header Section: A welcome message ('Welcome back, [Name]') alongside a stylized, real-time status indicator showing the 'CAS System' is 'Online' (with a pulsing green dot).
+
+Top Row (KPI Cards): 4 glassmorphism cards displaying core metrics. Each card must include:
+
+A title (e.g., 'Total Processed', 'Active Sessions', 'Error Rate', 'System Load').
+
+The main big number.
+
+A small trend indicator (e.g., '+5.2% from last week' in green or red).
+
+A tiny, minimalist sparkline or mini-chart in the background of the card.
+
+Middle Row (Main Data Visualization): A large, prominent, beautifully styled Area Chart or Line Chart spanning the primary width of the screen. It should visualize 'CAS Activity over the last 30 days'. The chart must feature a glowing line, a smooth gradient fill beneath it, and an interactive tooltip when hovering over data points.
+
+Bottom Row (Recent Activity & Quick Actions): >     * Left Pane (70% width): A 'Recent Scans/Activity' data table. It should be clean, without heavy grid lines. Columns: ID, Status (use stylized badges like 'Completed', 'Pending', 'Failed'), Date, and a 'View Details' action button.
+
+Right Pane (30% width): A 'System Health' widget showing 3-4 progress bars (e.g., CPU, Memory, Network) using neon gradient fills.
+
+Technical Requirements:
+
+Use modern framework styling (Tailwind CSS preferred).
+
+Utilize a charting library (like Recharts or Chart.js) formatted to match the dark gaming aesthetic perfectly (remove default white backgrounds/gridlines).
+
+Include placeholder data so the dashboard looks completely populated and ready for production."
+
+
+Remember, don't change anything else. Just do this
