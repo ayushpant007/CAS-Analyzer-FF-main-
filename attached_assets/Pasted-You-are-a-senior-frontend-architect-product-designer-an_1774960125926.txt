@@ -1,0 +1,196 @@
+You are a senior frontend architect, product designer, and UI/UX specialist with expertise in building high-performance, visually stunning dashboards used in SaaS platforms and enterprise systems.
+
+Your task is to design and build a MAIN DASHBOARD that is not just visually appealing, but feels premium, futuristic, and production-ready.
+
+---
+
+🎯 DESIGN PHILOSOPHY:
+The dashboard must follow a “Gaming Analytics / Cyber Intelligence” aesthetic:
+- Deep dark theme (#0B0F19 or similar)
+- Glassmorphism cards (blur + transparency + subtle borders)
+- Neon accents (cyber cyan, electric purple, subtle gradients)
+- Ultra-clean typography and spacing
+- No clutter, no unnecessary elements
+
+This must feel like a high-end SaaS product (think: Stripe + Linear + futuristic gaming UI)
+
+---
+
+⚡ UX REQUIREMENTS:
+
+1. ZERO CLUTTER:
+- Show ONLY high-value, decision-making data
+- Remove all filler content
+- Use whitespace strategically
+
+2. MICRO-INTERACTIONS:
+- Smooth 60fps animations
+- Cards fade + slide-up on load
+- Hover → slight scale + soft neon glow
+- Buttons → subtle ripple or glow effect
+- KPI numbers → animate from 0 to value
+
+3. RESPONSIVE DESIGN:
+- Mobile-first thinking
+- Clean stacking on smaller screens
+- Use CSS Grid + Flexbox intelligently
+
+---
+
+🧩 DASHBOARD STRUCTURE (STRICTLY FOLLOW):
+
+========================
+1. GLOBAL NAVIGATION
+========================
+
+Sidebar (Left):
+- Minimal, collapsible
+- Icons only (with tooltips)
+- Items:
+  - Dashboard (active highlight with glow)
+  - Analytics
+  - Reports
+  - Settings
+  - Logout
+- Active state must have neon glow or gradient border
+
+Top Bar:
+- Global search bar with placeholder: "Search... (⌘K)"
+- Notification bell (with subtle pulse if unread)
+- Profile avatar (with dropdown capability)
+
+---
+
+========================
+2. MAIN CONTENT AREA
+========================
+
+HEADER SECTION:
+- Text: "Welcome back, [User Name]"
+- Subtle subtitle (optional: system summary)
+- Right side:
+  - CAS System Status:
+    - "Online"
+    - Pulsing green dot
+    - Slight glow animation
+
+---
+
+========================
+3. KPI CARDS (TOP ROW)
+========================
+
+Create 4 premium glassmorphism cards:
+
+Each card must include:
+- Title
+- Large animated number
+- Trend indicator:
+  - Green for positive
+  - Red for negative
+- Background mini sparkline chart
+- Subtle gradient overlay
+
+Metrics:
+1. Total Processed
+2. Active Sessions
+3. Error Rate
+4. System Load
+
+---
+
+========================
+4. MAIN CHART (MIDDLE)
+========================
+
+- Full-width Area/Line chart
+- Data: "CAS Activity - Last 30 Days"
+- Style:
+  - Glowing line
+  - Smooth curve
+  - Gradient fill below line
+  - No default grid clutter
+  - Custom tooltip (dark themed)
+  - Hover interaction must feel smooth
+
+---
+
+========================
+5. BOTTOM SECTION
+========================
+
+LEFT (70%):
+Recent Activity Table:
+- Clean, minimal
+- No heavy borders
+- Columns:
+  - ID
+  - Status (badge style: Completed / Pending / Failed)
+  - Date
+  - Action (View button)
+- Row hover effect (subtle highlight)
+
+RIGHT (30%):
+System Health Widget:
+- 3–4 metrics:
+  - CPU
+  - Memory
+  - Network
+- Use neon gradient progress bars
+- Smooth animated fill
+
+---
+
+🎨 STYLING REQUIREMENTS:
+
+- Tailwind CSS ONLY (no inline messy styles)
+- Use consistent spacing system
+- Use soft shadows + glass blur
+- Avoid harsh contrasts
+
+---
+
+📊 DATA REQUIREMENTS:
+
+- Use realistic placeholder data
+- Populate all sections fully
+- No empty states
+
+---
+
+⚙️ TECH STACK:
+
+- React (preferred)
+- Tailwind CSS
+- Recharts or Chart.js (custom styled)
+- Framer Motion (for animations)
+
+---
+
+🚀 PERFORMANCE:
+
+- Optimized rendering
+- Smooth animations (no lag)
+- Lightweight components
+
+---
+
+💎 FINAL OUTPUT REQUIREMENTS:
+
+- Clean, modular component structure
+- Production-ready code
+- No unnecessary comments or junk
+- No placeholder “lorem ipsum” content
+- Everything must feel intentional and premium
+
+---
+
+⚠️ IMPORTANT:
+
+Do NOT create a basic dashboard.
+Do NOT use generic UI.
+Do NOT add unnecessary widgets.
+
+This must look like a high-end SaaS dashboard used by professionals.
+
+Make it visually stunning, technically strong, and extremely polished.
