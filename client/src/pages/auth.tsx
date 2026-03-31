@@ -276,7 +276,7 @@ export default function AuthPage() {
     setLoading(true);
     try {
       await firebaseSignIn(form.email, form.password);
-      navigate("/");
+      navigate("/home");
     } catch {
       setError("Invalid credentials. Please try again.");
     } finally { setLoading(false); }
@@ -286,7 +286,7 @@ export default function AuthPage() {
     setLoading(true);
     try {
       await firebaseGoogleSignIn();
-      navigate("/");
+      navigate("/home");
     } catch {
       setError("Google sign-in failed.");
     } finally { setLoading(false); }
@@ -298,7 +298,7 @@ export default function AuthPage() {
       const ok = await firebaseVerifyCode(code);
       if (ok) {
         if (view === "forgot-verify") go("forgot-reset", 1);
-        else navigate("/");
+        else navigate("/home");
       } else setError("Incorrect code. Please try again.");
     } catch {
       setError("Verification failed.");
@@ -323,7 +323,7 @@ export default function AuthPage() {
     setLoading(true);
     try {
       await firebaseUpdatePassword(form.newPassword);
-      navigate("/");
+      navigate("/home");
     } catch {
       setError("Failed to update password.");
     } finally { setLoading(false); }

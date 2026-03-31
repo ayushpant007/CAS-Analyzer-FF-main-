@@ -11,8 +11,8 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/" component={Home} />
+      <Route path="/" component={AuthPage} />
+      <Route path="/home" component={Home} />
       <Route path="/reports/:id/concise" component={ConciseReport} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
