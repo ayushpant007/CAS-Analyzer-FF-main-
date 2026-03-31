@@ -1,0 +1,65 @@
+Build a stunning, highly professional, gaming-themed web application for 'CAS Analyzer'. The design should feature a premium dark mode aesthetic with sleek neon accents (like cyber-blue or electric purple), frosted glass effects (glassmorphism), sharp typography, and smooth, high-fps animations.
+
+The application must include a complete authentication flow designed to be connected to Firebase Auth, followed by a redirect to the main dashboard. Please implement the following UI states and functionality:
+
+1. Authentication Container
+Create a centered, beautifully styled auth card that dynamically switches between the following views without full page reloads.
+
+2. Sign Up View
+
+Fields: First Name, Last Name, Mobile Number, Email Address, Password (with a toggle to show/hide password).
+
+Button: A prominent, glowing 'Sign Up' button.
+
+Action: When clicked, it should simulate creating a user and transition to the 'Email Verification' view.
+
+Footer: Text stating 'Already have an account? Log in' which toggles the UI to the Login view.
+
+3. Email Verification View (Post-Sign Up & Post-Reset)
+
+UI: A screen asking the user to enter a 6-digit verification code sent to their email. Include 6 distinct, stylized input boxes for the code.
+
+Action: Upon successful entry, redirect the user immediately to the 'CAS Analyzer Dashboard'.
+
+4. Login View
+
+Fields: Email Address, Password.
+
+Buttons: >     * A prominent 'Log In' button.
+
+A 'Connect with Google' button featuring the Google logo, styled to fit the gaming aesthetic.
+
+Links: A 'Forgot Password?' link above the login button.
+
+Action: Successful login redirects to the 'CAS Analyzer Dashboard'.
+
+Footer: Text stating 'Don't have an account? Sign up' which toggles the UI to the Sign Up view.
+
+5. Forgot Password Flow
+
+Step 1: An input for the registered 'Email Address' and a 'Send Reset Code' button.
+
+Step 2: Transitions to the Email Verification view.
+
+Step 3: A final view to enter and confirm a 'New Password'.
+
+6. CAS Analyzer Dashboard (Post-Login)
+
+Once authenticated, transition the user to a magnificent gaming-style dashboard interface.
+
+Include a sidebar navigation menu, a top header displaying the user's profile info (fetched from the auth state), and placeholder widgets/charts that look like a high-tech data analyzer.
+
+7. Technical Requirements (Firebase Hooks)
+
+Structure the code using React/Next.js (or specified framework) and include placeholder functions for Firebase Authentication (e.g., createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup for Google Auth, and sendPasswordResetEmail).
+
+Ensure the state management cleanly handles the transitions between Sign Up, Login, Verification, and the Dashboard."
+
+A Quick Note on Firebase Integration:
+When you take the code generated from this prompt, you will need to wire up the actual Firebase backend. Keep in mind:
+
+Email Verification: Firebase Auth has a built-in sendEmailVerification function, but out-of-the-box, it sends a link that the user clicks, rather than a 6-digit code. If you strictly want a 6-digit code UI, you will need to use Firebase Cloud Functions combined with a service like SendGrid or Nodemailer to generate, send, and verify that specific code.
+
+Google Login: You'll need to enable the Google Sign-In provider in your Firebase Console under Authentication > Sign-in method.
+
+Remember, don't change anything else. Just do this
