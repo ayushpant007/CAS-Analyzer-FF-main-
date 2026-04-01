@@ -402,7 +402,7 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
         </motion.div>
         {items}
         <button
-          onClick={() => nav("/")}
+          onClick={() => nav("/landing")}
           title="Log Out"
           data-testid="nav-logout"
           style={{
@@ -462,7 +462,7 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
                   </button>
                 ))}
               </nav>
-              <button onClick={() => nav("/")}
+              <button onClick={() => nav("/landing")}
                 style={{
                   display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
                   borderRadius: 10, border: "none", cursor: "pointer",
