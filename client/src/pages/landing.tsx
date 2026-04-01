@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star } from "lucide-react";
 
-const FINANCIAL_FRIEND_URL = import.meta.env.VITE_FINANCIAL_FRIEND_URL || "https://financial-friend-ai--newbornhero007.replit.dev";
+const FF_LOGIN_URL = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login";
+const FF_CAS_REDIRECT = import.meta.env.VITE_FF_CAS_REDIRECT || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/cas-analyzer";
 
 function goToFinancialFriend() {
-  const redirectBack = `${window.location.origin}/dashboard`;
-  window.location.href = `${FINANCIAL_FRIEND_URL}?redirect=${encodeURIComponent(redirectBack)}`;
+  window.location.href = `${FF_LOGIN_URL}?redirect=${encodeURIComponent(FF_CAS_REDIRECT)}`;
 }
 
 // ── Cyber animated background ────────────────────────────────────────────────
