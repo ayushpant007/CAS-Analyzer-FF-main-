@@ -696,43 +696,35 @@ export default function Dashboard() {
 
   const totalReports = reports.length;
   const completedReports = reports.filter((r: any) => r.status === "completed" || r.analysisData).length;
-  const successRate = totalReports > 0 ? Math.round((completedReports / totalReports) * 100) : 98;
-  const avgFunds = reports.length > 0
-    ? Math.round(reports.reduce((a: number, r: any) => a + (r.analysisData?.funds?.length ?? 12), 0) / reports.length)
-    : 12;
+  const successRate = totalReports > 0 ? Math.round((completedReports / totalReports) * 100) : 0;
+  const avgFunds = totalReports > 0
+    ? Math.round(reports.reduce((a: number, r: any) => a + (r.analysisData?.funds?.length ?? 0), 0) / totalReports)
+    : 0;
 
-  const recentRows = reports.slice(0, 8).map((r: any, i: number) => ({
-    id: r.id ?? `CAS-${7841 - i}`,
-    name: r.analysisData?.investorInfo?.name ?? ["Arjun Sharma","Priya Mehta","Rohit Verma","Sneha Iyer","Kabir Nair","Ananya Joshi","Dev Malhotra","Riya Patel"][i % 8],
-    status: r.status ?? (i % 5 === 3 ? "failed" : i % 4 === 1 ? "processing" : "completed"),
-    funds: r.analysisData?.funds?.length ?? (14 - i),
-    date: r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "31 Mar 2026",
-    initials: ["AS","PM","RV","SI","KN","AJ","DM","RP"][i % 8],
-    avatarColor: ["#22d3ee","#a855f7","#34d399","#f59e0b","#22d3ee","#a855f7","#34d399","#f59e0b"][i % 8],
-  }));
+  const tableRows = reports
+    .slice(0, 8)
+    .map((r: any, i: number) => ({
+      id: r.id ?? `CAS-${i}`,
+      name: r.analysisData?.investorInfo?.name ?? r.filename ?? "Unknown",
+      status: r.status ?? "pending",
+      funds: r.analysisData?.funds?.length ?? 0,
+      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—",
+      initials: (r.analysisData?.investorInfo?.name ?? "?").slice(0, 2).toUpperCase(),
+      avatarColor: ["#22d3ee","#a855f7","#34d399","#f59e0b"][i % 4],
+    }))
+    .filter(r =>
+      !searchQuery.trim() ||
+      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(r.id).toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const FALLBACK_ROWS = [
-    { id: "CAS-7841", name: "Arjun Sharma",  status: "completed",  funds: 14, date: "31 Mar 2026", initials: "AS", avatarColor: "#22d3ee" },
-    { id: "CAS-7840", name: "Priya Mehta",   status: "processing", funds: 9,  date: "31 Mar 2026", initials: "PM", avatarColor: "#a855f7" },
-    { id: "CAS-7839", name: "Rohit Verma",   status: "completed",  funds: 17, date: "31 Mar 2026", initials: "RV", avatarColor: "#34d399" },
-    { id: "CAS-7838", name: "Sneha Iyer",    status: "failed",     funds: 0,  date: "31 Mar 2026", initials: "SI", avatarColor: "#f59e0b" },
-    { id: "CAS-7837", name: "Kabir Nair",    status: "completed",  funds: 11, date: "31 Mar 2026", initials: "KN", avatarColor: "#22d3ee" },
-    { id: "CAS-7836", name: "Ananya Joshi",  status: "pending",    funds: 8,  date: "30 Mar 2026", initials: "AJ", avatarColor: "#a855f7" },
-    { id: "CAS-7835", name: "Dev Malhotra",  status: "completed",  funds: 21, date: "30 Mar 2026", initials: "DM", avatarColor: "#34d399" },
-  ];
-  const allRows = recentRows.length > 0 ? recentRows : FALLBACK_ROWS;
-  const tableRows = searchQuery.trim()
-    ? allRows.filter(r =>
-        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        String(r.id).toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : allRows;
+  const hasData = totalReports > 0;
 
   const KPI_CARDS = [
-    { label: "Reports Analyzed", value: totalReports || 2841, suffix: "", trend: "+18.4%", up: true, color: "#22d3ee",  sub: "CAS files processed", icon: FileText },
-    { label: "Active Portfolios", value: 1247,                suffix: "", trend: "+9.2%",  up: true, color: "#a855f7",  sub: "Unique investor portfolios", icon: BarChart2 },
-    { label: "Success Rate",      value: successRate,         suffix: "%",trend: "+1.2%",  up: true, color: "#34d399",  sub: "Analysis completion", icon: CheckCircle2 },
-    { label: "Avg Funds / CAS",   value: avgFunds,            suffix: "", trend: "+2.1%",  up: true, color: "#f59e0b",  sub: "Schemes per statement", icon: Activity },
+    { label: "Reports Analyzed", value: totalReports,    suffix: "",  trend: hasData ? "+18.4%" : null, up: true, color: "#22d3ee", sub: "CAS files processed",       icon: FileText    },
+    { label: "Analyzed Reports", value: completedReports,suffix: "",  trend: hasData ? "+9.2%"  : null, up: true, color: "#a855f7", sub: "Successfully analyzed",      icon: BarChart2   },
+    { label: "Success Rate",     value: successRate,     suffix: "%", trend: hasData ? "+1.2%"  : null, up: true, color: "#34d399", sub: "Analysis completion rate",    icon: CheckCircle2},
+    { label: "Avg Funds / CAS",  value: avgFunds,        suffix: "",  trend: hasData ? "+2.1%"  : null, up: true, color: "#f59e0b", sub: "Schemes per statement",       icon: Activity    },
   ];
 
   return (
@@ -858,7 +850,7 @@ export default function Dashboard() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 20 }} className="kpi-grid">
             {KPI_CARDS.map((card, i) => {
               const Icon = card.icon;
-              const sparkData = SPARKLINES[card.label]?.map((v, idx) => ({ v, idx })) ?? [];
+              const sparkData = hasData ? (SPARKLINES[card.label]?.map((v, idx) => ({ v, idx })) ?? []) : [];
               return (
                 <motion.div
                   key={card.label}
@@ -922,22 +914,30 @@ export default function Dashboard() {
                   </p>
 
                   <div style={{ marginBottom: 10 }}>
-                    <Sparkline data={SPARKLINES[card.label] ?? []} color={card.color} />
+                    <Sparkline data={hasData ? (SPARKLINES[card.label] ?? []) : []} color={card.color} />
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{
-                      display: "inline-flex", alignItems: "center", gap: 4,
-                      fontSize: 11, fontWeight: 800,
-                      color: card.up ? "#34d399" : "#f87171",
-                      padding: "3px 9px", borderRadius: 100,
-                      background: card.up ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
-                      border: `1px solid ${card.up ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)"}`,
-                    }}>
-                      {card.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                      {card.trend}
-                    </span>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.18)" }}>vs last month</span>
+                    {card.trend ? (
+                      <>
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          fontSize: 11, fontWeight: 800,
+                          color: card.up ? "#34d399" : "#f87171",
+                          padding: "3px 9px", borderRadius: 100,
+                          background: card.up ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
+                          border: `1px solid ${card.up ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)"}`,
+                        }}>
+                          {card.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                          {card.trend}
+                        </span>
+                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.18)" }}>vs last month</span>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>
+                        No data yet
+                      </span>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -1072,6 +1072,42 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
+                    {tableRows.length === 0 && (
+                      <tr>
+                        <td colSpan={6}>
+                          <div style={{ padding: "48px 0", textAlign: "center" }}>
+                            <motion.div
+                              animate={{ opacity: [0.4, 0.8, 0.4] }}
+                              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                              style={{ marginBottom: 14 }}
+                            >
+                              <FileText size={36} style={{ color: "rgba(255,255,255,0.1)", margin: "0 auto" }} />
+                            </motion.div>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.25)", marginBottom: 6 }}>
+                              {!user ? "Sign in to see your CAS reports" : "No reports yet"}
+                            </p>
+                            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.12)" }}>
+                              {!user ? "Your submissions will appear here after logging in" : "Upload a CAS file to get started"}
+                            </p>
+                            {!user && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => openAuth("login")}
+                                data-testid="button-table-signin"
+                                style={{
+                                  marginTop: 16, padding: "8px 22px", borderRadius: 100,
+                                  background: "linear-gradient(135deg,#22d3ee,#a855f7)",
+                                  border: "none", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                                }}
+                              >
+                                Sign In
+                              </motion.button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                     {tableRows.map((row: any, i: number) => {
                       const s = STATUS_MAP[row.status] ?? STATUS_MAP.completed;
                       const SIcon = s.icon;
