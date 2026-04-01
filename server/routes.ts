@@ -510,6 +510,24 @@ ${text}`;
             passwordHash,
             mobile: record.mobile || null,
           });
+
+          // Send user details to Google Sheets
+          const sheetsUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+          if (sheetsUrl) {
+            const nameParts = (record.name || "").trim().split(" ");
+            const firstName = nameParts[0] || "";
+            const lastName = nameParts.slice(1).join(" ") || "";
+            fetch(sheetsUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                firstName,
+                lastName,
+                email: email.toLowerCase(),
+                mobile: record.mobile || "",
+              }),
+            }).catch(err => console.error("[Sheets] Webhook error:", err.message));
+          }
         }
       } catch (err: any) {
         console.error("[Auth] User save error:", err.message);
