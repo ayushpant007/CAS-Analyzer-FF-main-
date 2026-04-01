@@ -3,32 +3,10 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Shield, ChevronLeft, RefreshCw, Zap, X } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
+import { firebaseSaveUser, firebaseLoginUser } from "@/lib/firebase";
 
-// ─── Firebase placeholder hooks ───────────────────────────────────────────────
-export async function firebaseCreateUser(email: string, password: string, displayName: string) {
-  console.log("[Firebase] createUserWithEmailAndPassword", { email, displayName });
-  return { user: { uid: "mock-uid", email, displayName } };
-}
-export async function firebaseSignIn(email: string, password: string) {
-  console.log("[Firebase] signInWithEmailAndPassword", { email });
-  return { user: { uid: "mock-uid", email } };
-}
-export async function firebaseGoogleSignIn() {
-  console.log("[Firebase] signInWithPopup (Google)");
-  return { user: { uid: "mock-uid", email: "user@gmail.com", displayName: "Google User" } };
-}
-export async function firebaseSendPasswordReset(email: string) {
-  console.log("[Firebase] sendPasswordResetEmail", { email });
-}
-export async function firebaseSendEmailVerification() {
-  console.log("[Firebase] sendEmailVerification");
-}
-export async function firebaseVerifyCode(code: string) {
-  console.log("[Firebase] verifyCode (Cloud Function)", { code });
-  return code.length === 6;
-}
 export async function firebaseUpdatePassword(newPassword: string) {
-  console.log("[Firebase] updatePassword", { newPassword });
+  console.log("[Firebase] updatePassword placeholder", { newPassword });
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -220,6 +198,8 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Invalid credentials. Please try again."); return; }
       const name = data.name || form.email.split("@")[0];
+      // Sync login to Firebase (best-effort, don't block on failure)
+      firebaseLoginUser(form.email, form.password).catch(() => {});
       if (onSuccess) { onSuccess({ name, email: form.email }); }
       else { onClose(); navigate("/home"); }
     } catch { setError("Login failed. Please try again."); }
@@ -271,6 +251,10 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         go("forgot-reset", 1);
       } else {
         const name = data.name || `${form.firstName} ${form.lastName}`.trim() || email.split("@")[0];
+        // Save user to Firebase after successful signup OTP verification
+        if (form.password) {
+          firebaseSaveUser(email, form.password, name).catch(() => {});
+        }
         if (onSuccess) { onSuccess({ name, email }); }
         else { onClose(); navigate("/home"); }
       }
