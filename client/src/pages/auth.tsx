@@ -45,9 +45,11 @@ const INITIAL_FORM: FormState = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function CodeInput({ onComplete, onResend }: { onComplete: (code: string) => void; onResend: () => void }) {
+function CodeInput({ onComplete, onResend, loading }: { onComplete: (code: string) => void; onResend: () => void; loading?: boolean }) {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const isFull = digits.every(d => d !== "");
 
   const handleChange = (i: number, val: string) => {
     if (!/^\d*$/.test(val)) return;
@@ -55,10 +57,10 @@ function CodeInput({ onComplete, onResend }: { onComplete: (code: string) => voi
     next[i] = val.slice(-1);
     setDigits(next);
     if (val && i < 5) refs.current[i + 1]?.focus();
-    if (next.every(d => d !== "")) onComplete(next.join(""));
   };
   const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !digits[i] && i > 0) refs.current[i - 1]?.focus();
+    if (e.key === "Enter" && isFull) onComplete(digits.join(""));
   };
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -66,8 +68,7 @@ function CodeInput({ onComplete, onResend }: { onComplete: (code: string) => voi
     const next = [...digits];
     pasted.split("").forEach((ch, idx) => { next[idx] = ch; });
     setDigits(next);
-    if (pasted.length === 6) { onComplete(pasted); refs.current[5]?.focus(); }
-    else refs.current[Math.min(pasted.length, 5)]?.focus();
+    refs.current[Math.min(pasted.length, 5)]?.focus();
   };
 
   return (
@@ -85,6 +86,24 @@ function CodeInput({ onComplete, onResend }: { onComplete: (code: string) => voi
           />
         ))}
       </div>
+
+      <button
+        type="button"
+        data-testid="button-verify-otp"
+        onClick={() => { if (isFull) onComplete(digits.join("")); }}
+        disabled={!isFull || loading}
+        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2
+          ${isFull
+            ? "bg-gradient-to-r from-[#00d4ff] to-[#0096b4] text-[#020817] shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:shadow-[0_0_36px_rgba(0,212,255,0.7)] hover:scale-[1.02] active:scale-[0.98]"
+            : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
+          }`}
+      >
+        {loading
+          ? <motion.div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+              animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }} />
+          : <><Shield size={14} /> Verify Code</>}
+      </button>
+
       <button type="button" onClick={onResend} data-testid="button-resend-code"
         className="flex items-center gap-1.5 mx-auto text-xs text-white/40 hover:text-[#00d4ff] transition-colors">
         <RefreshCw size={11} /> Resend code
@@ -105,7 +124,7 @@ function NeonInput({ icon: Icon, placeholder, type = "text", value, onChange, te
       <input data-testid={testId} type={type} placeholder={placeholder} value={value}
         onChange={e => onChange(e.target.value)}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        className="w-full bg-transparent pl-10 pr-10 py-3 text-sm text-white placeholder-white/25 outline-none" />
+        className="w-full bg-transparent pl-10 pr-10 py-3 text-sm text-white placeholder-white/25 outline-none autofill-dark" />
       {rightEl && <div className="absolute right-3">{rightEl}</div>}
     </div>
   );
@@ -338,7 +357,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       <p className="text-center text-sm text-white/50">
         We sent a 6-digit code to <span className="text-[#00d4ff] font-medium">{form.email || "your email"}</span>.<br />Enter it below to continue.
       </p>
-      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} />
+      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} loading={loading} />
     </div>
   );
 
@@ -362,7 +381,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       <p className="text-center text-sm text-white/50">
         Reset code sent to <span className="text-[#7c3aed] font-medium">{form.resetEmail}</span>.
       </p>
-      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} />
+      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} loading={loading} />
     </div>
   );
 

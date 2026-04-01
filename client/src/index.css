@@ -80,3 +80,14 @@
 .card-hover {
   @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20;
 }
+
+/* Fix browser autofill turning inputs white */
+.autofill-dark:-webkit-autofill,
+.autofill-dark:-webkit-autofill:hover,
+.autofill-dark:-webkit-autofill:focus,
+.autofill-dark:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #080f1f inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
+}
