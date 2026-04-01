@@ -253,7 +253,13 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         const name = data.name || `${form.firstName} ${form.lastName}`.trim() || email.split("@")[0];
         // Save user to Firebase after successful signup OTP verification
         if (form.password) {
-          firebaseSaveUser(email, form.password, name).catch(() => {});
+          firebaseSaveUser({
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email,
+            mobile: form.mobile,
+            password: form.password,
+          }).catch(() => {});
         }
         if (onSuccess) { onSuccess({ name, email }); }
         else { onClose(); navigate("/home"); }

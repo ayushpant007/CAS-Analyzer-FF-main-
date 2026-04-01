@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,16 +13,34 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 
-export async function firebaseSaveUser(email: string, password: string, displayName: string) {
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  password: string;
+}
+
+export async function firebaseSaveUser({ firstName, lastName, email, mobile, password }: UserData) {
   try {
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    const displayName = `${firstName} ${lastName}`.trim();
     await updateProfile(userCred.user, { displayName });
+
+    // Store detailed user info in Firestore under "users" collection
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      firstName,
+      lastName,
+      email,
+      mobile: mobile || "",
+      createdAt: serverTimestamp(),
+    });
+
     return userCred.user;
   } catch (err: any) {
-    if (err.code === "auth/email-already-in-use") {
-      return null;
-    }
+    if (err.code === "auth/email-already-in-use") return null;
     console.error("[Firebase] saveUser error:", err.message);
     return null;
   }
