@@ -48,3 +48,4 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_gemini_ai
 [userenv.shared]
 GEMINI_API_KEY = "AIzaSyADwLe-0mFSYbpPfXa9U_-eAFbGvVcPAy8"
 GEMINI_MODEL = "gemini-2.5-flash-lite"
+VITE_GOOGLE_CLIENT_ID = "50003181647-q0tk89lgl9skfn4a5i5fha2cr1nrl68k.apps.googleusercontent.com"
