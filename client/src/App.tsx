@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import ConciseReport from "@/pages/ConciseReport";
 import LandingPage from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
+import GoogleCallback from "@/pages/google-callback";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/landing" component={LandingPage} />
       <Route path="/home" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/auth/google/callback" component={GoogleCallback} />
       <Route path="/reports/:id/concise" component={ConciseReport} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />

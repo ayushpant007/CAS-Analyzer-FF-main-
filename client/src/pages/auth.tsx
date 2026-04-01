@@ -191,16 +191,21 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     finally { setLoading(false); }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      const result = await firebaseGoogleSignIn();
-      const name = result.user.displayName ?? "Google User";
-      const email = result.user.email ?? "user@gmail.com";
-      if (onSuccess) { onSuccess({ name, email }); }
-      else { onClose(); navigate("/home"); }
-    } catch { setError("Google sign-in failed."); }
-    finally { setLoading(false); }
+  const handleGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      setError("Google Sign-In is not configured yet. Please set up VITE_GOOGLE_CLIENT_ID.");
+      return;
+    }
+    const redirectUri = `${window.location.origin}/auth/google/callback`;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "token",
+      scope: "openid email profile",
+      include_granted_scopes: "true",
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };
 
   const handleVerifyCode = async (code: string) => {

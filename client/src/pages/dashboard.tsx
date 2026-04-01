@@ -688,7 +688,7 @@ export default function Dashboard() {
   });
 
   const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
-  const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); openAuth("login"); };
+  const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); };
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
   const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
