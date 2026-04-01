@@ -681,6 +681,18 @@ export default function Dashboard() {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }
   });
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name");
+    const email = params.get("email");
+    if (name && email) {
+      const u = { name, email };
+      localStorage.setItem("cas_user", JSON.stringify(u));
+      setUser(u);
+      window.history.replaceState({}, "", "/dashboard");
+    }
+  }, []);
+
   const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
   const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); navigate("/landing"); };
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
@@ -1087,7 +1099,11 @@ export default function Dashboard() {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.97 }}
-                                onClick={() => openAuth("login")}
+                                onClick={() => {
+                                  const loginUrl = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login";
+                                  const redirectBack = `${window.location.origin}/dashboard`;
+                                  window.location.href = `${loginUrl}?redirect=${encodeURIComponent(redirectBack)}`;
+                                }}
                                 data-testid="button-table-signin"
                                 style={{
                                   marginTop: 16, padding: "8px 22px", borderRadius: 100,
