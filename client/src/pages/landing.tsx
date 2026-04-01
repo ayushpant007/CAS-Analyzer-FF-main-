@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star } from "lucide-react";
 
-function goToLogin() {
-  window.location.href = "/login";
+const FF_LOGIN_URL = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login";
+
+function goToFinancialFriend() {
+  const redirectBack = encodeURIComponent(`${window.location.origin}/dashboard`);
+  window.location.href = `${FF_LOGIN_URL}?redirect=${redirectBack}&next=${redirectBack}&returnUrl=${redirectBack}`;
 }
 
 // ── Cyber animated background ────────────────────────────────────────────────
@@ -130,7 +133,7 @@ export default function LandingPage() {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              <button data-testid="button-hero-getstarted" onClick={goToLogin}
+              <button data-testid="button-hero-getstarted" onClick={goToFinancialFriend}
                 className="group flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_28px_rgba(0,212,255,0.5)] hover:shadow-[0_0_42px_rgba(0,212,255,0.7)] hover:scale-[1.03] transition-all duration-200">
                 Get Started Free
                 <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
@@ -221,7 +224,7 @@ export default function LandingPage() {
           <div className="absolute top-0 left-12 right-12 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/40 to-transparent" />
           <h2 className="relative text-3xl font-bold text-white mb-3">Ready to analyze your portfolio?</h2>
           <p className="relative text-white/40 mb-8 max-w-md mx-auto text-sm">Create a free account and upload your CAS file — we'll do the rest in seconds.</p>
-          <button data-testid="button-cta-getstarted" onClick={goToLogin}
+          <button data-testid="button-cta-getstarted" onClick={goToFinancialFriend}
             className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-sm text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_28px_rgba(0,212,255,0.5)] hover:shadow-[0_0_42px_rgba(0,212,255,0.7)] hover:scale-[1.03] transition-all duration-200">
             Get Started Free <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
           </button>
