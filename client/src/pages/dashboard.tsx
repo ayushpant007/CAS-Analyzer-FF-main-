@@ -647,26 +647,18 @@ function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
           <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 12, borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              data-testid="button-header-login"
-              onClick={() => onOpenAuth("login")}
-              style={{
-                padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)",
-                fontSize: 12, fontWeight: 600, cursor: "pointer",
-              }}>
-              Log In
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              data-testid="button-header-signup"
-              onClick={() => onOpenAuth("signup")}
+              data-testid="button-header-signin"
+              onClick={() => {
+                const ffUrl = import.meta.env.VITE_FINANCIAL_FRIEND_URL || "https://financial-friend-ai--newbornhero007.replit.dev";
+                window.location.href = `${ffUrl}?redirect=${encodeURIComponent(window.location.origin + "/dashboard")}`;
+              }}
               style={{
                 padding: "7px 14px", borderRadius: 8, border: "none",
                 background: "linear-gradient(135deg, #22d3ee, #a855f7)",
                 color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
                 boxShadow: "0 0 16px rgba(34,211,238,0.3)",
               }}>
-              Sign Up
+              Sign In
             </motion.button>
           </div>
         )}
