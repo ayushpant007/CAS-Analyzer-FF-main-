@@ -172,8 +172,13 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     if (!form.firstName || !form.email || !form.password) { setError("Please fill all required fields."); return; }
     setLoading(true);
     try {
-      await firebaseCreateUser(form.email, form.password, `${form.firstName} ${form.lastName}`);
-      await firebaseSendEmailVerification();
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, name: `${form.firstName} ${form.lastName}`.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to send code. Please try again."); return; }
       go("verify", 1);
     } catch { setError("Sign up failed. Please try again."); }
     finally { setLoading(false); }
@@ -209,18 +214,36 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };
 
+  const handleResendOtp = async () => {
+    const email = view === "forgot-verify" ? form.resetEmail : form.email;
+    if (!email) return;
+    try {
+      await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name: `${form.firstName} ${form.lastName}`.trim() }),
+      });
+    } catch { /* silent */ }
+  };
+
   const handleVerifyCode = async (code: string) => {
+    const email = view === "forgot-verify" ? form.resetEmail : form.email;
     setLoading(true);
     try {
-      const ok = await firebaseVerifyCode(code);
-      if (ok) {
-        if (view === "forgot-verify") go("forgot-reset", 1);
-        else {
-          const name = `${form.firstName} ${form.lastName}`.trim() || form.email.split("@")[0];
-          if (onSuccess) { onSuccess({ name, email: form.email }); }
-          else { onClose(); navigate("/home"); }
-        }
-      } else setError("Incorrect code. Please try again.");
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: code }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Incorrect code. Please try again."); return; }
+      if (view === "forgot-verify") {
+        go("forgot-reset", 1);
+      } else {
+        const name = data.name || `${form.firstName} ${form.lastName}`.trim() || email.split("@")[0];
+        if (onSuccess) { onSuccess({ name, email }); }
+        else { onClose(); navigate("/home"); }
+      }
     } catch { setError("Verification failed."); }
     finally { setLoading(false); }
   };
@@ -228,7 +251,16 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   const handleSendReset = async () => {
     if (!form.resetEmail) { setError("Please enter your email address."); return; }
     setLoading(true);
-    try { await firebaseSendPasswordReset(form.resetEmail); go("forgot-verify", 1); }
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.resetEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to send reset code."); return; }
+      go("forgot-verify", 1);
+    }
     catch { setError("Failed to send reset code."); }
     finally { setLoading(false); }
   };
@@ -295,7 +327,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       <p className="text-center text-sm text-white/50">
         We sent a 6-digit code to <span className="text-[#00d4ff] font-medium">{form.email || "your email"}</span>.<br />Enter it below to continue.
       </p>
-      <CodeInput onComplete={handleVerifyCode} onResend={firebaseSendEmailVerification} />
+      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} />
     </div>
   );
 
@@ -319,7 +351,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       <p className="text-center text-sm text-white/50">
         Reset code sent to <span className="text-[#7c3aed] font-medium">{form.resetEmail}</span>.
       </p>
-      <CodeInput onComplete={handleVerifyCode} onResend={() => firebaseSendPasswordReset(form.resetEmail)} />
+      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} />
     </div>
   );
 

@@ -9,6 +9,8 @@ import path from "path";
 import os from "os";
 import { promisify } from "util";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { fetchNavForScheme, fetchNavByISIN, findSchemeCode, searchSchemeCodes } from "./mfapi";
@@ -27,6 +29,24 @@ const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_3,
   process.env.GEMINI_API_KEY_4
 ].filter(Boolean) as string[];
+
+// ── OTP store (in-memory, 10 min expiry) ──────────────────────────────────────
+const otpStore = new Map<string, { otp: string; expiresAt: number; name: string }>();
+
+function createTransporter() {
+  const user = process.env.SMTP_EMAIL;
+  const pass = process.env.SMTP_PASSWORD;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+}
+
+function generateOtp(): string {
+  return String(crypto.randomInt(100000, 999999));
+}
+// ──────────────────────────────────────────────────────────────────────────────
 
 async function generateWithFallback(prompt: string, options: { model?: string, responseMimeType?: string } = {}) {
   const modelName = (options.model || process.env.GEMINI_MODEL || "gemini-2.5-flash-lite").toLowerCase().replace(/\s+/g, '-');
@@ -424,6 +444,58 @@ ${text}`;
 
     res.json(results);
   });
+
+  // ── Auth OTP Routes ─────────────────────────────────────────────────────────
+  app.post("/api/auth/send-otp", async (req, res) => {
+    const { email, name = "" } = req.body as { email: string; name?: string };
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const otp = generateOtp();
+    otpStore.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000, name });
+
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.log(`[OTP] Code for ${email}: ${otp} (SMTP not configured)`);
+      return res.json({ ok: true, dev: true });
+    }
+
+    try {
+      await transporter.sendMail({
+        from: `"CAS Analyzer" <${process.env.SMTP_EMAIL}>`,
+        to: email,
+        subject: "Your CAS Analyzer verification code",
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#070a12;color:#fff;border-radius:12px;">
+            <h2 style="color:#22d3ee;margin-bottom:8px;">Verify your email</h2>
+            <p style="color:rgba(255,255,255,0.6);margin-bottom:24px;">Use the code below to complete your sign-up. It expires in 10 minutes.</p>
+            <div style="font-size:36px;font-weight:900;letter-spacing:10px;text-align:center;color:#fff;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);border-radius:10px;padding:20px;">${otp}</div>
+            <p style="color:rgba(255,255,255,0.3);font-size:12px;margin-top:24px;">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+        `,
+      });
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("[OTP] Email send error:", err.message);
+      res.status(500).json({ error: "Failed to send email. Please try again." });
+    }
+  });
+
+  app.post("/api/auth/verify-otp", (req, res) => {
+    const { email, otp } = req.body as { email: string; otp: string };
+    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
+
+    const record = otpStore.get(email.toLowerCase());
+    if (!record) return res.status(400).json({ error: "No OTP found for this email. Please request a new code." });
+    if (Date.now() > record.expiresAt) {
+      otpStore.delete(email.toLowerCase());
+      return res.status(400).json({ error: "Code has expired. Please request a new one." });
+    }
+    if (record.otp !== otp.trim()) return res.status(400).json({ error: "Incorrect code. Please try again." });
+
+    otpStore.delete(email.toLowerCase());
+    res.json({ ok: true, name: record.name, email: email.toLowerCase() });
+  });
+  // ────────────────────────────────────────────────────────────────────────────
 
   return httpServer;
 }
