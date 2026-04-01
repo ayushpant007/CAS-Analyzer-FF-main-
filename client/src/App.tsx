@@ -7,14 +7,16 @@ import Home from "@/pages/home";
 import ConciseReport from "@/pages/ConciseReport";
 import LandingPage from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
+import AuthPage from "@/pages/auth";
 import GoogleCallback from "@/pages/google-callback";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
+      <Route path="/" component={LandingPage} />
       <Route path="/landing" component={LandingPage} />
+      <Route path="/login" component={AuthPage} />
       <Route path="/home" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/auth/google/callback" component={GoogleCallback} />

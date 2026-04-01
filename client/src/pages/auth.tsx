@@ -489,9 +489,27 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   );
 }
 
-// Default export — standalone page (redirects to landing)
+// Default export — standalone /login page
 export default function AuthPage() {
   const [, navigate] = useLocation();
-  navigate("/");
-  return null;
+  const handleSuccess = (u: { name: string; email: string }) => {
+    localStorage.setItem("cas_user", JSON.stringify(u));
+    navigate("/dashboard");
+  };
+  return (
+    <div className="fixed inset-0 bg-[#020817] flex items-center justify-center">
+      <div className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,212,255,0.8) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.8) 1px,transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }} />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_20%,rgba(0,212,255,0.07)_0%,transparent_70%)]" />
+      <AuthModal
+        isOpen={true}
+        defaultView="login"
+        onClose={() => navigate("/landing")}
+        onSuccess={handleSuccess}
+      />
+    </div>
+  );
 }

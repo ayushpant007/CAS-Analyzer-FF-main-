@@ -648,11 +648,7 @@ function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               data-testid="button-header-signin"
-              onClick={() => {
-                const loginUrl = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login";
-                const redirectBack = `${window.location.origin}/dashboard`;
-                window.location.href = `${loginUrl}?redirect=${encodeURIComponent(redirectBack)}`;
-              }}
+              onClick={() => { window.location.href = "/login"; }}
               style={{
                 padding: "7px 14px", borderRadius: 8, border: "none",
                 background: "linear-gradient(135deg, #22d3ee, #a855f7)",
@@ -1099,11 +1095,7 @@ export default function Dashboard() {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.97 }}
-                                onClick={() => {
-                                  const loginUrl = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login";
-                                  const redirectBack = `${window.location.origin}/dashboard`;
-                                  window.location.href = `${loginUrl}?redirect=${encodeURIComponent(redirectBack)}`;
-                                }}
+                                onClick={() => { window.location.href = "/login"; }}
                                 data-testid="button-table-signin"
                                 style={{
                                   marginTop: 16, padding: "8px 22px", borderRadius: 100,
