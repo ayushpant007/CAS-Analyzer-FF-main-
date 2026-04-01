@@ -5,7 +5,7 @@ const FF_LOGIN_URL = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced
 const FF_CAS_REDIRECT = import.meta.env.VITE_FF_CAS_REDIRECT || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/cas-analyzer";
 
 function goToFinancialFriend() {
-  window.location.href = `${FF_LOGIN_URL}?redirect=${encodeURIComponent(FF_CAS_REDIRECT)}`;
+  window.location.href = FF_CAS_REDIRECT;
 }
 
 // ── Cyber animated background ────────────────────────────────────────────────

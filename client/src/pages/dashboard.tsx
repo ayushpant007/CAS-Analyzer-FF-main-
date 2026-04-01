@@ -649,9 +649,8 @@ function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               data-testid="button-header-signin"
               onClick={() => {
-                const loginUrl = import.meta.env.VITE_FF_LOGIN_URL || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login";
                 const casRedirect = import.meta.env.VITE_FF_CAS_REDIRECT || "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/cas-analyzer";
-                window.location.href = `${loginUrl}?redirect=${encodeURIComponent(casRedirect)}`;
+                window.location.href = casRedirect;
               }}
               style={{
                 padding: "7px 14px", borderRadius: 8, border: "none",
