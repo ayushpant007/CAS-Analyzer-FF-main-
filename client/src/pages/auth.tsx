@@ -143,9 +143,10 @@ interface AuthModalProps {
   isOpen: boolean;
   defaultView?: AuthView;
   onClose: () => void;
+  onSuccess?: (user: { name: string; email: string }) => void;
 }
 
-export function AuthModal({ isOpen, defaultView = "login", onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }: AuthModalProps) {
   const [, navigate] = useLocation();
   const [view, setView] = useState<AuthView>(defaultView);
   const [dir, setDir] = useState(1);
@@ -183,8 +184,9 @@ export function AuthModal({ isOpen, defaultView = "login", onClose }: AuthModalP
     setLoading(true);
     try {
       await firebaseSignIn(form.email, form.password);
-      onClose();
-      navigate("/home");
+      const name = form.email.split("@")[0];
+      if (onSuccess) { onSuccess({ name, email: form.email }); }
+      else { onClose(); navigate("/home"); }
     } catch { setError("Invalid credentials. Please try again."); }
     finally { setLoading(false); }
   };
@@ -192,9 +194,11 @@ export function AuthModal({ isOpen, defaultView = "login", onClose }: AuthModalP
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      await firebaseGoogleSignIn();
-      onClose();
-      navigate("/home");
+      const result = await firebaseGoogleSignIn();
+      const name = result.user.displayName ?? "Google User";
+      const email = result.user.email ?? "user@gmail.com";
+      if (onSuccess) { onSuccess({ name, email }); }
+      else { onClose(); navigate("/home"); }
     } catch { setError("Google sign-in failed."); }
     finally { setLoading(false); }
   };
@@ -205,7 +209,11 @@ export function AuthModal({ isOpen, defaultView = "login", onClose }: AuthModalP
       const ok = await firebaseVerifyCode(code);
       if (ok) {
         if (view === "forgot-verify") go("forgot-reset", 1);
-        else { onClose(); navigate("/home"); }
+        else {
+          const name = `${form.firstName} ${form.lastName}`.trim() || form.email.split("@")[0];
+          if (onSuccess) { onSuccess({ name, email: form.email }); }
+          else { onClose(); navigate("/home"); }
+        }
       } else setError("Incorrect code. Please try again.");
     } catch { setError("Verification failed."); }
     finally { setLoading(false); }

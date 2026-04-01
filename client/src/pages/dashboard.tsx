@@ -4,7 +4,7 @@ import { motion, useSpring, useInView, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  RadialBarChart, RadialBar, PieChart, Pie, Cell, Sector,
+  PieChart, Pie, Cell, Sector,
   LineChart, Line,
 } from "recharts";
 import {
@@ -12,8 +12,9 @@ import {
   Search, Bell, Zap, TrendingUp, TrendingDown,
   CheckCircle2, Clock, XCircle, Upload, Cpu, MemoryStick,
   Wifi, HardDrive, ChevronRight, Activity, Menu, X,
-  Sparkles, Globe, Shield, ArrowUpRight,
+  Sparkles, Shield, ArrowUpRight, Construction, User,
 } from "lucide-react";
+import { AuthModal, type AuthView } from "./auth";
 
 // ─── Injected CSS ──────────────────────────────────────────────────────────────
 const STYLE = `
@@ -134,11 +135,11 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; ico
 };
 
 const NAV = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
-  { icon: BarChart2,        label: "Analytics",  href: "/dashboard" },
-  { icon: Upload,           label: "Upload CAS", href: "/home" },
-  { icon: FileText,         label: "Reports",    href: "/home" },
-  { icon: Settings,         label: "Settings",   href: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true, comingSoon: false },
+  { icon: BarChart2,        label: "Analytics",  href: "",           active: false, comingSoon: true  },
+  { icon: Upload,           label: "Upload CAS", href: "/home",      active: false, comingSoon: false },
+  { icon: FileText,         label: "Reports",    href: "/home",      active: false, comingSoon: false },
+  { icon: Settings,         label: "Settings",   href: "",           active: false, comingSoon: true  },
 ];
 
 // ─── Floating Particles ────────────────────────────────────────────────────────
@@ -342,42 +343,61 @@ function MarketTicker() {
 }
 
 // ─── Sidebar ───────────────────────────────────────────────────────────────────
-function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
+function Sidebar({ mobileOpen, onClose, onLogout, comingSoonToast }: {
+  mobileOpen: boolean;
+  onClose: () => void;
+  onLogout: () => void;
+  comingSoonToast: (label: string) => void;
+}) {
   const [, nav] = useLocation();
+
+  const handleNav = (item: typeof NAV[0]) => {
+    if (item.comingSoon) { comingSoonToast(item.label); onClose(); return; }
+    nav(item.href); onClose();
+  };
+
   const items = (
     <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-      {NAV.map(({ icon: Icon, label, href, active }) => (
-        <div key={label} style={{ position: "relative" }}>
-          <button
-            onClick={() => { nav(href); onClose(); }}
-            title={label}
-            data-testid={`nav-${label.toLowerCase().replace(/ /g, "-")}`}
-            style={{
-              width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "11px 0", borderRadius: 12, border: "none", cursor: "pointer",
-              transition: "all 0.25s ease",
-              background: active ? "rgba(34,211,238,0.12)" : "transparent",
-              color: active ? "#22d3ee" : "rgba(255,255,255,0.28)",
-              boxShadow: active ? "0 0 20px rgba(34,211,238,0.22), inset 0 0 14px rgba(34,211,238,0.06)" : "none",
-              position: "relative",
-            }}
-            className={active ? "" : "sidebar-btn"}
-          >
-            {active && (
-              <motion.span
-                layoutId="active-pill"
-                style={{
+      {NAV.map((item) => {
+        const Icon = item.icon;
+        return (
+          <div key={item.label} style={{ position: "relative" }}>
+            <button
+              onClick={() => handleNav(item)}
+              title={item.comingSoon ? `${item.label} (Coming Soon)` : item.label}
+              data-testid={`nav-${item.label.toLowerCase().replace(/ /g, "-")}`}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "11px 0", borderRadius: 12, border: "none",
+                cursor: item.comingSoon ? "not-allowed" : "pointer",
+                transition: "all 0.25s ease",
+                background: item.active ? "rgba(34,211,238,0.12)" : "transparent",
+                color: item.active ? "#22d3ee" : item.comingSoon ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.28)",
+                boxShadow: item.active ? "0 0 20px rgba(34,211,238,0.22), inset 0 0 14px rgba(34,211,238,0.06)" : "none",
+                position: "relative",
+              }}
+              className={item.active || item.comingSoon ? "" : "sidebar-btn"}
+            >
+              {item.active && (
+                <motion.span layoutId="active-pill" style={{
                   position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
                   width: 3, height: 22, borderRadius: 2,
                   background: "linear-gradient(180deg, #22d3ee, #a855f7)",
                   boxShadow: "0 0 10px #22d3ee",
-                }}
-              />
-            )}
-            <Icon size={18} />
-          </button>
-        </div>
-      ))}
+                }} />
+              )}
+              <Icon size={18} />
+              {item.comingSoon && (
+                <span style={{
+                  position: "absolute", top: 4, right: 4,
+                  width: 5, height: 5, borderRadius: "50%",
+                  background: "#f59e0b", boxShadow: "0 0 6px #f59e0b",
+                }} />
+              )}
+            </button>
+          </div>
+        );
+      })}
     </nav>
   );
 
@@ -402,7 +422,7 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
         </motion.div>
         {items}
         <button
-          onClick={() => nav("/landing")}
+          onClick={onLogout}
           title="Log Out"
           data-testid="nav-logout"
           style={{
@@ -435,12 +455,7 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: "linear-gradient(135deg, #22d3ee, #a855f7)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 0 20px rgba(34,211,238,0.4)",
-                }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #22d3ee, #a855f7)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(34,211,238,0.4)" }}>
                   <Zap size={16} color="#fff" />
                 </div>
                 <span style={{ color: "#fff", fontWeight: 800, fontSize: 14, letterSpacing: "0.02em" }}>CAS Analyzer</span>
@@ -449,26 +464,31 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
                 </button>
               </div>
               <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-                {NAV.map(({ icon: Icon, label, href, active }) => (
-                  <button key={label} onClick={() => { nav(href); onClose(); }}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                      borderRadius: 10, border: "none", cursor: "pointer", textAlign: "left",
-                      background: active ? "rgba(34,211,238,0.1)" : "transparent",
-                      color: active ? "#22d3ee" : "rgba(255,255,255,0.4)",
-                      fontSize: 13, fontWeight: 600, transition: "all 0.2s",
-                    }}>
-                    <Icon size={16} />{label}
-                  </button>
-                ))}
+                {NAV.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button key={item.label} onClick={() => handleNav(item)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                        borderRadius: 10, border: "none", cursor: item.comingSoon ? "not-allowed" : "pointer", textAlign: "left",
+                        background: item.active ? "rgba(34,211,238,0.1)" : "transparent",
+                        color: item.active ? "#22d3ee" : item.comingSoon ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.4)",
+                        fontSize: 13, fontWeight: 600, transition: "all 0.2s",
+                        position: "relative",
+                      }}>
+                      <Icon size={16} />
+                      {item.label}
+                      {item.comingSoon && (
+                        <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.12)", padding: "2px 6px", borderRadius: 4, border: "1px solid rgba(245,158,11,0.25)" }}>
+                          SOON
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </nav>
-              <button onClick={() => nav("/landing")}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                  borderRadius: 10, border: "none", cursor: "pointer",
-                  background: "transparent", color: "rgba(248,113,113,0.6)",
-                  fontSize: 13, fontWeight: 600,
-                }}>
+              <button onClick={onLogout}
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, border: "none", cursor: "pointer", background: "transparent", color: "rgba(248,113,113,0.6)", fontSize: 13, fontWeight: 600 }}>
                 <LogOut size={16} />Log Out
               </button>
             </motion.aside>
@@ -479,68 +499,177 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
   );
 }
 
+const NOTIFICATIONS = [
+  { id: 1, title: "New CAS Uploaded",     body: "Priya Mehta uploaded CAS-7840",           time: "2 min ago",  color: "#22d3ee", unread: true  },
+  { id: 2, title: "Analysis Complete",    body: "CAS-7839 (Rohit Verma) fully analyzed",   time: "18 min ago", color: "#34d399", unread: true  },
+  { id: 3, title: "System Health Alert",  body: "CPU usage peaked at 89% momentarily",     time: "1 hr ago",   color: "#f59e0b", unread: false },
+  { id: 4, title: "Report Exported",      body: "Dev Malhotra exported PDF report",        time: "3 hr ago",   color: "#a855f7", unread: false },
+];
+
 // ─── Top Bar ───────────────────────────────────────────────────────────────────
-function TopBar({ onMenu }: { onMenu: () => void }) {
+function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
+  onMenu: () => void;
+  user: { name: string; email: string } | null;
+  onOpenAuth: (view: AuthView) => void;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+}) {
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(NOTIFICATIONS.filter(n => n.unread).length);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const initials = user ? user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "?";
+
   return (
     <header style={{
       position: "fixed", top: 0, left: 0, right: 0,
       display: "flex", alignItems: "center", gap: 12,
       padding: "0 20px", height: 56,
       background: "rgba(7,10,18,0.92)", backdropFilter: "blur(24px)",
-      borderBottom: "1px solid rgba(255,255,255,0.04)",
-      zIndex: 20,
+      borderBottom: "1px solid rgba(255,255,255,0.04)", zIndex: 20,
     }} className="md-ml-60">
       <button onClick={onMenu} className="md:hidden" style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer" }} data-testid="button-mobile-menu">
         <Menu size={20} />
       </button>
 
+      {/* Working search input */}
       <div style={{
         display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderRadius: 10,
-        border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)",
-        color: "rgba(255,255,255,0.2)", cursor: "text", flex: 1, maxWidth: 300, transition: "all 0.2s",
+        border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.03)",
+        flex: 1, maxWidth: 300, transition: "all 0.2s",
       }}>
-        <Search size={13} />
-        <span style={{ fontSize: 12, flex: 1 }}>Search reports, funds...</span>
-        <kbd style={{ fontSize: 10, padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.18)", fontFamily: "inherit" }}>⌘K</kbd>
+        <Search size={13} style={{ color: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+        <input
+          data-testid="input-search"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search reports, funds..."
+          style={{
+            background: "none", border: "none", outline: "none",
+            fontSize: 12, color: "#fff", flex: 1, minWidth: 0,
+          }}
+        />
+        {searchQuery && (
+          <button onClick={() => setSearchQuery("")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0 }}>
+            <X size={12} />
+          </button>
+        )}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
-        <motion.button
-          data-testid="button-notifications"
-          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          style={{
-            position: "relative", padding: 8, borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.05)",
-            background: "rgba(255,255,255,0.02)", cursor: "pointer",
-            color: "rgba(255,255,255,0.35)",
-          }}>
-          <Bell size={15} />
-          <motion.span
-            animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{
-              position: "absolute", top: 7, right: 7,
-              width: 6, height: 6, borderRadius: "50%",
-              background: "#22d3ee", boxShadow: "0 0 8px #22d3ee",
-            }}
-          />
-        </motion.button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 12, borderLeft: "1px solid rgba(255,255,255,0.05)" }} data-testid="user-profile">
-          <div className="hidden sm:block" style={{ textAlign: "right" }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", lineHeight: 1.3 }}>Arjun Sharma</p>
-            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", lineHeight: 1.3 }}>Administrator</p>
-          </div>
-          <motion.div
-            whileHover={{ scale: 1.08 }}
+        {/* Notifications */}
+        <div ref={notifRef} style={{ position: "relative" }}>
+          <motion.button
+            data-testid="button-notifications"
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={() => { setNotifOpen(o => !o); setUnreadCount(0); }}
             style={{
+              position: "relative", padding: 8, borderRadius: 10,
+              border: "1px solid rgba(255,255,255,0.05)",
+              background: notifOpen ? "rgba(34,211,238,0.08)" : "rgba(255,255,255,0.02)",
+              cursor: "pointer", color: "rgba(255,255,255,0.35)",
+            }}>
+            <Bell size={15} />
+            {unreadCount > 0 && (
+              <motion.span
+                animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{
+                  position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%",
+                  background: "#22d3ee", boxShadow: "0 0 8px #22d3ee", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 8, fontWeight: 900, color: "#070a12",
+                }}>
+              </motion.span>
+            )}
+          </motion.button>
+
+          <AnimatePresence>
+            {notifOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.18 }}
+                style={{
+                  position: "absolute", top: "calc(100% + 10px)", right: 0,
+                  width: 320, borderRadius: 16,
+                  background: "rgba(7,10,18,0.98)", border: "1px solid rgba(255,255,255,0.08)",
+                  boxShadow: "0 24px 60px rgba(0,0,0,0.8), 0 0 30px rgba(34,211,238,0.06)",
+                  backdropFilter: "blur(24px)", overflow: "hidden", zIndex: 100,
+                }}
+                data-testid="dropdown-notifications"
+              >
+                <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Notifications</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontWeight: 600 }}>All caught up</span>
+                </div>
+                {NOTIFICATIONS.map(n => (
+                  <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", gap: 12, alignItems: "flex-start", background: n.unread ? "rgba(255,255,255,0.015)" : "transparent" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: n.color, boxShadow: `0 0 8px ${n.color}`, flexShrink: 0, marginTop: 5 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: n.unread ? "#fff" : "rgba(255,255,255,0.55)", marginBottom: 2 }}>{n.title}</p>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.4 }}>{n.body}</p>
+                    </div>
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", flexShrink: 0, marginTop: 2 }}>{n.time}</span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* User area */}
+        {user ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 12, borderLeft: "1px solid rgba(255,255,255,0.05)" }} data-testid="user-profile">
+            <div className="hidden sm:block" style={{ textAlign: "right" }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", lineHeight: 1.3 }}>{user.name}</p>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", lineHeight: 1.3 }}>{user.email}</p>
+            </div>
+            <motion.div whileHover={{ scale: 1.08 }} style={{
               width: 34, height: 34, borderRadius: "50%",
               background: "linear-gradient(135deg, #22d3ee, #a855f7)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 11, fontWeight: 900, color: "#fff",
               boxShadow: "0 0 20px rgba(34,211,238,0.5)", flexShrink: 0, cursor: "pointer",
-            }}>AS</motion.div>
-        </div>
+            }}>
+              {initials}
+            </motion.div>
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 12, borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              data-testid="button-header-login"
+              onClick={() => onOpenAuth("login")}
+              style={{
+                padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)",
+                fontSize: 12, fontWeight: 600, cursor: "pointer",
+              }}>
+              Log In
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              data-testid="button-header-signup"
+              onClick={() => onOpenAuth("signup")}
+              style={{
+                padding: "7px 14px", borderRadius: 8, border: "none",
+                background: "linear-gradient(135deg, #22d3ee, #a855f7)",
+                color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                boxShadow: "0 0 16px rgba(34,211,238,0.3)",
+              }}>
+              Sign Up
+            </motion.button>
+          </div>
+        )}
       </div>
     </header>
   );
@@ -550,7 +679,18 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
 export default function Dashboard() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDonut, setActiveDonut] = useState(0);
-  const [scanPos, setScanPos] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [comingSoon, setComingSoon] = useState<string | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authView, setAuthView] = useState<AuthView>("login");
+  const [user, setUser] = useState<{ name: string; email: string } | null>(() => {
+    try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
+
+  const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
+  const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); openAuth("login"); };
+  const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
+  const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
   const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports"] });
 
@@ -580,7 +720,13 @@ export default function Dashboard() {
     { id: "CAS-7836", name: "Ananya Joshi",  status: "pending",    funds: 8,  date: "30 Mar 2026", initials: "AJ", avatarColor: "#a855f7" },
     { id: "CAS-7835", name: "Dev Malhotra",  status: "completed",  funds: 21, date: "30 Mar 2026", initials: "DM", avatarColor: "#34d399" },
   ];
-  const tableRows = recentRows.length > 0 ? recentRows : FALLBACK_ROWS;
+  const allRows = recentRows.length > 0 ? recentRows : FALLBACK_ROWS;
+  const tableRows = searchQuery.trim()
+    ? allRows.filter(r =>
+        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(r.id).toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : allRows;
 
   const KPI_CARDS = [
     { label: "Reports Analyzed", value: totalReports || 2841, suffix: "", trend: "+18.4%", up: true, color: "#22d3ee",  sub: "CAS files processed", icon: FileText },
@@ -613,8 +759,35 @@ export default function Dashboard() {
         backgroundSize: "48px 48px" }} />
       <Particles />
 
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
-      <TopBar onMenu={() => setMobileOpen(true)} />
+      {/* Coming Soon toast */}
+      <AnimatePresence>
+        {comingSoon && (
+          <motion.div
+            initial={{ opacity: 0, y: 60, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 60, x: "-50%" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            style={{
+              position: "fixed", bottom: 28, left: "50%", zIndex: 200,
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "12px 22px", borderRadius: 14,
+              background: "rgba(7,10,18,0.97)", border: "1px solid rgba(245,158,11,0.35)",
+              boxShadow: "0 16px 48px rgba(0,0,0,0.7), 0 0 24px rgba(245,158,11,0.15)",
+              backdropFilter: "blur(24px)",
+            }}
+          >
+            <Construction size={15} style={{ color: "#f59e0b" }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{comingSoon}</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>is coming soon</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={authOpen} defaultView={authView} onClose={() => setAuthOpen(false)} onSuccess={handleAuthSuccess} />
+
+      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onLogout={handleLogout} comingSoonToast={comingSoonToast} />
+      <TopBar onMenu={() => setMobileOpen(true)} user={user} onOpenAuth={openAuth} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <main style={{ marginLeft: 0, paddingTop: 56, minHeight: "100vh", position: "relative", zIndex: 1 }} className="md-ml-60">
 
@@ -644,7 +817,7 @@ export default function Dashboard() {
               <h1 style={{ fontSize: "clamp(22px,3vw,34px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1.1, marginBottom: 8 }}>
                 Welcome back,{" "}
                 <span style={{ background: "linear-gradient(135deg, #22d3ee, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  Arjun
+                  {user ? user.name.split(" ")[0] : "Guest"}
                 </span>
               </h1>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
