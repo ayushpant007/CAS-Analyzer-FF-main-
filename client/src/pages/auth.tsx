@@ -194,7 +194,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   const handleGoogleLogin = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      setError("Google Sign-In is not configured yet. Please set up VITE_GOOGLE_CLIENT_ID.");
+      setError("Google Sign-In is not configured. Please contact support.");
       return;
     }
     const redirectUri = `${window.location.origin}/auth/google/callback`;
@@ -204,6 +204,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       response_type: "token",
       scope: "openid email profile",
       include_granted_scopes: "true",
+      prompt: "select_account",
     });
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };

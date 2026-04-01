@@ -677,6 +677,7 @@ function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
 
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const [, navigate] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDonut, setActiveDonut] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -688,7 +689,7 @@ export default function Dashboard() {
   });
 
   const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
-  const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); };
+  const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); navigate("/landing"); };
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
   const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
