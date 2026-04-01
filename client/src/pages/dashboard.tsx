@@ -777,33 +777,36 @@ export default function Dashboard() {
   const [comingSoon, setComingSoon] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<AuthView>("login");
-  const [showLaunchPopup, setShowLaunchPopup] = useState(false);
+  // Read ?welcome=1 synchronously so it's available on first render
+  const [showLaunchPopup, setShowLaunchPopup] = useState(() => {
+    return new URLSearchParams(window.location.search).get("welcome") === "1";
+  });
   const [user, setUser] = useState<{ name: string; email: string } | null>(() => {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }
   });
 
-  // Route protection + just-logged-in flag
+  // Route protection
   useEffect(() => {
-    const savedUser = localStorage.getItem("cas_user");
-    if (!savedUser) {
+    if (!localStorage.getItem("cas_user")) {
       navigate("/landing");
-      return;
-    }
-    if (localStorage.getItem("cas_justLoggedIn") === "true") {
-      localStorage.removeItem("cas_justLoggedIn");
-      setShowLaunchPopup(true);
     }
   }, [navigate]);
 
+  // Clean ?welcome=1 from URL and handle FF-AI redirect params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const name = params.get("name");
     const email = params.get("email");
+    const welcome = params.get("welcome");
+
     if (name && email) {
       const u = { name, email };
       localStorage.setItem("cas_user", JSON.stringify(u));
-      localStorage.setItem("cas_justLoggedIn", "true");
       setUser(u);
+      setShowLaunchPopup(true);
+    }
+
+    if (name || email || welcome) {
       window.history.replaceState({}, "", "/dashboard");
     }
   }, []);
@@ -811,7 +814,6 @@ export default function Dashboard() {
   const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
   const handleLogout = () => {
     localStorage.removeItem("cas_user");
-    localStorage.removeItem("cas_justLoggedIn");
     setUser(null);
     navigate("/landing");
   };
