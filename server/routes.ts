@@ -11,6 +11,7 @@ import { promisify } from "util";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { fetchNavForScheme, fetchNavByISIN, findSchemeCode, searchSchemeCodes } from "./mfapi";
@@ -31,7 +32,10 @@ const GEMINI_KEYS = [
 ].filter(Boolean) as string[];
 
 // ── OTP store (in-memory, 10 min expiry) ──────────────────────────────────────
-const otpStore = new Map<string, { otp: string; expiresAt: number; name: string }>();
+const otpStore = new Map<string, { otp: string; expiresAt: number; name: string; password?: string; mobile?: string }>();
+
+// ── Password reset token store (in-memory, 1 hour expiry) ─────────────────────
+const resetTokenStore = new Map<string, { email: string; expiresAt: number }>();
 
 function createTransporter() {
   const user = process.env.SMTP_EMAIL;
@@ -447,11 +451,11 @@ ${text}`;
 
   // ── Auth OTP Routes ─────────────────────────────────────────────────────────
   app.post("/api/auth/send-otp", async (req, res) => {
-    const { email, name = "" } = req.body as { email: string; name?: string };
+    const { email, name = "", password = "", mobile = "" } = req.body as { email: string; name?: string; password?: string; mobile?: string };
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     const otp = generateOtp();
-    otpStore.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000, name });
+    otpStore.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000, name, password, mobile });
 
     const transporter = createTransporter();
     if (!transporter) {
@@ -480,7 +484,7 @@ ${text}`;
     }
   });
 
-  app.post("/api/auth/verify-otp", (req, res) => {
+  app.post("/api/auth/verify-otp", async (req, res) => {
     const { email, otp } = req.body as { email: string; otp: string };
     if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
 
@@ -493,7 +497,98 @@ ${text}`;
     if (record.otp !== otp.trim()) return res.status(400).json({ error: "Incorrect code. Please try again." });
 
     otpStore.delete(email.toLowerCase());
+
+    // If this was a signup OTP (has password), save user to DB
+    if (record.password) {
+      try {
+        const existing = await storage.getUserByEmail(email);
+        if (!existing) {
+          const passwordHash = await bcrypt.hash(record.password, 10);
+          await storage.createUser({
+            name: record.name || email.split("@")[0],
+            email: email.toLowerCase(),
+            passwordHash,
+            mobile: record.mobile || null,
+          });
+        }
+      } catch (err: any) {
+        console.error("[Auth] User save error:", err.message);
+      }
+    }
+
     res.json({ ok: true, name: record.name, email: email.toLowerCase() });
+  });
+
+  // ── Forgot Password – send reset link ────────────────────────────────────────
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    const { email } = req.body as { email: string };
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const user = await storage.getUserByEmail(email);
+    if (!user) return res.status(404).json({ error: "No account found with this email address." });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    resetTokenStore.set(token, { email: email.toLowerCase(), expiresAt: Date.now() + 60 * 60 * 1000 });
+
+    const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${token}`;
+
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.log(`[RESET] Link for ${email}: ${resetUrl} (SMTP not configured)`);
+      return res.json({ ok: true, dev: true });
+    }
+
+    try {
+      await transporter.sendMail({
+        from: `"CAS Analyzer" <${process.env.SMTP_EMAIL}>`,
+        to: email,
+        subject: "Reset your CAS Analyzer password",
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#070a12;color:#fff;border-radius:12px;">
+            <h2 style="color:#7c3aed;margin-bottom:8px;">Reset your password</h2>
+            <p style="color:rgba(255,255,255,0.6);margin-bottom:24px;">Click the button below to set a new password. This link expires in 1 hour.</p>
+            <a href="${resetUrl}" style="display:block;text-align:center;background:#7c3aed;color:#fff;text-decoration:none;padding:14px 24px;border-radius:8px;font-weight:700;font-size:16px;">Reset Password</a>
+            <p style="color:rgba(255,255,255,0.3);font-size:12px;margin-top:24px;">If you didn't request this, you can safely ignore this email. Your password will not be changed.</p>
+          </div>
+        `,
+      });
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("[RESET] Email send error:", err.message);
+      res.status(500).json({ error: "Failed to send reset email. Please try again." });
+    }
+  });
+
+  // ── Reset Password – set new password via token ───────────────────────────────
+  app.post("/api/auth/reset-password", async (req, res) => {
+    const { token, newPassword } = req.body as { token: string; newPassword: string };
+    if (!token || !newPassword) return res.status(400).json({ error: "Token and new password are required." });
+
+    const record = resetTokenStore.get(token);
+    if (!record) return res.status(400).json({ error: "Invalid or expired reset link. Please request a new one." });
+    if (Date.now() > record.expiresAt) {
+      resetTokenStore.delete(token);
+      return res.status(400).json({ error: "This reset link has expired. Please request a new one." });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await storage.updateUserPassword(record.email, passwordHash);
+    resetTokenStore.delete(token);
+    res.json({ ok: true });
+  });
+
+  // ── Login with email/password ─────────────────────────────────────────────────
+  app.post("/api/auth/login", async (req, res) => {
+    const { email, password } = req.body as { email: string; password: string };
+    if (!email || !password) return res.status(400).json({ error: "Email and password are required." });
+
+    const user = await storage.getUserByEmail(email);
+    if (!user) return res.status(401).json({ error: "Invalid email or password." });
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) return res.status(401).json({ error: "Invalid email or password." });
+
+    res.json({ ok: true, name: user.name, email: user.email });
   });
   // ────────────────────────────────────────────────────────────────────────────
 

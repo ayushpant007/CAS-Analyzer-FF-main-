@@ -9,6 +9,7 @@ import LandingPage from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import AuthPage from "@/pages/auth";
 import GoogleCallback from "@/pages/google-callback";
+import ResetPasswordPage from "@/pages/reset-password";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/home" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/auth/google/callback" component={GoogleCallback} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/reports/:id/concise" component={ConciseReport} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />

@@ -32,7 +32,7 @@ export async function firebaseUpdatePassword(newPassword: string) {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
-export type AuthView = "login" | "signup" | "verify" | "forgot-email" | "forgot-verify" | "forgot-reset";
+export type AuthView = "login" | "signup" | "verify" | "forgot-email" | "forgot-verify" | "forgot-reset" | "forgot-sent";
 
 interface FormState {
   firstName: string; lastName: string; mobile: string; email: string;
@@ -175,7 +175,12 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, name: `${form.firstName} ${form.lastName}`.trim() }),
+        body: JSON.stringify({
+          email: form.email,
+          name: `${form.firstName} ${form.lastName}`.trim(),
+          password: form.password,
+          mobile: form.mobile,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Failed to send code. Please try again."); return; }
@@ -188,11 +193,17 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     if (!form.email || !form.password) { setError("Please enter your email and password."); return; }
     setLoading(true);
     try {
-      await firebaseSignIn(form.email, form.password);
-      const name = form.email.split("@")[0];
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Invalid credentials. Please try again."); return; }
+      const name = data.name || form.email.split("@")[0];
       if (onSuccess) { onSuccess({ name, email: form.email }); }
       else { onClose(); navigate("/home"); }
-    } catch { setError("Invalid credentials. Please try again."); }
+    } catch { setError("Login failed. Please try again."); }
     finally { setLoading(false); }
   };
 
@@ -252,16 +263,16 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     if (!form.resetEmail) { setError("Please enter your email address."); return; }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/send-otp", {
+      const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.resetEmail }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Failed to send reset code."); return; }
-      go("forgot-verify", 1);
+      if (!res.ok) { setError(data.error || "Failed to send reset link."); return; }
+      go("forgot-sent", 1);
     }
-    catch { setError("Failed to send reset code."); }
+    catch { setError("Failed to send reset link."); }
     finally { setLoading(false); }
   };
 
@@ -369,6 +380,27 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     </div>
   );
 
+  const renderForgotSent = () => (
+    <div className="space-y-5 text-center">
+      <div className="flex justify-center">
+        <div className="w-14 h-14 rounded-2xl bg-[#22d3ee]/10 border border-[#22d3ee]/30 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+          <Mail size={24} className="text-[#22d3ee]" />
+        </div>
+      </div>
+      <div>
+        <p className="text-sm text-white/60">
+          A password reset link has been sent to
+        </p>
+        <p className="text-[#00d4ff] font-semibold mt-1">{form.resetEmail}</p>
+        <p className="text-xs text-white/40 mt-3">Click the link in your email to set a new password. It expires in 1 hour.</p>
+      </div>
+      <button type="button" data-testid="link-back-to-login" onClick={() => go("login", -1)}
+        className="text-xs text-white/40 hover:text-[#00d4ff] transition-colors">
+        Back to Login
+      </button>
+    </div>
+  );
+
   const viewConfig: Record<AuthView, { title: string; subtitle: string; back?: AuthView; content: () => React.ReactNode }> = {
     login:         { title: "Welcome Back",     subtitle: "Sign in to access CAS Analyzer",  content: renderLogin },
     signup:        { title: "Create Account",   subtitle: "Join CAS Analyzer today",          content: renderSignUp },
@@ -376,6 +408,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     "forgot-email":  { title: "Forgot Password", subtitle: "Reset your credentials", back: "login", content: renderForgotEmail },
     "forgot-verify": { title: "Check Your Email", subtitle: "Enter the reset code", back: "forgot-email", content: renderForgotVerify },
     "forgot-reset":  { title: "New Password",   subtitle: "Create a strong password", content: renderForgotReset },
+    "forgot-sent":   { title: "Check Your Email", subtitle: "Reset link sent", content: renderForgotSent },
   };
 
   const current = viewConfig[view];

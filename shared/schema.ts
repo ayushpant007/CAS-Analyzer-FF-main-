@@ -4,6 +4,19 @@ import { z } from "zod";
 
 export * from "./models/chat";
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  mobile: text("mobile"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull(),
