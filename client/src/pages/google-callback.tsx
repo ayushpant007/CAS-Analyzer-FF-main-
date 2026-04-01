@@ -36,6 +36,7 @@ export default function GoogleCallback() {
         const name = info.name ?? info.email?.split("@")[0] ?? "Google User";
         const email = info.email ?? "";
         localStorage.setItem("cas_user", JSON.stringify({ name, email }));
+        localStorage.setItem("cas_justLoggedIn", "true");
         navigate("/dashboard");
       })
       .catch(() => {

@@ -494,6 +494,7 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const handleSuccess = (u: { name: string; email: string }) => {
     localStorage.setItem("cas_user", JSON.stringify(u));
+    localStorage.setItem("cas_justLoggedIn", "true");
     navigate("/dashboard");
   };
   return (

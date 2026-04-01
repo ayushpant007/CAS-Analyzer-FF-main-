@@ -668,6 +668,106 @@ function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
   );
 }
 
+// ─── CAS Launch Popup ──────────────────────────────────────────────────────────
+function CASLaunchPopup({ onClose }: { onClose: () => void }) {
+  const [progress, setProgress] = useState(100);
+  const DURATION = 6000;
+  const INTERVAL = 50;
+
+  useEffect(() => {
+    const step = (INTERVAL / DURATION) * 100;
+    const timer = setInterval(() => {
+      setProgress(p => {
+        if (p <= 0) { clearInterval(timer); onClose(); return 0; }
+        return p - step;
+      });
+    }, INTERVAL);
+    return () => clearInterval(timer);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -80, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -60, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 300, damping: 28 }}
+      style={{
+        position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+        zIndex: 9999, width: "min(440px, calc(100vw - 32px))",
+      }}
+    >
+      <div style={{
+        background: "rgba(8,15,31,0.85)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(0,212,255,0.25)",
+        borderRadius: 20,
+        padding: "18px 20px 14px",
+        boxShadow: "0 0 40px rgba(0,212,255,0.15), 0 20px 60px rgba(0,0,0,0.5)",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {/* top glow line */}
+        <div style={{ position: "absolute", top: 0, left: 16, right: 16, height: 1, background: "linear-gradient(90deg,transparent,#00d4ff,transparent)" }} />
+
+        {/* close */}
+        <button
+          onClick={onClose}
+          data-testid="button-popup-close"
+          style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", lineHeight: 1 }}
+        >
+          <X size={15} />
+        </button>
+
+        {/* content */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: "linear-gradient(135deg,rgba(0,212,255,0.2),rgba(124,58,237,0.2))",
+            border: "1px solid rgba(0,212,255,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <span style={{ fontSize: 22 }}>🚀</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>
+              Ready to launch CAS Analyzer
+            </p>
+            <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
+              You're signed in. Explore your portfolio insights.
+            </p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onClose}
+            data-testid="button-popup-go"
+            style={{
+              flexShrink: 0, padding: "8px 16px", borderRadius: 10, border: "none", cursor: "pointer",
+              background: "linear-gradient(135deg,#00d4ff,#7c3aed)",
+              color: "#fff", fontSize: 12, fontWeight: 700,
+              boxShadow: "0 0 16px rgba(0,212,255,0.35)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Get Started
+          </motion.button>
+        </div>
+
+        {/* progress bar */}
+        <div style={{ marginTop: 12, height: 3, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+          <div style={{
+            height: "100%", borderRadius: 99,
+            background: "linear-gradient(90deg,#00d4ff,#7c3aed)",
+            width: `${progress}%`,
+            transition: `width ${INTERVAL}ms linear`,
+          }} />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [, navigate] = useLocation();
@@ -677,9 +777,23 @@ export default function Dashboard() {
   const [comingSoon, setComingSoon] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<AuthView>("login");
+  const [showLaunchPopup, setShowLaunchPopup] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(() => {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }
   });
+
+  // Route protection + just-logged-in flag
+  useEffect(() => {
+    const savedUser = localStorage.getItem("cas_user");
+    if (!savedUser) {
+      navigate("/landing");
+      return;
+    }
+    if (localStorage.getItem("cas_justLoggedIn") === "true") {
+      localStorage.removeItem("cas_justLoggedIn");
+      setShowLaunchPopup(true);
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -688,13 +802,19 @@ export default function Dashboard() {
     if (name && email) {
       const u = { name, email };
       localStorage.setItem("cas_user", JSON.stringify(u));
+      localStorage.setItem("cas_justLoggedIn", "true");
       setUser(u);
       window.history.replaceState({}, "", "/dashboard");
     }
   }, []);
 
   const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
-  const handleLogout = () => { localStorage.removeItem("cas_user"); setUser(null); navigate("/landing"); };
+  const handleLogout = () => {
+    localStorage.removeItem("cas_user");
+    localStorage.removeItem("cas_justLoggedIn");
+    setUser(null);
+    navigate("/landing");
+  };
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
   const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
@@ -779,6 +899,11 @@ export default function Dashboard() {
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>is coming soon</span>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* CAS Launch Popup */}
+      <AnimatePresence>
+        {showLaunchPopup && <CASLaunchPopup onClose={() => setShowLaunchPopup(false)} />}
       </AnimatePresence>
 
       {/* Auth Modal */}
