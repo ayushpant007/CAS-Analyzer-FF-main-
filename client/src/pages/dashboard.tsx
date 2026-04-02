@@ -86,16 +86,7 @@ const STYLE = `
 `;
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
-const THIRTY_DAYS = Array.from({ length: 30 }, (_, i) => {
-  const d = new Date(2026, 2, 1 + i);
-  return {
-    day: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    uploads: Math.floor(8 + Math.random() * 22 + Math.sin(i / 3.5) * 6),
-    analyzed: Math.floor(6 + Math.random() * 18 + Math.cos(i / 4) * 5),
-  };
-});
-
-const CATEGORY_DATA = [
+const DEFAULT_CATEGORY_DATA = [
   { name: "Equity",  value: 54, fill: "#22d3ee" },
   { name: "Debt",    value: 24, fill: "#a855f7" },
   { name: "Hybrid",  value: 14, fill: "#f59e0b" },
@@ -116,15 +107,14 @@ const SPARKLINES: Record<string, number[]> = {
   "Avg Funds / CAS":  [9, 10, 11, 10, 12, 11, 13, 12, 13, 14],
 };
 
-const TICKER_ITEMS = [
-  { label: "NIFTY 50",    value: "+1.24%", up: true },
-  { label: "SENSEX",      value: "+0.98%", up: true },
-  { label: "NIFTY BANK",  value: "-0.31%", up: false },
-  { label: "GOLD ETF",    value: "+0.57%", up: true },
-  { label: "NIFTY IT",    value: "+2.11%", up: true },
-  { label: "NIFTY MID",   value: "+1.56%", up: true },
-  { label: "SMALL CAP",   value: "-0.74%", up: false },
-  { label: "DEBT FUNDS",  value: "+0.12%", up: true },
+const FALLBACK_TICKER = [
+  { label: "NIFTY 50",   value: "--", up: true },
+  { label: "SENSEX",     value: "--", up: true },
+  { label: "NIFTY BANK", value: "--", up: true },
+  { label: "NIFTY IT",   value: "--", up: true },
+  { label: "NIFTY MID",  value: "--", up: true },
+  { label: "GOLD ETF",   value: "--", up: true },
+  { label: "SMALL CAP",  value: "--", up: true },
 ];
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string; icon: typeof CheckCircle2 }> = {
@@ -317,7 +307,13 @@ function Tip({ active, payload, label }: any) {
 
 // ─── Market Ticker ─────────────────────────────────────────────────────────────
 function MarketTicker() {
-  const doubled = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  const { data: indices } = useQuery<{ label: string; value: string; up: boolean }[]>({
+    queryKey: ["/api/market/indices"],
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 4 * 60 * 1000,
+  });
+  const items = indices && indices.length > 0 ? indices : FALLBACK_TICKER;
+  const doubled = [...items, ...items];
   return (
     <div style={{
       borderTop: "1px solid rgba(255,255,255,0.04)",
@@ -333,7 +329,7 @@ function MarketTicker() {
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 28px", borderRight: "1px solid rgba(255,255,255,0.04)", flexShrink: 0 }}>
             <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em" }}>{t.label}</span>
             <span style={{ fontSize: 10, fontWeight: 800, color: t.up ? "#34d399" : "#f87171", letterSpacing: "0.02em" }}>
-              {t.up ? "▲" : "▼"} {t.value}
+              {t.value !== "--" ? (t.up ? "▲" : "▼") : ""} {t.value}
             </span>
           </div>
         ))}
@@ -816,7 +812,9 @@ export default function Dashboard() {
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
   const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
-  const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports"] });
+  const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports"], refetchInterval: 30000 });
+  const { data: timelineData = [] } = useQuery<{ day: string; uploads: number; analyzed: number }[]>({ queryKey: ["/api/reports/timeline"], refetchInterval: 30000 });
+  const { data: categoryData = DEFAULT_CATEGORY_DATA } = useQuery<{ name: string; value: number; fill: string }[]>({ queryKey: ["/api/reports/categories"], refetchInterval: 30000 });
 
   const totalReports = reports.length;
   const completedReports = reports.filter((r: any) => r.status === "completed" || r.analysisData).length;
@@ -1099,7 +1097,7 @@ export default function Dashboard() {
               </div>
               <div style={{ height: 230 }} data-testid="chart-activity">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={THIRTY_DAYS} margin={{ top: 6, right: 4, left: -22, bottom: 0 }}>
+                  <AreaChart data={timelineData} margin={{ top: 6, right: 4, left: -22, bottom: 0 }}>
                     <defs>
                       <linearGradient id="gc" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.4} />
@@ -1135,22 +1133,22 @@ export default function Dashboard() {
               <h2 style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginBottom: 18, letterSpacing: "-0.01em" }}>Fund Categories</h2>
 
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 4, position: "relative" }}>
-                <AnimatedDonut data={CATEGORY_DATA} activeIdx={activeDonut} onHover={setActiveDonut} />
+                <AnimatedDonut data={categoryData} activeIdx={Math.min(activeDonut, categoryData.length - 1)} onHover={setActiveDonut} />
                 <div style={{
                   position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
                   textAlign: "center", pointerEvents: "none",
                 }}>
-                  <p style={{ fontSize: 22, fontWeight: 900, color: CATEGORY_DATA[activeDonut].fill, lineHeight: 1, fontFamily: "monospace" }}>
-                    {CATEGORY_DATA[activeDonut].value}%
+                  <p style={{ fontSize: 22, fontWeight: 900, color: categoryData[Math.min(activeDonut, categoryData.length - 1)]?.fill, lineHeight: 1, fontFamily: "monospace" }}>
+                    {categoryData[Math.min(activeDonut, categoryData.length - 1)]?.value}%
                   </p>
                   <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {CATEGORY_DATA[activeDonut].name}
+                    {categoryData[Math.min(activeDonut, categoryData.length - 1)]?.name}
                   </p>
                 </div>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {CATEGORY_DATA.map((d, i) => (
+                {categoryData.map((d, i) => (
                   <motion.div
                     key={d.name}
                     onClick={() => setActiveDonut(i)}

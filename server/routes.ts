@@ -230,8 +230,118 @@ ${text}`;
     res.json(list);
   });
 
+  // ── Dashboard: 30-day upload timeline from real DB data ───────────────────────
+  app.get("/api/reports/timeline", async (req, res) => {
+    try {
+      const list = await storage.getAllReports();
+      const today = new Date();
+      const days = Array.from({ length: 30 }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() - (29 - i));
+        d.setHours(0, 0, 0, 0);
+        return d;
+      });
+      const result = days.map(d => {
+        const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        const nextDay = new Date(d); nextDay.setDate(d.getDate() + 1);
+        const uploads = list.filter(r => {
+          const t = new Date(r.createdAt!);
+          return t >= d && t < nextDay;
+        }).length;
+        const analyzed = list.filter(r => {
+          const t = new Date(r.createdAt!);
+          const hasAnalysis = (r.analysis as any)?.funds?.length > 0;
+          return t >= d && t < nextDay && hasAnalysis;
+        }).length;
+        return { day: label, uploads, analyzed };
+      });
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── Dashboard: fund category distribution from real report data ───────────────
+  app.get("/api/reports/categories", async (req, res) => {
+    try {
+      const list = await storage.getAllReports();
+      const counts: Record<string, number> = {};
+      let total = 0;
+      for (const r of list) {
+        const funds: any[] = (r.analysis as any)?.funds ?? [];
+        for (const f of funds) {
+          const cat = (f.fund_category || f.category || "Other").trim();
+          const key = /equity/i.test(cat) ? "Equity"
+            : /debt|bond|liquid|money market/i.test(cat) ? "Debt"
+            : /hybrid|balanced/i.test(cat) ? "Hybrid"
+            : /gold|silver|commodity/i.test(cat) ? "Commodity"
+            : "Other";
+          counts[key] = (counts[key] || 0) + 1;
+          total++;
+        }
+      }
+      if (total === 0) {
+        return res.json([
+          { name: "Equity",  value: 54, fill: "#22d3ee" },
+          { name: "Debt",    value: 24, fill: "#a855f7" },
+          { name: "Hybrid",  value: 14, fill: "#f59e0b" },
+          { name: "Other",   value: 8,  fill: "#34d399" },
+        ]);
+      }
+      const COLOR: Record<string, string> = { Equity: "#22d3ee", Debt: "#a855f7", Hybrid: "#f59e0b", Commodity: "#f87171", Other: "#34d399" };
+      const result = Object.entries(counts).map(([name, cnt]) => ({
+        name, value: Math.round((cnt / total) * 100), fill: COLOR[name] || "#94a3b8",
+      })).sort((a, b) => b.value - a.value);
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── Dashboard: real-time market indices (Yahoo Finance) ───────────────────────
+  let marketCache: { data: any[]; ts: number } | null = null;
+  app.get("/api/market/indices", async (req, res) => {
+    try {
+      if (marketCache && Date.now() - marketCache.ts < 5 * 60 * 1000) {
+        return res.json(marketCache.data);
+      }
+      const SYMBOLS = [
+        { symbol: "^NSEI",    label: "NIFTY 50" },
+        { symbol: "^BSESN",   label: "SENSEX" },
+        { symbol: "^NSEBANK", label: "NIFTY BANK" },
+        { symbol: "^CNXIT",   label: "NIFTY IT" },
+        { symbol: "^NSEMDCP50", label: "NIFTY MID" },
+        { symbol: "GOLDBEES.NS", label: "GOLD ETF" },
+        { symbol: "NIFTYSMLCAP250.NS", label: "SMALL CAP" },
+      ];
+      const results = await Promise.allSettled(
+        SYMBOLS.map(({ symbol, label }) =>
+          fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`, {
+            headers: { "User-Agent": "Mozilla/5.0" },
+          })
+          .then(r => r.json())
+          .then(d => {
+            const meta = d?.chart?.result?.[0]?.meta;
+            if (!meta) return null;
+            const price = meta.regularMarketPrice ?? 0;
+            const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
+            const change = prev ? ((price - prev) / prev) * 100 : 0;
+            return { label, value: (change >= 0 ? "+" : "") + change.toFixed(2) + "%", up: change >= 0 };
+          })
+        )
+      );
+      const data = results
+        .map(r => r.status === "fulfilled" ? r.value : null)
+        .filter(Boolean) as any[];
+      if (data.length > 0) {
+        marketCache = { data, ts: Date.now() };
+        res.json(data);
+      } else {
+        res.json(marketCache?.data ?? []);
+      }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   app.get(api.reports.get.path, async (req, res) => {
-    const report = await storage.getReport(Number(req.params.id));
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid report ID" });
+    const report = await storage.getReport(id);
     if (!report) return res.status(404).json({ message: "Report not found" });
     res.json(report);
   });
