@@ -9,6 +9,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function Home() {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
+  const [autoAnalyzeNewReport, setAutoAnalyzeNewReport] = useState(false);
 
   const userEmail = (() => {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s)?.email ?? "" : ""; } catch { return ""; }
@@ -151,7 +152,7 @@ export default function Home() {
                     background: "radial-gradient(ellipse, #3b6fff 0%, transparent 70%)",
                   }}
                 />
-                <UploadCard onSuccess={setActiveReportId} userEmail={userEmail || undefined} />
+                <UploadCard onSuccess={(id) => { setAutoAnalyzeNewReport(true); setActiveReportId(id); }} userEmail={userEmail || undefined} />
               </motion.div>
 
               {/* Recent Reports List */}
@@ -173,7 +174,7 @@ export default function Home() {
                     {reportsList.map((report) => (
                       <div
                         key={report.id}
-                        onClick={() => setActiveReportId(report.id)}
+                        onClick={() => { setAutoAnalyzeNewReport(false); setActiveReportId(report.id); }}
                         className="group p-5 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300"
                         style={{
                           background: "rgba(15, 20, 50, 0.6)",
@@ -259,7 +260,7 @@ export default function Home() {
                   </p>
                 </div>
               ) : activeReport ? (
-                <ReportView report={activeReport} />
+                <ReportView report={activeReport} autoAnalyze={autoAnalyzeNewReport} />
               ) : (
                 <div className="text-center py-20">
                   <p style={{ color: "rgba(148,163,184,0.7)" }}>Report not found.</p>

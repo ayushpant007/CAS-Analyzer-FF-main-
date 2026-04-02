@@ -4,7 +4,7 @@ import { ArrowUpRight, TrendingUp, AlertTriangle, Lightbulb, PieChart as PieChar
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useMemo, Fragment } from "react";
+import { useState, useRef, useMemo, Fragment, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -322,6 +322,7 @@ const IDEAL_ALLOCATIONS: Record<string, Record<string, Record<string, string>>> 
 
 interface ReportViewProps {
   report: EnhancedReport;
+  autoAnalyze?: boolean;
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -441,8 +442,9 @@ const calculateRiskScore = (perf: any) => {
   };
 };
 
-export function ReportView({ report }: ReportViewProps) {
+export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
   const analysis = report.analysis as any;
+  const autoAnalyzedRef = useRef(false);
   const [, navigate] = useLocation();
   const [analyzingIsin, setAnalyzingIsin] = useState<string | null>(null);
   const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
@@ -772,6 +774,13 @@ export function ReportView({ report }: ReportViewProps) {
     }
     setIsAnalyzingAll(false);
   };
+
+  useEffect(() => {
+    if (autoAnalyze && !autoAnalyzedRef.current && (analysis?.mf_snapshot || []).length > 0) {
+      autoAnalyzedRef.current = true;
+      analyzeAll();
+    }
+  }, [autoAnalyze, report.id]);
 
   const classifyPerformance = (schemeReturns: any, benchmarkReturns: any) => {
     if (!schemeReturns || !benchmarkReturns) return null;
