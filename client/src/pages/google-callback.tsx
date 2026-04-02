@@ -32,10 +32,16 @@ export default function GoogleCallback() {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
       .then(r => r.json())
-      .then(info => {
+      .then(async info => {
         const name = info.name ?? info.email?.split("@")[0] ?? "Google User";
         const email = info.email ?? "";
         localStorage.setItem("cas_user", JSON.stringify({ name, email }));
+        // Log Google login to Google Sheets
+        await fetch("/api/auth/google-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email }),
+        }).catch(() => {});
         navigate("/dashboard?welcome=1");
       })
       .catch(() => {

@@ -38,6 +38,29 @@ const otpStore = new Map<string, { otp: string; expiresAt: number; name: string;
 // ── Password reset token store (in-memory, 1 hour expiry) ─────────────────────
 const resetTokenStore = new Map<string, { email: string; expiresAt: number }>();
 
+// ── Google Sheets helper ───────────────────────────────────────────────────────
+async function appendToSheet(row: (string | number)[]) {
+  const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const sheetId = process.env.GOOGLE_SHEETS_ID;
+  if (!serviceAccountJson || !sheetId) return;
+  try {
+    const credentials = JSON.parse(serviceAccountJson);
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+    const sheets = google.sheets({ version: "v4", auth });
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: "Sheet1!A:G",
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [row] },
+    });
+  } catch (err: any) {
+    console.error("[Sheets] Error writing to sheet:", err.message);
+  }
+}
+
 function createTransporter() {
   const user = process.env.SMTP_EMAIL;
   const pass = process.env.SMTP_PASSWORD;
@@ -512,33 +535,13 @@ ${text}`;
             mobile: record.mobile || null,
           });
 
-          // Send user details to Google Sheets via service account
-          try {
-            const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-            const sheetId = process.env.GOOGLE_SHEETS_ID;
-            if (serviceAccountJson && sheetId) {
-              const credentials = JSON.parse(serviceAccountJson);
-              const auth = new google.auth.GoogleAuth({
-                credentials,
-                scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-              });
-              const sheets = google.sheets({ version: "v4", auth });
-              const nameParts = (record.name || "").trim().split(" ");
-              const firstName = nameParts[0] || "";
-              const lastName = nameParts.slice(1).join(" ") || "";
-              await sheets.spreadsheets.values.append({
-                spreadsheetId: sheetId,
-                range: "Sheet1!A:D",
-                valueInputOption: "USER_ENTERED",
-                requestBody: {
-                  values: [[firstName, lastName, email.toLowerCase(), record.mobile || ""]],
-                },
-              });
-              console.log("[Sheets] User appended to Google Sheet:", email);
-            }
-          } catch (sheetsErr: any) {
-            console.error("[Sheets] Error writing to Google Sheet:", sheetsErr.message);
-          }
+          // Send user details to Google Sheets
+          const nameParts = (record.name || "").trim().split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+          const signedUpAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+          await appendToSheet([firstName, lastName, email.toLowerCase(), record.mobile || "", signedUpAt, "Signup", "Email"]);
+          console.log("[Sheets] New signup logged:", email);
         }
       } catch (err: any) {
         console.error("[Auth] User save error:", err.message);
@@ -617,7 +620,26 @@ ${text}`;
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ error: "Invalid email or password." });
 
+    // Log login to Google Sheets
+    const nameParts = (user.name || "").trim().split(" ");
+    const loginAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    await appendToSheet([nameParts[0] || "", nameParts.slice(1).join(" ") || "", user.email, user.mobile || "", loginAt, "Login", "Email"]);
+    console.log("[Sheets] Email login logged:", user.email);
+
     res.json({ ok: true, name: user.name, email: user.email });
+  });
+
+  // ── Google Login tracking ─────────────────────────────────────────────────────
+  app.post("/api/auth/google-login", async (req, res) => {
+    const { name, email } = req.body as { name: string; email: string };
+    if (!email) return res.status(400).json({ error: "Email is required." });
+
+    const nameParts = (name || "").trim().split(" ");
+    const loginAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    await appendToSheet([nameParts[0] || "", nameParts.slice(1).join(" ") || "", email.toLowerCase(), "", loginAt, "Login", "Google"]);
+    console.log("[Sheets] Google login logged:", email);
+
+    res.json({ ok: true });
   });
   // ────────────────────────────────────────────────────────────────────────────
 
