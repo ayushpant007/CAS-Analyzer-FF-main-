@@ -812,9 +812,10 @@ export default function Dashboard() {
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
   const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
-  const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports"], refetchInterval: 30000 });
-  const { data: timelineData = [] } = useQuery<{ day: string; uploads: number; analyzed: number }[]>({ queryKey: ["/api/reports/timeline"], refetchInterval: 30000 });
-  const { data: categoryData = DEFAULT_CATEGORY_DATA } = useQuery<{ name: string; value: number; fill: string }[]>({ queryKey: ["/api/reports/categories"], refetchInterval: 30000 });
+  const userEmail = user?.email ?? "";
+  const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports", userEmail], queryFn: () => fetch(`/api/reports${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
+  const { data: timelineData = [] } = useQuery<{ day: string; uploads: number; analyzed: number }[]>({ queryKey: ["/api/reports/timeline", userEmail], queryFn: () => fetch(`/api/reports/timeline${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
+  const { data: categoryData = DEFAULT_CATEGORY_DATA } = useQuery<{ name: string; value: number; fill: string }[]>({ queryKey: ["/api/reports/categories", userEmail], queryFn: () => fetch(`/api/reports/categories${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
 
   const totalReports = reports.length;
   const completedReports = reports.filter((r: any) => r.status === "completed" || r.analysisData).length;

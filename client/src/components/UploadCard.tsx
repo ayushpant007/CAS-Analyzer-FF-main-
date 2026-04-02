@@ -6,9 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface UploadCardProps {
   onSuccess: (reportId: number) => void;
+  userEmail?: string;
 }
 
-export function UploadCard({ onSuccess }: UploadCardProps) {
+export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState("");
   const [investorType, setInvestorType] = useState("Aggressive");
@@ -35,7 +36,7 @@ export function UploadCard({ onSuccess }: UploadCardProps) {
   const handleSubmit = () => {
     if (!file) return;
     analyze(
-      { file, password, investorType, ageGroup },
+      { file, password, investorType, ageGroup, userEmail },
       {
         onSuccess: (data) => {
           toast({ title: "Analysis Complete", description: "Your portfolio has been successfully analyzed." });

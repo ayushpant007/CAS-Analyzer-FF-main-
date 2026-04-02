@@ -48,7 +48,7 @@ export function useAnalyzeReport() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ file, password, investorType, ageGroup }: { file: File; password?: string; investorType?: string; ageGroup?: string }) => {
+    mutationFn: async ({ file, password, investorType, ageGroup, userEmail }: { file: File; password?: string; investorType?: string; ageGroup?: string; userEmail?: string }) => {
       const formData = new FormData();
       formData.append("file", file);
       if (password) {
@@ -59,6 +59,9 @@ export function useAnalyzeReport() {
       }
       if (ageGroup) {
         formData.append("ageGroup", ageGroup);
+      }
+      if (userEmail) {
+        formData.append("userEmail", userEmail);
       }
 
       const res = await fetch(api.analyze.path, {

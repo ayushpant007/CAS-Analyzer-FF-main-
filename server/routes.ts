@@ -238,7 +238,8 @@ ${text}`;
   // ── Dashboard: 30-day upload timeline from real DB data ───────────────────────
   app.get("/api/reports/timeline", async (req, res) => {
     try {
-      const list = await storage.getAllReports();
+      const email = req.query.email as string | undefined;
+      const list = email ? await storage.getReportsByEmail(email) : await storage.getAllReports();
       const today = new Date();
       const days = Array.from({ length: 30 }, (_, i) => {
         const d = new Date(today);
@@ -267,7 +268,8 @@ ${text}`;
   // ── Dashboard: fund category distribution from real report data ───────────────
   app.get("/api/reports/categories", async (req, res) => {
     try {
-      const list = await storage.getAllReports();
+      const email = req.query.email as string | undefined;
+      const list = email ? await storage.getReportsByEmail(email) : await storage.getAllReports();
       const counts: Record<string, number> = {};
       let total = 0;
       for (const r of list) {
