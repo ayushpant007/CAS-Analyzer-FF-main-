@@ -10,6 +10,10 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 export default function Home() {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
 
+  const userEmail = (() => {
+    try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s)?.email ?? "" : ""; } catch { return ""; }
+  })();
+
   const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
   const { data: reportsList } = useReports();
 
@@ -147,7 +151,7 @@ export default function Home() {
                     background: "radial-gradient(ellipse, #3b6fff 0%, transparent 70%)",
                   }}
                 />
-                <UploadCard onSuccess={setActiveReportId} />
+                <UploadCard onSuccess={setActiveReportId} userEmail={userEmail || undefined} />
               </motion.div>
 
               {/* Recent Reports List */}

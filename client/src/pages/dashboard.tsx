@@ -818,21 +818,21 @@ export default function Dashboard() {
   const { data: categoryData = DEFAULT_CATEGORY_DATA } = useQuery<{ name: string; value: number; fill: string }[]>({ queryKey: ["/api/reports/categories", userEmail], queryFn: () => fetch(`/api/reports/categories${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
 
   const totalReports = reports.length;
-  const completedReports = reports.filter((r: any) => r.status === "completed" || r.analysisData).length;
+  const completedReports = reports.filter((r: any) => r.analysis != null).length;
   const successRate = totalReports > 0 ? Math.round((completedReports / totalReports) * 100) : 0;
   const avgFunds = totalReports > 0
-    ? Math.round(reports.reduce((a: number, r: any) => a + (r.analysisData?.funds?.length ?? 0), 0) / totalReports)
+    ? Math.round(reports.reduce((a: number, r: any) => a + ((r.analysis?.mf_snapshot ?? r.analysis?.funds ?? []).length), 0) / totalReports)
     : 0;
 
   const tableRows = reports
     .slice(0, 8)
     .map((r: any, i: number) => ({
       id: r.id ?? `CAS-${i}`,
-      name: r.analysisData?.investorInfo?.name ?? r.filename ?? "Unknown",
-      status: r.status ?? "pending",
-      funds: r.analysisData?.funds?.length ?? 0,
+      name: r.analysis?.investor_name ?? r.filename ?? "Unknown",
+      status: r.analysis ? "completed" : "pending",
+      funds: (r.analysis?.mf_snapshot ?? r.analysis?.funds ?? []).length,
       date: r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—",
-      initials: (r.analysisData?.investorInfo?.name ?? "?").slice(0, 2).toUpperCase(),
+      initials: (r.analysis?.investor_name ?? r.filename ?? "?").slice(0, 2).toUpperCase(),
       avatarColor: ["#22d3ee","#a855f7","#34d399","#f59e0b"][i % 4],
     }))
     .filter(r =>
