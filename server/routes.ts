@@ -12,6 +12,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { google } from "googleapis";
 import { registerChatRoutes } from "./replit_integrations/chat/routes";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { fetchNavForScheme, fetchNavByISIN, findSchemeCode, searchSchemeCodes } from "./mfapi";
@@ -511,22 +512,32 @@ ${text}`;
             mobile: record.mobile || null,
           });
 
-          // Send user details to Google Sheets
-          const sheetsUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
-          if (sheetsUrl) {
-            const nameParts = (record.name || "").trim().split(" ");
-            const firstName = nameParts[0] || "";
-            const lastName = nameParts.slice(1).join(" ") || "";
-            fetch(sheetsUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                firstName,
-                lastName,
-                email: email.toLowerCase(),
-                mobile: record.mobile || "",
-              }),
-            }).catch(err => console.error("[Sheets] Webhook error:", err.message));
+          // Send user details to Google Sheets via service account
+          try {
+            const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+            const sheetId = process.env.GOOGLE_SHEETS_ID;
+            if (serviceAccountJson && sheetId) {
+              const credentials = JSON.parse(serviceAccountJson);
+              const auth = new google.auth.GoogleAuth({
+                credentials,
+                scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+              });
+              const sheets = google.sheets({ version: "v4", auth });
+              const nameParts = (record.name || "").trim().split(" ");
+              const firstName = nameParts[0] || "";
+              const lastName = nameParts.slice(1).join(" ") || "";
+              await sheets.spreadsheets.values.append({
+                spreadsheetId: sheetId,
+                range: "Sheet1!A:D",
+                valueInputOption: "USER_ENTERED",
+                requestBody: {
+                  values: [[firstName, lastName, email.toLowerCase(), record.mobile || ""]],
+                },
+              });
+              console.log("[Sheets] User appended to Google Sheet:", email);
+            }
+          } catch (sheetsErr: any) {
+            console.error("[Sheets] Error writing to Google Sheet:", sheetsErr.message);
           }
         }
       } catch (err: any) {
