@@ -778,7 +778,9 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
   useEffect(() => {
     if (autoAnalyze && !autoAnalyzedRef.current && (analysis?.mf_snapshot || []).length > 0) {
       autoAnalyzedRef.current = true;
-      analyzeAll();
+      analyzeAll().then(() => {
+        navigate(`/reports/${report.id}/concise`);
+      });
     }
   }, [autoAnalyze, report.id]);
 
