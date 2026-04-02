@@ -601,7 +601,7 @@ ${text}`;
     const transporter = createTransporter();
     if (!transporter) {
       console.log(`[OTP] Code for ${email}: ${otp} (SMTP not configured)`);
-      return res.json({ ok: true, dev: true });
+      return res.json({ ok: true, dev: true, devOtp: otp });
     }
 
     try {

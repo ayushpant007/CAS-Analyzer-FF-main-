@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Shield, ChevronLeft, RefreshCw, Zap, X } from "lucide-react";
@@ -23,9 +23,16 @@ const INITIAL_FORM: FormState = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function CodeInput({ onComplete, onResend, loading }: { onComplete: (code: string) => void; onResend: () => void; loading?: boolean }) {
+function CodeInput({ onComplete, onResend, loading, devOtp }: { onComplete: (code: string) => void; onResend: () => void; loading?: boolean; devOtp?: string }) {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (devOtp && devOtp.length === 6) {
+      const filled = devOtp.split("").slice(0, 6);
+      setDigits(filled);
+    }
+  }, [devOtp]);
 
   const isFull = digits.every(d => d !== "");
 
@@ -152,6 +159,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   const [showNewPass, setShowNewPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [devOtp, setDevOtp] = useState<string | undefined>(undefined);
 
   // Reset view when modal opens with a new defaultView
   const lastDefault = useRef(defaultView);
@@ -163,7 +171,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   }
 
   const setField = (key: keyof FormState) => (val: string) => setForm(f => ({ ...f, [key]: val }));
-  const go = useCallback((next: AuthView, direction = 1) => { setDir(direction); setError(""); setView(next); }, []);
+  const go = useCallback((next: AuthView, direction = 1) => { setDir(direction); setError(""); setView(next); if (next !== "verify") setDevOtp(undefined); }, []);
 
   const handleSignUp = async () => {
     if (!form.firstName || !form.email || !form.password) { setError("Please fill all required fields."); return; }
@@ -181,6 +189,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Failed to send code. Please try again."); return; }
+      if (data.devOtp) setDevOtp(data.devOtp);
       go("verify", 1);
     } catch { setError("Sign up failed. Please try again."); }
     finally { setLoading(false); }
@@ -228,11 +237,13 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     const email = view === "forgot-verify" ? form.resetEmail : form.email;
     if (!email) return;
     try {
-      await fetch("/api/auth/send-otp", {
+      const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name: `${form.firstName} ${form.lastName}`.trim() }),
       });
+      const data = await res.json();
+      if (data.devOtp) setDevOtp(data.devOtp);
     } catch { /* silent */ }
   };
 
@@ -344,10 +355,18 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
           <Shield size={24} className="text-[#00d4ff]" />
         </div>
       </div>
-      <p className="text-center text-sm text-white/50">
-        We sent a 6-digit code to <span className="text-[#00d4ff] font-medium">{form.email || "your email"}</span>.<br />Enter it below to continue.
-      </p>
-      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} loading={loading} />
+      {devOtp ? (
+        <div className="rounded-xl border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-4 py-3 text-center text-sm">
+          <p className="text-[#00d4ff] font-semibold mb-1">Your verification code:</p>
+          <p className="text-white text-2xl font-bold tracking-widest">{devOtp}</p>
+          <p className="text-white/40 text-xs mt-1">Code has been filled in automatically below</p>
+        </div>
+      ) : (
+        <p className="text-center text-sm text-white/50">
+          We sent a 6-digit code to <span className="text-[#00d4ff] font-medium">{form.email || "your email"}</span>.<br />Enter it below to continue.
+        </p>
+      )}
+      <CodeInput onComplete={handleVerifyCode} onResend={handleResendOtp} loading={loading} devOtp={devOtp} />
     </div>
   );
 
