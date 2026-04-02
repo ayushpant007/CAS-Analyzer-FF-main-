@@ -111,6 +111,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
     const investorType = req.body.investorType || "Aggressive";
     const ageGroup = req.body.ageGroup || "20-35";
+    const userEmail = req.body.userEmail ? String(req.body.userEmail).toLowerCase() : null;
 
     const tempPath = path.join(os.tmpdir(), `upload-${Date.now()}.pdf`);
 
@@ -210,6 +211,7 @@ ${text}`;
         filename: req.file.originalname,
         investorType,
         ageGroup,
+        userEmail: userEmail || null,
         analysis
       });
 
@@ -226,7 +228,10 @@ ${text}`;
   });
 
   app.get(api.reports.list.path, async (req, res) => {
-    const list = await storage.getAllReports();
+    const email = req.query.email as string | undefined;
+    const list = email
+      ? await storage.getReportsByEmail(email)
+      : await storage.getAllReports();
     res.json(list);
   });
 

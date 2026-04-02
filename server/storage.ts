@@ -6,6 +6,7 @@ export interface IStorage {
   createReport(report: InsertReport): Promise<Report>;
   getReport(id: number): Promise<Report | undefined>;
   getAllReports(): Promise<Report[]>;
+  getReportsByEmail(email: string): Promise<Report[]>;
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   updateUserPassword(email: string, passwordHash: string): Promise<void>;
@@ -22,6 +23,11 @@ export class DatabaseStorage implements IStorage {
   }
   async getAllReports(): Promise<Report[]> {
     return await db.select().from(reports).orderBy(desc(reports.createdAt));
+  }
+  async getReportsByEmail(email: string): Promise<Report[]> {
+    return await db.select().from(reports)
+      .where(eq(reports.userEmail, email.toLowerCase()))
+      .orderBy(desc(reports.createdAt));
   }
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();

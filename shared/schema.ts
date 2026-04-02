@@ -22,6 +22,7 @@ export const reports = pgTable("reports", {
   filename: text("filename").notNull(),
   investorType: text("investor_type"),
   ageGroup: text("age_group"),
+  userEmail: text("user_email"),
   analysis: jsonb("analysis").notNull(), // The AI result
   createdAt: timestamp("created_at").defaultNow(),
 });
