@@ -6,6 +6,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Sector,
   LineChart, Line,
+  BarChart, Bar, CartesianGrid, Legend,
 } from "recharts";
 import {
   LayoutDashboard, BarChart2, FileText, Settings, LogOut,
@@ -125,11 +126,10 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; ico
 };
 
 const NAV = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true, comingSoon: false },
-  { icon: BarChart2,        label: "Analytics",  href: "",           active: false, comingSoon: true  },
-  { icon: Upload,           label: "Upload CAS", href: "/home",      active: false, comingSoon: false },
-  { icon: FileText,         label: "Reports",    href: "/home",      active: false, comingSoon: false },
-  { icon: Settings,         label: "Settings",   href: "",           active: false, comingSoon: true  },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", section: "dashboard", active: true,  comingSoon: false },
+  { icon: BarChart2,        label: "Analytics", href: "",           section: "analytics", active: false, comingSoon: false },
+  { icon: Upload,           label: "Upload CAS",href: "/home",      section: "",          active: false, comingSoon: false },
+  { icon: FileText,         label: "Reports",   href: "/home",      section: "",          active: false, comingSoon: false },
 ];
 
 // ─── Floating Particles ────────────────────────────────────────────────────────
@@ -339,16 +339,19 @@ function MarketTicker() {
 }
 
 // ─── Sidebar ───────────────────────────────────────────────────────────────────
-function Sidebar({ mobileOpen, onClose, onLogout, comingSoonToast }: {
+function Sidebar({ mobileOpen, onClose, onLogout, comingSoonToast, activeSection, onSectionChange }: {
   mobileOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
   comingSoonToast: (label: string) => void;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
 }) {
   const [, nav] = useLocation();
 
   const handleNav = (item: typeof NAV[0]) => {
     if (item.comingSoon) { comingSoonToast(item.label); onClose(); return; }
+    if (item.section) { onSectionChange(item.section); onClose(); return; }
     nav(item.href); onClose();
   };
 
@@ -356,25 +359,26 @@ function Sidebar({ mobileOpen, onClose, onLogout, comingSoonToast }: {
     <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
       {NAV.map((item) => {
         const Icon = item.icon;
+        const isActive = item.section ? activeSection === item.section : item.active;
         return (
           <div key={item.label} style={{ position: "relative" }}>
             <button
               onClick={() => handleNav(item)}
-              title={item.comingSoon ? `${item.label} (Coming Soon)` : item.label}
+              title={item.label}
               data-testid={`nav-${item.label.toLowerCase().replace(/ /g, "-")}`}
               style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
                 padding: "11px 0", borderRadius: 12, border: "none",
-                cursor: item.comingSoon ? "not-allowed" : "pointer",
+                cursor: "pointer",
                 transition: "all 0.25s ease",
-                background: item.active ? "rgba(34,211,238,0.12)" : "transparent",
-                color: item.active ? "#22d3ee" : item.comingSoon ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.28)",
-                boxShadow: item.active ? "0 0 20px rgba(34,211,238,0.22), inset 0 0 14px rgba(34,211,238,0.06)" : "none",
+                background: isActive ? "rgba(34,211,238,0.12)" : "transparent",
+                color: isActive ? "#22d3ee" : "rgba(255,255,255,0.28)",
+                boxShadow: isActive ? "0 0 20px rgba(34,211,238,0.22), inset 0 0 14px rgba(34,211,238,0.06)" : "none",
                 position: "relative",
               }}
-              className={item.active || item.comingSoon ? "" : "sidebar-btn"}
+              className={isActive ? "" : "sidebar-btn"}
             >
-              {item.active && (
+              {isActive && (
                 <motion.span layoutId="active-pill" style={{
                   position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
                   width: 3, height: 22, borderRadius: 2,
@@ -383,13 +387,6 @@ function Sidebar({ mobileOpen, onClose, onLogout, comingSoonToast }: {
                 }} />
               )}
               <Icon size={18} />
-              {item.comingSoon && (
-                <span style={{
-                  position: "absolute", top: 4, right: 4,
-                  width: 5, height: 5, borderRadius: "50%",
-                  background: "#f59e0b", boxShadow: "0 0 6px #f59e0b",
-                }} />
-              )}
             </button>
           </div>
         );
@@ -462,23 +459,19 @@ function Sidebar({ mobileOpen, onClose, onLogout, comingSoonToast }: {
               <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
                 {NAV.map((item) => {
                   const Icon = item.icon;
+                  const isItemActive = item.section ? activeSection === item.section : item.active;
                   return (
                     <button key={item.label} onClick={() => handleNav(item)}
                       style={{
                         display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                        borderRadius: 10, border: "none", cursor: item.comingSoon ? "not-allowed" : "pointer", textAlign: "left",
-                        background: item.active ? "rgba(34,211,238,0.1)" : "transparent",
-                        color: item.active ? "#22d3ee" : item.comingSoon ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.4)",
+                        borderRadius: 10, border: "none", cursor: "pointer", textAlign: "left",
+                        background: isItemActive ? "rgba(34,211,238,0.1)" : "transparent",
+                        color: isItemActive ? "#22d3ee" : "rgba(255,255,255,0.4)",
                         fontSize: 13, fontWeight: 600, transition: "all 0.2s",
                         position: "relative",
                       }}>
                       <Icon size={16} />
                       {item.label}
-                      {item.comingSoon && (
-                        <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.12)", padding: "2px 6px", borderRadius: 4, border: "1px solid rgba(245,158,11,0.25)" }}>
-                          SOON
-                        </span>
-                      )}
                     </button>
                   );
                 })}
@@ -760,6 +753,235 @@ function CASLaunchPopup({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ─── Analytics View ────────────────────────────────────────────────────────────
+function AnalyticsView({ reports, user }: { reports: any[]; user: { name: string; email: string } | null }) {
+  const report = reports[0];
+  const analysis = report?.analysis;
+
+  if (!analysis) {
+    return (
+      <div style={{ padding: "40px 24px", textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
+        <BarChart2 size={48} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
+        <p style={{ fontSize: 15, fontWeight: 600 }}>No CAS data yet</p>
+        <p style={{ fontSize: 13, marginTop: 6 }}>Upload a CAS statement to see analytics</p>
+      </div>
+    );
+  }
+
+  const mfSnapshot: any[] = analysis.mf_snapshot ?? [];
+  const historicalVals: any[] = (analysis.historical_valuations ?? []).map((v: any) => ({
+    name: v.month_year,
+    value: Math.round(v.valuation),
+    change: v.change_percentage ?? 0,
+  }));
+  const transactions: any[] = analysis.transactions ?? [];
+  const categoryComparison: any[] = analysis.category_comparison ?? [];
+
+  // Build fund-category distribution from mf_snapshot
+  const catMap: Record<string, number> = {};
+  mfSnapshot.forEach((f: any) => {
+    const cat = /equity/i.test(f.fund_category) ? "Equity"
+      : /debt|bond|liquid|money market/i.test(f.fund_category) ? "Debt"
+      : /hybrid|balanced/i.test(f.fund_category) ? "Hybrid"
+      : /gold|silver|commodity/i.test(f.fund_category) ? "Commodity"
+      : "Other";
+    catMap[cat] = (catMap[cat] || 0) + (f.valuation || 0);
+  });
+  const catTotal = Object.values(catMap).reduce((a, b) => a + b, 0);
+  const PIE_COLORS: Record<string, string> = { Equity: "#22d3ee", Debt: "#a855f7", Hybrid: "#f59e0b", Commodity: "#f87171", Other: "#34d399" };
+  const catPieData = Object.entries(catMap).map(([name, value]) => ({
+    name, value: Math.round(value), pct: catTotal > 0 ? Math.round((value / catTotal) * 100) : 0, fill: PIE_COLORS[name] || "#94a3b8",
+  })).sort((a, b) => b.value - a.value);
+
+  // Top 5 funds
+  const top5 = [...mfSnapshot].sort((a, b) => (b.valuation || 0) - (a.valuation || 0)).slice(0, 5);
+
+  // Category vs Target
+  const catVsTarget = categoryComparison.map((c: any) => ({
+    name: c.category,
+    current: c.current_pct ?? 0,
+    target: c.target_pct ?? 0,
+  }));
+
+  // Transaction summary
+  const txSummary: Record<string, number> = {};
+  transactions.forEach((t: any) => {
+    txSummary[t.type] = (txSummary[t.type] || 0) + (t.amount || 0);
+  });
+
+  const totalValue = mfSnapshot.reduce((a: number, f: any) => a + (f.valuation || 0), 0);
+  const totalInvested = mfSnapshot.reduce((a: number, f: any) => a + (f.invested_amount || 0), 0);
+  const totalPL = mfSnapshot.reduce((a: number, f: any) => a + (f.unrealised_profit_loss || 0), 0);
+  const plPct = totalInvested > 0 ? ((totalPL / totalInvested) * 100).toFixed(1) : "0";
+
+  const fmtCr = (v: number) => v >= 10000000 ? `₹${(v / 10000000).toFixed(2)}Cr` : v >= 100000 ? `₹${(v / 100000).toFixed(1)}L` : `₹${v.toLocaleString("en-IN")}`;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+      style={{ padding: "28px 24px 48px", maxWidth: 1400 }}>
+
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(34,211,238,0.8)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 6 }}>
+          Analytics
+        </p>
+        <h2 style={{ fontSize: "clamp(20px,2.5vw,28px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>
+          Portfolio Analytics — <span style={{ background: "linear-gradient(135deg, #22d3ee, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{analysis.investor_name ?? "Unknown"}</span>
+        </h2>
+      </div>
+
+      {/* Summary KPI row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 28 }}>
+        {[
+          { label: "Portfolio Value", value: fmtCr(totalValue), color: "#22d3ee" },
+          { label: "Total Invested", value: fmtCr(totalInvested), color: "#a855f7" },
+          { label: "Unrealised P&L", value: fmtCr(totalPL), color: totalPL >= 0 ? "#34d399" : "#f87171" },
+          { label: "Overall Return", value: `${totalPL >= 0 ? "+" : ""}${plPct}%`, color: totalPL >= 0 ? "#34d399" : "#f87171" },
+          { label: "Funds", value: mfSnapshot.length, color: "#f59e0b" },
+          { label: "Transactions", value: transactions.length, color: "#22d3ee" },
+        ].map((kpi) => (
+          <div key={kpi.label} style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "18px 20px" }}>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600, marginBottom: 6 }}>{kpi.label}</p>
+            <p style={{ fontSize: 20, fontWeight: 800, color: kpi.color }}>{kpi.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts row 1: Historical + Pie */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, marginBottom: 20 }} className="chart-grid">
+
+        {/* Historical Valuations */}
+        <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "22px 20px" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Portfolio Value Trend</p>
+          {historicalVals.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={historicalVals} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="an-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} />
+                <Tooltip contentStyle={{ background: "#0d1020", border: "1px solid rgba(34,211,238,0.2)", borderRadius: 10, color: "#fff", fontSize: 12 }}
+                  formatter={(v: any) => [fmtCr(v), "Value"]} />
+                <Area type="monotone" dataKey="value" stroke="#22d3ee" strokeWidth={2} fill="url(#an-grad)" dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 13, paddingTop: 16 }}>No historical data available</p>}
+        </div>
+
+        {/* Category Pie */}
+        <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "22px 20px" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Fund Categories</p>
+          <PieChart width={180} height={180} style={{ margin: "0 auto" }}>
+            <Pie data={catPieData} dataKey="value" cx="50%" cy="50%" outerRadius={80} innerRadius={48} paddingAngle={3}>
+              {catPieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+            </Pie>
+            <Tooltip contentStyle={{ background: "#0d1020", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12, color: "#fff" }}
+              formatter={(v: any, _: any, props: any) => [`${fmtCr(v)} (${props.payload.pct}%)`, props.payload.name]} />
+          </PieChart>
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+            {catPieData.map((c) => (
+              <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.fill, flexShrink: 0 }} />
+                <span style={{ color: "rgba(255,255,255,0.5)", flex: 1 }}>{c.name}</span>
+                <span style={{ color: "#fff", fontWeight: 700 }}>{c.pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Charts row 2: Top Funds + Category vs Target */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }} className="chart-grid">
+
+        {/* Top Funds */}
+        <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "22px 20px" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Top Funds by Value</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {top5.map((f: any, i: number) => {
+              const pct = totalValue > 0 ? ((f.valuation / totalValue) * 100).toFixed(1) : "0";
+              const pl = f.unrealised_profit_loss ?? 0;
+              return (
+                <div key={i}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 12 }}>
+                    <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: 600, maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.scheme_name}</span>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <span style={{ color: "#fff", fontWeight: 700 }}>{fmtCr(f.valuation)}</span>
+                      <span style={{ color: pl >= 0 ? "#34d399" : "#f87171", fontWeight: 700 }}>{pl >= 0 ? "+" : ""}{fmtCr(Math.abs(pl))}</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #22d3ee, #a855f7)", width: `${pct}%`, transition: "width 0.8s ease" }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Category vs Target */}
+        <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "22px 20px" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Current vs Target Allocation</p>
+          {catVsTarget.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={catVsTarget} margin={{ top: 0, right: 4, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                <Tooltip contentStyle={{ background: "#0d1020", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12, color: "#fff" }}
+                  formatter={(v: any, name: any) => [`${v}%`, name === "current" ? "Current" : "Target"]} />
+                <Legend formatter={(v) => v === "current" ? "Current %" : "Target %"} wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }} />
+                <Bar dataKey="current" name="current" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="target" name="target" fill="#a855f7" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>No comparison data</p>}
+        </div>
+      </div>
+
+      {/* Transactions table */}
+      {transactions.length > 0 && (
+        <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "22px 20px" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
+            Transactions ({transactions.length})
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  {["Date", "Scheme", "Type", "Amount"].map(h => (
+                    <th key={h} style={{ textAlign: "left", padding: "8px 12px", fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.slice(0, 12).map((tx: any, i: number) => {
+                  const typeColor = tx.type === "SIP" ? "#22d3ee" : tx.type === "SWP" ? "#f87171" : tx.type?.includes("STP") ? "#f59e0b" : "#a855f7";
+                  return (
+                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                      <td style={{ padding: "9px 12px", color: "rgba(255,255,255,0.4)" }}>{tx.date}</td>
+                      <td style={{ padding: "9px 12px", color: "rgba(255,255,255,0.7)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.scheme_name}</td>
+                      <td style={{ padding: "9px 12px" }}>
+                        <span style={{ background: `${typeColor}18`, color: typeColor, border: `1px solid ${typeColor}33`, borderRadius: 6, padding: "2px 8px", fontWeight: 700, fontSize: 11 }}>{tx.type}</span>
+                      </td>
+                      <td style={{ padding: "9px 12px", color: "#fff", fontWeight: 700 }}>₹{Number(tx.amount).toLocaleString("en-IN")}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+    </motion.div>
+  );
+}
+
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [, navigate] = useLocation();
@@ -769,6 +991,7 @@ export default function Dashboard() {
   const [comingSoon, setComingSoon] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<AuthView>("login");
+  const [activeSection, setActiveSection] = useState("dashboard");
   // Read ?welcome=1 synchronously so it's available on first render
   const [showLaunchPopup, setShowLaunchPopup] = useState(() => {
     return new URLSearchParams(window.location.search).get("welcome") === "1";
@@ -906,7 +1129,7 @@ export default function Dashboard() {
       {/* Auth Modal */}
       <AuthModal isOpen={authOpen} defaultView={authView} onClose={() => setAuthOpen(false)} onSuccess={handleAuthSuccess} />
 
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onLogout={handleLogout} comingSoonToast={comingSoonToast} />
+      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onLogout={handleLogout} comingSoonToast={comingSoonToast} activeSection={activeSection} onSectionChange={setActiveSection} />
       <TopBar onMenu={() => setMobileOpen(true)} user={user} onOpenAuth={openAuth} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <main style={{ marginLeft: 0, paddingTop: 56, minHeight: "100vh", position: "relative", zIndex: 1 }} className="md-ml-60">
@@ -914,7 +1137,9 @@ export default function Dashboard() {
         {/* Market Ticker */}
         <MarketTicker />
 
-        <div style={{ padding: "28px 24px 48px", maxWidth: 1600 }}>
+        {activeSection === "analytics" && <AnalyticsView reports={reports} user={user} />}
+
+        {activeSection === "dashboard" && <div style={{ padding: "28px 24px 48px", maxWidth: 1600 }}>
 
           {/* ── HERO ROW ── */}
           <motion.div
@@ -1286,6 +1511,7 @@ export default function Dashboard() {
                               data-testid={`button-view-${row.id}`}
                               whileHover={{ x: 3, color: "#22d3ee" }}
                               className="view-btn"
+                              onClick={() => navigate(`/reports/${row.id}/concise`)}
                               style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.18)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
                             >
                               View <ChevronRight size={11} />
@@ -1356,7 +1582,7 @@ export default function Dashboard() {
             </motion.div>
 
           </div>
-        </div>
+        </div>}
       </main>
     </div>
   );
