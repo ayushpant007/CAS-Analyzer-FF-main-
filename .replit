@@ -54,3 +54,4 @@ VITE_FF_CAS_REDIRECT = "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275
 GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzJNLlvkv46wzCKlyNhB_PeR1CPDD1Y0FBjzbT56O3kD93O2_G0Nk8HFcXmuauHZAOYbQ/exec"
 GOOGLE_SHEETS_ID = "173vOPcxfE6M9KsAAEqZA7wplpODBFluwuxhQUClqCfk"
 VITE_GOOGLE_REDIRECT_URI = "https://d9bfe6d2-77cc-4391-848e-47a995ea3c48-00-39dghb540iyfr.sisko.replit.dev/auth/google/callback"
+GOOGLE_DRIVE_FOLDER_ID = "1WJQnvX9Vx9s5dYPnMJefyibN3nTKfVZf"
