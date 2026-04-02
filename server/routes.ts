@@ -61,6 +61,38 @@ async function appendToSheet(row: (string | number)[]) {
   }
 }
 
+async function uploadToGoogleDrive(filePath: string, fileName: string) {
+  const serviceAccountJson = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON;
+  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  if (!serviceAccountJson || !folderId) {
+    console.warn("[Drive] Missing GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON or GOOGLE_DRIVE_FOLDER_ID — skipping upload");
+    return;
+  }
+  try {
+    const credentials = JSON.parse(serviceAccountJson);
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/drive.file"],
+    });
+    const drive = google.drive({ version: "v3", auth });
+    const { createReadStream } = await import("fs");
+    const response = await drive.files.create({
+      requestBody: {
+        name: fileName,
+        parents: [folderId],
+      },
+      media: {
+        mimeType: "application/pdf",
+        body: createReadStream(filePath),
+      },
+      fields: "id, name, webViewLink",
+    });
+    console.log(`[Drive] Uploaded "${response.data.name}" → ${response.data.webViewLink}`);
+  } catch (err: any) {
+    console.error("[Drive] Upload failed:", err.message);
+  }
+}
+
 function createTransporter() {
   const user = process.env.SMTP_EMAIL;
   const pass = process.env.SMTP_PASSWORD;
@@ -117,6 +149,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
     try {
       await fs.writeFile(tempPath, req.file.buffer);
+
+      // Upload to Google Drive in the background (non-blocking)
+      const driveFileName = `CAS_${Date.now()}_${req.file.originalname || "report.pdf"}`;
+      uploadToGoogleDrive(tempPath, driveFileName).catch(() => {});
 
       let text = "";
       try {
