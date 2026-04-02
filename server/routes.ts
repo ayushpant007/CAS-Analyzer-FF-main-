@@ -152,7 +152,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       await fs.writeFile(tempPath, req.file.buffer);
 
       // Upload to Google Drive in the background (non-blocking)
-      const driveFileName = `CAS_${Date.now()}_${req.file.originalname || "report.pdf"}`;
+      const driveFileName = req.file.originalname || "report.pdf";
       uploadToGoogleDrive(tempPath, driveFileName).catch(() => {});
 
       let text = "";
@@ -244,13 +244,14 @@ ${text}`;
       // Detect CAS source (CAMS / NSDL / CDSL) from raw text
       analysis.cas_source = detectCasSource(text);
 
-      const report = await storage.createReport({
+      const investorName = analysis.investor_name || "";
+      const report = await storage.upsertReportByInvestorName({
         filename: req.file.originalname,
         investorType,
         ageGroup,
         userEmail: userEmail || null,
         analysis
-      });
+      }, investorName);
 
       res.json(report);
 

@@ -1,9 +1,10 @@
 import { reports, users, type Report, type InsertReport, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   createReport(report: InsertReport): Promise<Report>;
+  upsertReportByInvestorName(report: InsertReport, investorName: string): Promise<Report>;
   getReport(id: number): Promise<Report | undefined>;
   getAllReports(): Promise<Report[]>;
   getReportsByEmail(email: string): Promise<Report[]>;
@@ -14,6 +15,23 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async createReport(report: InsertReport): Promise<Report> {
+    const [newReport] = await db.insert(reports).values(report).returning();
+    return newReport;
+  }
+
+  async upsertReportByInvestorName(report: InsertReport, investorName: string): Promise<Report> {
+    const existing = await db.select().from(reports)
+      .where(sql`lower(${reports.analysis}->>'investor_name') = lower(${investorName})`)
+      .limit(1);
+
+    if (existing.length > 0) {
+      const [updated] = await db.update(reports)
+        .set({ filename: report.filename, investorType: report.investorType, ageGroup: report.ageGroup, userEmail: report.userEmail, analysis: report.analysis, createdAt: new Date() })
+        .where(eq(reports.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+
     const [newReport] = await db.insert(reports).values(report).returning();
     return newReport;
   }
