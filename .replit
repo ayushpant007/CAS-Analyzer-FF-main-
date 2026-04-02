@@ -52,3 +52,4 @@ VITE_GOOGLE_CLIENT_ID = "50003181647-q0tk89lgl9skfn4a5i5fha2cr1nrl68k.apps.googl
 VITE_FF_LOGIN_URL = "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/login"
 VITE_FF_CAS_REDIRECT = "https://84e2afd4-aced-4375-a432-63e8f5bfd3c2-00-1jrgs275k2xm7.pike.replit.dev/cas-analyzer"
 GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzJNLlvkv46wzCKlyNhB_PeR1CPDD1Y0FBjzbT56O3kD93O2_G0Nk8HFcXmuauHZAOYbQ/exec"
+GOOGLE_SHEETS_ID = "173vOPcxfE6M9KsAAEqZA7wplpODBFluwuxhQUClqCfk"
