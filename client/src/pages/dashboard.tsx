@@ -655,6 +655,7 @@ function TopBar({ onMenu, user, onOpenAuth, searchQuery, setSearchQuery }: {
 
 // ─── CAS Launch Popup ──────────────────────────────────────────────────────────
 function CASLaunchPopup({ onClose }: { onClose: () => void }) {
+  const [, navigate] = useLocation();
   const [progress, setProgress] = useState(100);
   const DURATION = 6000;
   const INTERVAL = 50;
@@ -725,7 +726,7 @@ function CASLaunchPopup({ onClose }: { onClose: () => void }) {
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
-            onClick={onClose}
+            onClick={() => { onClose(); navigate("/home"); }}
             data-testid="button-popup-go"
             style={{
               flexShrink: 0, padding: "8px 16px", borderRadius: 10, border: "none", cursor: "pointer",
@@ -735,7 +736,7 @@ function CASLaunchPopup({ onClose }: { onClose: () => void }) {
               whiteSpace: "nowrap",
             }}
           >
-            Get Started
+            Go to CAS
           </motion.button>
         </div>
 
