@@ -72,11 +72,12 @@ async function uploadToGoogleDrive(filePath: string, fileName: string) {
     const credentials = JSON.parse(serviceAccountJson);
     const auth = new google.auth.GoogleAuth({
       credentials,
-      scopes: ["https://www.googleapis.com/auth/drive.file"],
+      scopes: ["https://www.googleapis.com/auth/drive"],
     });
     const drive = google.drive({ version: "v3", auth });
     const { createReadStream } = await import("fs");
     const response = await drive.files.create({
+      supportsAllDrives: true,
       requestBody: {
         name: fileName,
         parents: [folderId],
