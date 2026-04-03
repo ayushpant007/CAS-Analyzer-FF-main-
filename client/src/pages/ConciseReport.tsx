@@ -535,6 +535,15 @@ export default function ConciseReport() {
         "Fin Score", "Perf Score", "Total /80", "Rating", "Target Category", "Target Fund"];
       const cagrColor = (val: number, bm: number) => isNaN(val) ? "1E293B" : val >= bm ? C.GREEN : C.RED;
 
+      const ratingStyle = (r: string) => {
+        const map: Record<string, [string, string]> = {
+          "Excellent": [C.GREEN, C.GREENL], "Good": [C.BLUE, C.LTBLUE],
+          "Average": [C.AMBER, C.AMBERL], "Poor": [C.RED, C.REDL], "Very Poor": [C.RED, C.REDL],
+        };
+        const [fg, bg] = map[r] || [C.SLATE, C.SLATEL];
+        return { v: r, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: bg } }, alignment: { horizontal: "center" }, border } };
+      };
+
       const perf: any[][] = [
         [title("Concise Performance Check"), ...Array(perfHdrs.length - 1).fill(empty())],
         [empty(), ...Array(perfHdrs.length - 1).fill(empty())],
@@ -558,15 +567,6 @@ export default function ConciseReport() {
           const sip = sipAmounts[mf.scheme_name];
           const c1 = pv(cagr["1y"]), c3 = pv(cagr["3y"]), c5 = pv(cagr["5y"]);
           const b1 = pv(bm["1y"]), b3 = pv(bm["3y"]), b5 = pv(bm["5y"]);
-
-          const ratingStyle = (r: string) => {
-            const map: Record<string, [string, string]> = {
-              "Excellent": [C.GREEN, C.GREENL], "Good": [C.BLUE, C.LTBLUE],
-              "Average": [C.AMBER, C.AMBERL], "Poor": [C.RED, C.REDL], "Very Poor": [C.RED, C.REDL],
-            };
-            const [fg, bg] = map[r] || [C.SLATE, C.SLATEL];
-            return { v: r, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: bg } }, alignment: { horizontal: "center" }, border } };
-          };
 
           const cagrCell = (val: number, bmVal: number, row: number) => ({
             v: isNaN(val) ? "N/A" : val,
@@ -646,40 +646,63 @@ export default function ConciseReport() {
       XLSX.utils.book_append_sheet(wb, ws2, "Performance Check");
 
       // ── Sheet 3: New Allocation ────────────────────────────────────────
-      const actionableFunds = snap.filter((mf: any) => (actionSelections[mf.scheme_name] || "hold") !== "hold");
-      const naHdrs = ["#", "Current Fund Name", "Category", "Action", "Target Category", "Target Fund Name", "Invested (₹)", "Valuation (₹)"];
+      const autoAction = (rating: string): string => {
+        if (rating === "Poor" || rating === "Very Poor") return "SWITCH";
+        if (rating === "Average") return "REVIEW";
+        return "HOLD";
+      };
+      const autoActionStyle = (a: string, row: number) => {
+        const map: Record<string, [string, string]> = {
+          "HOLD": [C.BLUE, C.LTBLUE], "REVIEW": [C.AMBER, C.AMBERL], "SWITCH": [C.RED, C.REDL],
+        };
+        const [fg, bg] = map[a] || [C.SLATE, C.SLATEL];
+        return { v: a, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: row % 2 === 0 ? bg : bg } }, alignment: { horizontal: "center" }, border } };
+      };
+      const naHdrs = ["#", "Current Fund Name", "Category", "Recommended Action", "Rating", "Score", "Invested (₹)", "Valuation (₹)", "P&L (₹)"];
       const na: any[][] = [
         [title("New Allocation – Recommended Changes"), ...Array(naHdrs.length - 1).fill(empty())],
         [lbl("Generated on"), meta(dateStr), ...Array(naHdrs.length - 2).fill(empty())],
         [empty(), ...Array(naHdrs.length - 1).fill(empty())],
         naHdrs.map(h => hdr(h)),
-        ...(actionableFunds.length === 0
-          ? [[{ v: "No funds marked for Switch / Merge / Sell", t: "s", s: { font: { italic: true, sz: 10, color: { rgb: C.SLATE } }, fill: { fgColor: { rgb: C.SLATEL } }, alignment: { horizontal: "left" }, border } }, ...Array(naHdrs.length - 1).fill(empty())]
-          ]
-          : actionableFunds.map((mf: any, i: number) => {
-              const act = (actionSelections[mf.scheme_name] || "hold").toUpperCase();
-              const actionStyle = (a: string) => {
-                const map: Record<string, [string, string]> = {
-                  "SWITCH": [C.AMBER, C.AMBERL], "MERGE": ["4C1D95", "EDE9FE"], "SELL": [C.RED, C.REDL],
-                };
-                const [fg, bg] = map[a] || [C.SLATE, C.SLATEL];
-                return { v: a, t: "s", s: { font: { bold: true, sz: 9, color: { rgb: fg }, name: "Calibri" }, fill: { fgColor: { rgb: bg } }, alignment: { horizontal: "center" }, border } };
-              };
-              return [
-                num(i + 1, "0", i),
-                txt(mf.scheme_name || "—", i, true),
-                txt(mf.fund_category || "—", i),
-                actionStyle(act),
-                txt(targetCategory[mf.scheme_name] || "—", i),
-                txt(targetFund[mf.scheme_name] || "—", i, true),
-                num(mf.invested_amount ?? 0, '"₹"#,##0.00', i),
-                num(mf.valuation || 0, '"₹"#,##0.00', i),
-              ];
-            })
-        ),
+        ...snap.map((mf: any, i: number) => {
+          const sc = storedScoring[mf.isin];
+          const perf = storedPerformances[mf.isin];
+          const rating = sc?.fundRating || "—";
+          const finScore = sc?.totalScore ?? 0;
+          const perfScore = perf ? (() => {
+            const bmR = perf.benchmark_returns || {};
+            const cagrR = perf.cagr || {};
+            const d1 = pv(cagrR["1y"]) - pv(bmR["1y"]);
+            const d3 = pv(cagrR["3y"]) - pv(bmR["3y"]);
+            const d5 = pv(cagrR["5y"]) - pv(bmR["5y"]);
+            const s1 = d1 >= 3 ? 10 : d1 >= 1.5 ? 8 : d1 >= 0 ? 6 : d1 >= -1.49 ? 4 : d1 >= -2.99 ? 2 : 0;
+            const s3 = d3 >= 3 ? 15 : d3 >= 1.5 ? 13 : d3 >= 0 ? 11 : d3 >= -1.49 ? 9 : d3 >= -2.99 ? 7 : 0;
+            const s5 = d5 >= 3 ? 15 : d5 >= 1.5 ? 13 : d5 >= 0 ? 11 : d5 >= -1.49 ? 9 : d5 >= -2.99 ? 7 : 0;
+            return s1 + s3 + s5;
+          })() : 0;
+          const total = finScore + perfScore;
+          const maxScore = perf ? 80 : 40;
+          const act = autoAction(rating);
+          const pl = (mf.unrealised_profit_loss ?? ((mf.valuation || 0) - (mf.invested_amount || 0)));
+          const plCell = (v: number, row: number) => ({
+            v, t: "n", z: '"₹"#,##0.00',
+            s: { font: { bold: false, sz: 9, color: { rgb: v >= 0 ? C.GREEN : C.RED }, name: "Calibri" }, fill: { fgColor: { rgb: row % 2 === 0 ? C.WHITE : C.ALTROW } }, alignment: { horizontal: "right" }, border }
+          });
+          return [
+            num(i + 1, "0", i),
+            txt(mf.scheme_name || "—", i, true),
+            txt(mf.fund_category || "—", i),
+            autoActionStyle(act, i),
+            ratingStyle(rating),
+            sc ? { v: `${total}/${maxScore}`, t: "s", s: { font: { sz: 9, name: "Calibri" }, fill: { fgColor: { rgb: i % 2 === 0 ? C.WHITE : C.ALTROW } }, alignment: { horizontal: "center" }, border } } : txt("—", i),
+            num(mf.invested_amount ?? 0, '"₹"#,##0.00', i),
+            num(mf.valuation || 0, '"₹"#,##0.00', i),
+            plCell(pl, i),
+          ];
+        }),
       ];
       const ws3 = XLSX.utils.aoa_to_sheet(na);
-      setColWidths(ws3, [4, 42, 16, 12, 18, 42, 16, 16]);
+      setColWidths(ws3, [4, 42, 16, 16, 12, 10, 16, 16, 16]);
       setRowHeights(ws3, { 0: 28, 3: 28 });
       ws3["!merges"] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: naHdrs.length - 1 } },
