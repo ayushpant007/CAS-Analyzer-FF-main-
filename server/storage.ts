@@ -1,4 +1,4 @@
-import { reports, users, type Report, type InsertReport, type User, type InsertUser } from "@shared/schema";
+import { reports, users, gmailConnections, type Report, type InsertReport, type User, type InsertUser, type GmailConnection, type InsertGmailConnection } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
 
@@ -11,6 +11,12 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   updateUserPassword(email: string, passwordHash: string): Promise<void>;
+  getGmailConnection(userEmail: string): Promise<GmailConnection | undefined>;
+  upsertGmailConnection(conn: InsertGmailConnection): Promise<GmailConnection>;
+  getAllGmailConnections(): Promise<GmailConnection[]>;
+  deleteGmailConnection(userEmail: string): Promise<void>;
+  updateGmailTokens(userEmail: string, accessToken: string, expiresAt: Date): Promise<void>;
+  updateGmailLastChecked(userEmail: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -35,28 +41,73 @@ export class DatabaseStorage implements IStorage {
     const [newReport] = await db.insert(reports).values(report).returning();
     return newReport;
   }
+
   async getReport(id: number): Promise<Report | undefined> {
     const [report] = await db.select().from(reports).where(eq(reports.id, id));
     return report;
   }
+
   async getAllReports(): Promise<Report[]> {
     return await db.select().from(reports).orderBy(desc(reports.createdAt));
   }
+
   async getReportsByEmail(email: string): Promise<Report[]> {
     return await db.select().from(reports)
       .where(eq(reports.userEmail, email.toLowerCase()))
       .orderBy(desc(reports.createdAt));
   }
+
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
   }
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
     return user;
   }
+
   async updateUserPassword(email: string, passwordHash: string): Promise<void> {
     await db.update(users).set({ passwordHash }).where(eq(users.email, email.toLowerCase()));
+  }
+
+  async getGmailConnection(userEmail: string): Promise<GmailConnection | undefined> {
+    const [conn] = await db.select().from(gmailConnections)
+      .where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
+    return conn;
+  }
+
+  async upsertGmailConnection(conn: InsertGmailConnection): Promise<GmailConnection> {
+    const existing = await this.getGmailConnection(conn.userEmail);
+    if (existing) {
+      const [updated] = await db.update(gmailConnections)
+        .set({ accessToken: conn.accessToken, refreshToken: conn.refreshToken, expiresAt: conn.expiresAt, casPassword: conn.casPassword })
+        .where(eq(gmailConnections.userEmail, conn.userEmail.toLowerCase()))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(gmailConnections).values({ ...conn, userEmail: conn.userEmail.toLowerCase() }).returning();
+    return created;
+  }
+
+  async getAllGmailConnections(): Promise<GmailConnection[]> {
+    return await db.select().from(gmailConnections);
+  }
+
+  async deleteGmailConnection(userEmail: string): Promise<void> {
+    await db.delete(gmailConnections).where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
+  }
+
+  async updateGmailTokens(userEmail: string, accessToken: string, expiresAt: Date): Promise<void> {
+    await db.update(gmailConnections)
+      .set({ accessToken, expiresAt })
+      .where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
+  }
+
+  async updateGmailLastChecked(userEmail: string): Promise<void> {
+    await db.update(gmailConnections)
+      .set({ lastCheckedAt: new Date() })
+      .where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
   }
 }
 

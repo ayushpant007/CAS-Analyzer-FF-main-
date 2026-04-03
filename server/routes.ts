@@ -796,6 +796,257 @@ ${text}`;
 
     res.json({ ok: true });
   });
+
+  // ── Gmail Auto-Import ─────────────────────────────────────────────────────────
+  const GMAIL_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+  const GMAIL_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+  const GMAIL_REDIRECT_URI = (() => {
+    const domain = (process.env.REPLIT_DOMAINS || "localhost:5000").split(",")[0].trim();
+    return `https://${domain}/auth/gmail/callback`;
+  })();
+
+  function makeOAuth2Client() {
+    return new google.auth.OAuth2(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REDIRECT_URI);
+  }
+
+  const CAS_SENDERS = [
+    "donotreply@camsonline.com",
+    "statements@kfintech.com",
+    "noreply@mfcentral.com",
+    "cas@nsdl.co.in",
+    "cas@cdslindia.com",
+    "consolidatedaccountstatement@camsonline.com",
+  ];
+
+  // Core: analyze a PDF buffer and store as report
+  async function analyzeCasPdfBuffer(
+    pdfBuffer: Buffer,
+    filename: string,
+    password: string,
+    userEmail: string,
+    investorType = "Aggressive",
+    ageGroup = "20-35",
+  ): Promise<void> {
+    const tempPath = path.join(os.tmpdir(), `gmail-import-${Date.now()}.pdf`);
+    try {
+      await fs.writeFile(tempPath, pdfBuffer);
+
+      let text = "";
+      try {
+        const { stdout } = await execAsync(`pdftotext -upw "${password}" "${tempPath}" -`);
+        text = stdout;
+      } catch (e: any) {
+        console.error(`[Gmail] pdftotext failed for ${filename}:`, e.message);
+        throw new Error("PDF_PASSWORD_WRONG");
+      }
+
+      if (!text || text.trim().length < 100) throw new Error("PDF_EMPTY");
+
+      let csvContent = "";
+      try { csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8"); } catch {}
+
+      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text.
+Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
+Reference Ratios CSV:\n${csvContent}
+
+Extract:
+0. Investor name from the CAS header. Return as "investor_name": string.
+1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
+2. Account-wise summary: [{"type": string, "details": string, "count": number, "value": number}]
+3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
+4. Asset Class Allocation: [{"asset_class": string, "value": number, "percentage": number}]
+5. Mutual Fund Snapshot: [{"scheme_name": string, "folio_no": string, "units": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
+6. Comparison Tables and Transactions: [{"date": string, "scheme_name": string, "type": string, "amount": number}]
+
+Return ONLY valid JSON: {"investor_name": string, "summary": {...}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...], "category_comparison": [...], "type_comparison": [...], "transactions": [...]}
+
+Text:\n${text}`;
+
+      const raw = await generateWithFallback(prompt, { responseMimeType: "application/json" });
+      const analysis = JSON.parse(typeof raw === "string" ? raw : "{}");
+      analysis.cas_source = detectCasSource(text);
+
+      const investorName = analysis.investor_name || "";
+      await storage.upsertReportByInvestorName({
+        filename,
+        investorType,
+        ageGroup,
+        userEmail: userEmail.toLowerCase(),
+        analysis,
+      }, investorName);
+
+      console.log(`[Gmail] ✅ Auto-imported and analyzed: ${filename} for ${userEmail}`);
+    } finally {
+      fs.unlink(tempPath).catch(() => {});
+    }
+  }
+
+  // Poll one Gmail account for new CAS emails
+  async function pollGmailAccount(conn: { userEmail: string; accessToken: string; refreshToken: string; expiresAt: Date; casPassword: string | null }) {
+    try {
+      const oauth2 = makeOAuth2Client();
+      oauth2.setCredentials({ access_token: conn.accessToken, refresh_token: conn.refreshToken });
+
+      // Refresh token if within 5 minutes of expiry
+      if (conn.expiresAt && new Date(conn.expiresAt).getTime() - Date.now() < 5 * 60 * 1000) {
+        const { credentials } = await oauth2.refreshAccessToken();
+        if (credentials.access_token && credentials.expiry_date) {
+          await storage.updateGmailTokens(conn.userEmail, credentials.access_token, new Date(credentials.expiry_date));
+          oauth2.setCredentials(credentials);
+        }
+      }
+
+      const gmail = google.gmail({ version: "v1", auth: oauth2 });
+
+      // Build search query: from any CAS sender, with PDF attachment, in last 7 days
+      const senderQuery = CAS_SENDERS.map(s => `from:${s}`).join(" OR ");
+      const dateQuery = (() => {
+        const d = conn.lastCheckedAt ? new Date(conn.lastCheckedAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return `after:${Math.floor(d.getTime() / 1000)}`;
+      })();
+      const q = `(${senderQuery}) has:attachment filename:pdf ${dateQuery}`;
+
+      const listRes = await gmail.users.messages.list({ userId: "me", q, maxResults: 10 });
+      const messages = listRes.data.messages || [];
+
+      console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential CAS emails`);
+
+      for (const msg of messages) {
+        try {
+          const fullMsg = await gmail.users.messages.get({ userId: "me", id: msg.id! });
+          const parts = fullMsg.data.payload?.parts || [];
+
+          const pdfParts = parts.filter(
+            p => p.mimeType === "application/pdf" ||
+              (p.filename && p.filename.toLowerCase().endsWith(".pdf"))
+          );
+
+          for (const part of pdfParts) {
+            if (!part.body?.attachmentId) continue;
+            const att = await gmail.users.messages.attachments.get({
+              userId: "me", messageId: msg.id!, id: part.body.attachmentId,
+            });
+            const data = att.data.data;
+            if (!data) continue;
+
+            const pdfBuffer = Buffer.from(data, "base64url");
+            const filename = part.filename || `cas-${Date.now()}.pdf`;
+            const password = conn.casPassword || "";
+
+            try {
+              await analyzeCasPdfBuffer(pdfBuffer, filename, password, conn.userEmail);
+            } catch (e: any) {
+              console.error(`[Gmail] Failed to analyze ${filename}:`, e.message);
+            }
+          }
+        } catch (e: any) {
+          console.error(`[Gmail] Error processing message ${msg.id}:`, e.message);
+        }
+      }
+
+      await storage.updateGmailLastChecked(conn.userEmail);
+    } catch (e: any) {
+      console.error(`[Gmail] Error polling account ${conn.userEmail}:`, e.message);
+    }
+  }
+
+  // Poll all connected accounts
+  async function pollAllGmailAccounts() {
+    const conns = await storage.getAllGmailConnections();
+    console.log(`[Gmail] Polling ${conns.length} connected accounts...`);
+    for (const conn of conns) {
+      await pollGmailAccount(conn as any);
+    }
+  }
+
+  // Run poll every 30 minutes
+  const POLL_INTERVAL_MS = 30 * 60 * 1000;
+  setInterval(pollAllGmailAccounts, POLL_INTERVAL_MS);
+  // Run once after 10 seconds on startup
+  setTimeout(pollAllGmailAccounts, 10_000);
+
+  // ── OAuth: start Gmail connect flow
+  app.get("/auth/gmail", (req, res) => {
+    const userEmail = req.query.email as string;
+    const casPassword = req.query.password as string || "";
+    if (!userEmail) return res.status(400).send("Missing email param");
+    if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET) return res.status(500).send("Gmail OAuth not configured");
+
+    const oauth2 = makeOAuth2Client();
+    const state = Buffer.from(JSON.stringify({ email: userEmail, password: casPassword })).toString("base64");
+    const url = oauth2.generateAuthUrl({
+      access_type: "offline",
+      prompt: "consent",
+      scope: ["https://www.googleapis.com/auth/gmail.readonly"],
+      state,
+    });
+    res.redirect(url);
+  });
+
+  // ── OAuth: callback after user grants permission
+  app.get("/auth/gmail/callback", async (req, res) => {
+    const code = req.query.code as string;
+    const stateRaw = req.query.state as string;
+    if (!code || !stateRaw) return res.redirect("/home?gmail=error");
+
+    try {
+      const { email, password } = JSON.parse(Buffer.from(stateRaw, "base64").toString("utf-8"));
+      const oauth2 = makeOAuth2Client();
+      const { tokens } = await oauth2.getToken(code);
+
+      if (!tokens.access_token || !tokens.refresh_token) {
+        return res.redirect("/home?gmail=error&reason=no_tokens");
+      }
+
+      await storage.upsertGmailConnection({
+        userEmail: email,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : new Date(Date.now() + 3600_000),
+        casPassword: password || null,
+        lastCheckedAt: null,
+      });
+
+      console.log(`[Gmail] Connected account: ${email}`);
+
+      // Immediately trigger a check for this user
+      const conn = await storage.getGmailConnection(email);
+      if (conn) pollGmailAccount(conn as any).catch(() => {});
+
+      res.redirect("/home?gmail=connected");
+    } catch (e: any) {
+      console.error("[Gmail] Callback error:", e.message);
+      res.redirect("/home?gmail=error");
+    }
+  });
+
+  // ── Gmail status for a user
+  app.get("/api/gmail/status", async (req, res) => {
+    const email = req.query.email as string;
+    if (!email) return res.status(400).json({ error: "Missing email" });
+    const conn = await storage.getGmailConnection(email);
+    if (!conn) return res.json({ connected: false });
+    res.json({ connected: true, lastCheckedAt: conn.lastCheckedAt, createdAt: conn.createdAt });
+  });
+
+  // ── Disconnect Gmail
+  app.delete("/api/gmail/disconnect", async (req, res) => {
+    const email = req.query.email as string;
+    if (!email) return res.status(400).json({ error: "Missing email" });
+    await storage.deleteGmailConnection(email);
+    res.json({ ok: true });
+  });
+
+  // ── Manual trigger check
+  app.post("/api/gmail/check", async (req, res) => {
+    const email = req.query.email as string;
+    if (!email) return res.status(400).json({ error: "Missing email" });
+    const conn = await storage.getGmailConnection(email);
+    if (!conn) return res.status(404).json({ error: "Gmail not connected" });
+    pollGmailAccount(conn as any).catch(console.error);
+    res.json({ ok: true, message: "Check started in background" });
+  });
+
   // ────────────────────────────────────────────────────────────────────────────
 
   return httpServer;

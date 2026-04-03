@@ -2,6 +2,21 @@ import { pgTable, text, serial, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const gmailConnections = pgTable("gmail_connections", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email").notNull().unique(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  casPassword: text("cas_password"),
+  lastCheckedAt: timestamp("last_checked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGmailConnectionSchema = createInsertSchema(gmailConnections).omit({ id: true, createdAt: true });
+export type GmailConnection = typeof gmailConnections.$inferSelect;
+export type InsertGmailConnection = z.infer<typeof insertGmailConnectionSchema>;
+
 export * from "./models/chat";
 
 export const users = pgTable("users", {
