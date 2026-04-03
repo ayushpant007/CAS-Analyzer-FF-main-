@@ -899,13 +899,25 @@ export default function ConciseReport() {
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-4 relative z-10">
         {/* Top bar: Back + title + Download */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-sm transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Full Report
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-sm transition-colors"
+              data-testid="button-back-to-dashboard"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </button>
+            <span className="text-slate-600 text-sm">|</span>
+            <button
+              onClick={() => { window.location.href = "https://bf7861cd-a99e-4608-87e7-eadb91d464aa-00-osms8biquqfs.pike.replit.dev/reports"; }}
+              className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-sm transition-colors"
+              data-testid="button-back-to-full-report"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Full Report
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               onClick={downloadExcel}
