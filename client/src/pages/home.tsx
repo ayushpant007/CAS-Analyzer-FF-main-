@@ -3,13 +3,15 @@ import { UploadCard } from "@/components/UploadCard";
 import { ReportView } from "@/components/ReportView";
 import { useReport, useReports } from "@/hooks/use-reports";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap } from "lucide-react";
+import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [autoAnalyzeNewReport, setAutoAnalyzeNewReport] = useState(false);
+  const [, navigate] = useLocation();
 
   const userEmail = (() => {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s)?.email ?? "" : ""; } catch { return ""; }
@@ -55,8 +57,19 @@ export default function Home() {
               FinAnalyze
             </span>
           </div>
-          <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
-            AI-Powered Portfolio Insights
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
+              AI-Powered Portfolio Insights
+            </div>
+            <button
+              data-testid="button-back-dashboard"
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+              style={{ color: "#60a5fa", border: "1px solid rgba(96,165,250,0.3)", background: "rgba(96,165,250,0.08)" }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Dashboard
+            </button>
           </div>
         </div>
       </nav>
