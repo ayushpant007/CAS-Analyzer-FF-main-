@@ -11,8 +11,8 @@ import {
 import {
   LayoutDashboard, BarChart2, FileText, Settings, LogOut,
   Search, Bell, Zap, TrendingUp, TrendingDown,
-  CheckCircle2, Clock, XCircle, Upload, Cpu, MemoryStick,
-  Wifi, HardDrive, ChevronRight, Activity, Menu, X,
+  CheckCircle2, Clock, XCircle, Upload,
+  ChevronRight, Activity, Menu, X,
   Sparkles, Shield, ArrowUpRight, Construction, User,
 } from "lucide-react";
 import { AuthModal, type AuthView } from "./auth";
@@ -94,12 +94,6 @@ const DEFAULT_CATEGORY_DATA = [
   { name: "Other",   value: 8,  fill: "#34d399" },
 ];
 
-const RADIAL_HEALTH = [
-  { name: "CPU",     value: 67, fill: "#22d3ee" },
-  { name: "Memory",  value: 54, fill: "#a855f7" },
-  { name: "Network", value: 38, fill: "#f59e0b" },
-  { name: "Storage", value: 41, fill: "#34d399" },
-];
 
 const SPARKLINES: Record<string, number[]> = {
   "Reports Analyzed": [48, 62, 55, 71, 68, 80, 75, 92, 88, 100],
@@ -241,45 +235,6 @@ function AnimatedDonut({ data, activeIdx, onHover }: { data: typeof CATEGORY_DAT
         ))}
       </Pie>
     </PieChart>
-  );
-}
-
-// ─── Circular Health Ring ──────────────────────────────────────────────────────
-function HealthRing({ label, value, color, size = 72 }: { label: string; value: number; color: string; size?: number }) {
-  const r = (size - 10) / 2;
-  const circ = 2 * Math.PI * r;
-  const ref = useRef<SVGCircleElement>(null);
-  const inView = useInView(ref as any, { once: true });
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <div style={{ position: "relative", width: size, height: size }}>
-        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-            stroke="rgba(255,255,255,0.05)" strokeWidth={6} />
-          <motion.circle
-            ref={ref as any}
-            cx={size / 2} cy={size / 2} r={r}
-            fill="none" stroke={color} strokeWidth={6}
-            strokeLinecap="round"
-            strokeDasharray={circ}
-            initial={{ strokeDashoffset: circ }}
-            animate={inView ? { strokeDashoffset: circ * (1 - value / 100) } : {}}
-            transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
-            style={{ filter: `drop-shadow(0 0 6px ${color})` }}
-          />
-        </svg>
-        <div style={{
-          position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, fontWeight: 900, color, fontFamily: "monospace",
-        }}>
-          {value}
-        </div>
-      </div>
-      <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-        {label}
-      </span>
-    </div>
   );
 }
 
@@ -1533,61 +1488,129 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* System Health — Circular Rings */}
-            <motion.div
-              initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="grad-border"
-              style={{ borderRadius: 20, background: "rgba(255,255,255,0.02)", backdropFilter: "blur(24px)", padding: "24px 22px", border: "1px solid rgba(255,255,255,0.05)" }}
-              data-testid="widget-system-health"
-            >
-              <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.22)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 5 }}>Infrastructure</p>
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: "-0.01em" }}>System Health</h2>
-
-              {/* Circular health rings */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24, justifyItems: "center" }}>
-                {RADIAL_HEALTH.map(h => (
-                  <HealthRing key={h.name} label={h.name} value={h.value} color={h.fill} size={72} />
-                ))}
-              </div>
-
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                {[
-                  { icon: Cpu,         label: "CPU Cores", value: "16 vCPU", color: "#22d3ee" },
-                  { icon: MemoryStick, label: "RAM",       value: "32 GB",   color: "#a855f7" },
-                  { icon: HardDrive,   label: "Storage",   value: "500 GB",  color: "#34d399" },
-                  { icon: Wifi,        label: "Uptime",    value: "99.97%",  color: "#f59e0b" },
-                ].map(({ icon: Icon, label, value, color }) => (
-                  <motion.div key={label} whileHover={{ scale: 1.04 }} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{
-                      width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      background: `${color}14`, boxShadow: `0 0 10px ${color}22`,
-                    }}>
-                      <Icon size={13} style={{ color }} />
+            {/* Portfolio Summary Card */}
+            {(() => {
+              const analyzed = reports.filter((r: any) => r.analysis?.mf_snapshot?.length || r.analysis?.funds?.length);
+              if (!analyzed.length) return null;
+              const latest = analyzed[analyzed.length - 1];
+              const funds: any[] = latest.analysis?.mf_snapshot ?? latest.analysis?.funds ?? [];
+              const totalValue = funds.reduce((s: number, f: any) => s + (f.valuation ?? 0), 0);
+              const totalInvested = funds.reduce((s: number, f: any) => s + (f.invested_amount ?? 0), 0);
+              const returnPct = totalInvested > 0 ? ((totalValue - totalInvested) / totalInvested) * 100 : 0;
+              const topFunds = [...funds].sort((a, b) => (b.valuation ?? 0) - (a.valuation ?? 0)).slice(0, 3);
+              const hist: any[] = latest.analysis?.historical_valuations ?? [];
+              let bars: number[] = [];
+              if (hist.length >= 2) {
+                const vals = hist.slice(-10).map((h: any) => h.valuation);
+                const min = Math.min(...vals), max = Math.max(...vals);
+                bars = vals.map((v: number) => max === min ? 60 : Math.round(20 + ((v - min) / (max - min)) * 75));
+              } else {
+                bars = [30, 42, 35, 55, 45, 62, 50, 70, 60, 80];
+              }
+              const fmt = (v: number) => v >= 10000000 ? `₹${(v/10000000).toFixed(2)} Cr` : v >= 100000 ? `₹${(v/100000).toFixed(2)} L` : `₹${v.toLocaleString("en-IN")}`;
+              const FUND_COLORS = ["#22d3ee", "#a855f7", "#f59e0b", "#34d399", "#ec4899"];
+              const investorName = latest.analysis?.investor_name ?? user?.name ?? "";
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  data-testid="widget-portfolio-summary"
+                  style={{ borderRadius: 20, background: "rgba(7,10,18,0.9)", backdropFilter: "blur(24px)", border: "1px solid rgba(34,211,238,0.18)", overflow: "hidden", position: "relative" }}
+                >
+                  {/* Scan line */}
+                  <motion.div style={{ position: "absolute", left: 0, right: 0, height: 1, background: "linear-gradient(90deg,transparent,rgba(34,211,238,0.5),transparent)", zIndex: 1, pointerEvents: "none" }}
+                    animate={{ top: ["0%", "100%", "0%"] }} transition={{ duration: 5, repeat: Infinity, ease: "linear" }} />
+                  {/* Corner brackets */}
+                  {[["top:0;left:0","borderTop:1px solid #22d3ee,borderLeft:1px solid #22d3ee"],["top:0;right:0","borderTop:1px solid #22d3ee,borderRight:1px solid #22d3ee"],["bottom:0;left:0","borderBottom:1px solid #22d3ee,borderLeft:1px solid #22d3ee"],["bottom:0;right:0","borderBottom:1px solid #22d3ee,borderRight:1px solid #22d3ee"]].map(([pos, borders], i) => {
+                    const p: any = {}; pos.split(";").forEach(s => { const [k,v]=s.split(":"); p[k]=v; });
+                    const b: any = {}; borders.split(",").forEach(s => { const idx=s.indexOf(":"); b[s.slice(0,idx)]=s.slice(idx+1); });
+                    return <motion.div key={i} style={{ position:"absolute", width:18, height:18, ...p, ...b, zIndex:2 }} animate={{ opacity:[0.4,1,0.4] }} transition={{ duration:2, repeat:Infinity, delay:i*0.4 }} />;
+                  })}
+                  <div style={{ padding: "22px 20px", position: "relative", zIndex: 3 }}>
+                    {/* Header */}
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                          <motion.div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }}
+                            animate={{ opacity: [1, 0.3, 1], scale: [1, 1.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                          <span style={{ fontSize: 10, color: "#34d399", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em" }}>
+                            Live · {investorName}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Total Portfolio Value</p>
+                        <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>{fmt(totalValue)}</p>
+                      </div>
+                      <motion.div
+                        animate={{ boxShadow: returnPct >= 0 ? ["0 0 0px rgba(52,211,153,0)","0 0 14px rgba(52,211,153,0.5)","0 0 0px rgba(52,211,153,0)"] : ["0 0 0px rgba(248,113,113,0)","0 0 14px rgba(248,113,113,0.5)","0 0 0px rgba(248,113,113,0)"] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:999, background: returnPct>=0?"rgba(52,211,153,0.1)":"rgba(248,113,113,0.1)", border:`1px solid ${returnPct>=0?"rgba(52,211,153,0.4)":"rgba(248,113,113,0.4)"}` }}
+                      >
+                        <TrendingUp size={11} style={{ color: returnPct>=0?"#34d399":"#f87171" }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: returnPct>=0?"#34d399":"#f87171" }}>{returnPct>=0?"+":""}{returnPct.toFixed(1)}%</span>
+                      </motion.div>
                     </div>
-                    <div>
-                      <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
-                      <p style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{value}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
 
-              {/* Overall status badge */}
-              <motion.div
-                animate={{ borderColor: ["rgba(52,211,153,0.2)", "rgba(52,211,153,0.5)", "rgba(52,211,153,0.2)"] }}
-                transition={{ duration: 2.5, repeat: Infinity }}
-                style={{ marginTop: 20, borderRadius: 12, border: "1px solid rgba(52,211,153,0.2)", padding: "12px 14px", background: "rgba(52,211,153,0.05)", display: "flex", alignItems: "center", gap: 10 }}
-              >
-                <Shield size={14} style={{ color: "#34d399", flexShrink: 0 }} />
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: "#34d399" }}>All Systems Nominal</p>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.22)" }}>Last checked: Just now</p>
-                </div>
-                <ArrowUpRight size={12} style={{ color: "#34d399", marginLeft: "auto", flexShrink: 0 }} />
-              </motion.div>
-            </motion.div>
+                    {/* Historical bars */}
+                    <div style={{ display:"flex", alignItems:"flex-end", gap:3, height:52, marginBottom:16, padding:"0 2px" }}>
+                      {bars.map((h, i) => (
+                        <motion.div key={i} style={{ flex:1, borderRadius:3,
+                          background: i===bars.length-1 ? "linear-gradient(180deg,#22d3ee,#0096b4)" : `rgba(34,211,238,${0.12+i*0.07})`,
+                          boxShadow: i===bars.length-1 ? "0 0 10px rgba(34,211,238,0.6)" : "none",
+                        }}
+                          initial={{ scaleY:0, height:`${h}%` }} animate={{ scaleY:1 }} transition={{ delay:0.5+i*0.05, duration:0.4, ease:"easeOut" }} />
+                      ))}
+                    </div>
+
+                    {/* Stats row */}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:16 }}>
+                      {[
+                        { label:"RETURN",   value:`${returnPct>=0?"+":""}${returnPct.toFixed(1)}%`, color: returnPct>=0?"#34d399":"#f87171" },
+                        { label:"INVESTED", value:fmt(totalInvested), color:"#a855f7" },
+                        { label:"FUNDS",    value:String(funds.length), color:"#f59e0b" },
+                      ].map(({ label, value, color }) => (
+                        <motion.div key={label} whileHover={{ scale:1.04 }}
+                          style={{ borderRadius:12, padding:"10px 8px", textAlign:"center", background:`${color}0d`, border:`1px solid ${color}25` }}>
+                          <p style={{ fontSize:13, fontWeight:800, color }}>{value}</p>
+                          <p style={{ fontSize:9, color:"rgba(255,255,255,0.28)", textTransform:"uppercase", letterSpacing:"0.08em", marginTop:2 }}>{label}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Top holdings */}
+                    <div style={{ marginBottom:8 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
+                        <Activity size={10} style={{ color:"#22d3ee" }} />
+                        <span style={{ fontSize:9, color:"#22d3ee", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em" }}>Top Holdings</span>
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                        {topFunds.map((f: any, i: number) => {
+                          const fRet = f.invested_amount>0 ? ((f.valuation-f.invested_amount)/f.invested_amount)*100 : 0;
+                          const color = FUND_COLORS[i % FUND_COLORS.length];
+                          return (
+                            <motion.div key={i} initial={{ opacity:0, x:10 }} animate={{ opacity:1, x:0 }}
+                              transition={{ delay:0.9+i*0.1 }} whileHover={{ x:3 }}
+                              style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", borderRadius:10, background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.05)", position:"relative", overflow:"hidden" }}>
+                              <motion.div style={{ position:"absolute", left:0, top:0, bottom:0, width:2, background:color, borderRadius:"2px 0 0 2px" }}
+                                animate={{ boxShadow:[`0 0 4px ${color}60`,`0 0 10px ${color}`,`0 0 4px ${color}60`] }}
+                                transition={{ duration:2, repeat:Infinity, delay:i*0.5 }} />
+                              <div style={{ marginLeft:10, minWidth:0 }}>
+                                <p style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.82)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:140 }}>
+                                  {f.scheme_name ?? f.name ?? "Fund"}
+                                </p>
+                                <p style={{ fontSize:9, color:"rgba(255,255,255,0.28)" }}>{fmt(f.valuation ?? 0)}</p>
+                              </div>
+                              <span style={{ fontSize:12, fontWeight:700, flexShrink:0, marginLeft:8, color: fRet>=0?"#34d399":"#f87171" }}>
+                                {fRet>=0?"+":""}{fRet.toFixed(1)}%
+                              </span>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
 
           </div>
         </div>}
