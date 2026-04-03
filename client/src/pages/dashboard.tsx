@@ -992,6 +992,8 @@ export default function Dashboard() {
   const [comingSoon, setComingSoon] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<AuthView>("login");
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [logoutOptionsOpen, setLogoutOptionsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
   // Read ?welcome=1 synchronously so it's available on first render
   const [showLaunchPopup, setShowLaunchPopup] = useState(() => {
@@ -1029,8 +1031,13 @@ export default function Dashboard() {
 
   const openAuth = (view: AuthView) => { setAuthView(view); setAuthOpen(true); };
   const handleLogout = () => {
+    setLogoutConfirmOpen(true);
+  };
+  const performLogout = () => {
     localStorage.removeItem("cas_user");
     setUser(null);
+    setLogoutConfirmOpen(false);
+    setLogoutOptionsOpen(false);
     navigate("/landing");
   };
   const handleAuthSuccess = (u: { name: string; email: string }) => { localStorage.setItem("cas_user", JSON.stringify(u)); setUser(u); setAuthOpen(false); };
@@ -1585,6 +1592,97 @@ export default function Dashboard() {
           </div>
         </div>}
       </main>
+
+      {/* ── Logout Confirmation Dialog ── */}
+      <AnimatePresence>
+        {logoutConfirmOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+            onClick={() => setLogoutConfirmOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: "linear-gradient(135deg,#0d1117,#0a0f1e)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "32px 28px", maxWidth: 360, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                <LogOut size={22} style={{ color: "#f87171" }} />
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Log Out?</h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", marginBottom: 28, lineHeight: 1.6 }}>
+                Are you sure you want to log out of your account?
+              </p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  data-testid="button-logout-no"
+                  onClick={() => setLogoutConfirmOpen(false)}
+                  style={{ flex: 1, padding: "11px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}
+                >
+                  No, Stay
+                </button>
+                <button
+                  data-testid="button-logout-yes"
+                  onClick={() => { setLogoutConfirmOpen(false); setLogoutOptionsOpen(true); }}
+                  style={{ flex: 1, padding: "11px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}
+                >
+                  Yes, Log Out
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Logout Options Dialog ── */}
+      <AnimatePresence>
+        {logoutOptionsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+            onClick={() => setLogoutOptionsOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: "linear-gradient(135deg,#0d1117,#0a0f1e)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "32px 28px", maxWidth: 360, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}
+            >
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Choose Log Out Type</h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", marginBottom: 24, lineHeight: 1.6 }}>
+                How would you like to log out?
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <button
+                  data-testid="button-logout-this-device"
+                  onClick={performLogout}
+                  style={{ width: "100%", padding: "14px 18px", borderRadius: 12, border: "1px solid rgba(248,113,113,0.3)", background: "rgba(248,113,113,0.08)", color: "#f87171", fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>Log Out</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Sign out from this device only</div>
+                </button>
+                <button
+                  data-testid="button-logout-all-devices"
+                  onClick={performLogout}
+                  style={{ width: "100%", padding: "14px 18px", borderRadius: 12, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.1)", color: "#ef4444", fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>Log Out of All Devices</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Sign out from every device</div>
+                </button>
+                <button
+                  data-testid="button-logout-cancel"
+                  onClick={() => setLogoutOptionsOpen(false)}
+                  style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

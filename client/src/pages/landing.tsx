@@ -2,6 +2,13 @@ import { motion } from "framer-motion";
 import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star } from "lucide-react";
 
 function goToLogin() {
+  try {
+    const cas = localStorage.getItem("cas_user");
+    if (cas) {
+      window.location.href = "/dashboard";
+      return;
+    }
+  } catch {}
   window.location.href = "/login";
 }
 
