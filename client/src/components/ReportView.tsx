@@ -1804,7 +1804,6 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
                 <th className="px-3 py-2.5 text-right">Invested (₹)</th>
                 <th className="px-3 py-2.5 text-right">Valuation (₹)</th>
                 <th className="px-3 py-2.5 text-right">SIP Amount</th>
-                <th className="px-3 py-2.5 text-center w-28">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -1885,29 +1884,11 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
                           <span className="text-slate-300 text-[10px]">—</span>
                         )}
                       </td>
-                      {/* Action */}
-                      <td className="px-3 py-2.5 text-center align-top">
-                        <select
-                          value={action}
-                          onChange={(e) => setActionSelections(prev => {
-                            const next = { ...prev, [mf.scheme_name]: e.target.value };
-                            localStorage.setItem(`fin_actions_${report.id}`, JSON.stringify(next));
-                            return next;
-                          })}
-                          className={`text-[10px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none ${actionCls}`}
-                          data-testid={`action-select-${i}`}
-                        >
-                          <option value="hold">Hold</option>
-                          <option value="switch">Switch</option>
-                          <option value="merge">Merge</option>
-                          <option value="sell">Sell</option>
-                        </select>
-                      </td>
                     </tr>
                     {/* Line 2 — remarks row */}
                     <tr key={`${i}-remarks`} className={`${rowBg} border-b border-slate-200`}>
                       <td className="px-3 pb-2 text-slate-300 text-[9px] font-mono align-top pt-0">{/* empty */}</td>
-                      <td colSpan={7} className="px-3 pb-2.5 pt-0">
+                      <td colSpan={6} className="px-3 pb-2.5 pt-0">
                         <div className="flex items-start gap-2">
                           <span className="text-[9px] font-bold uppercase tracking-widest text-slate-300 mt-1.5 shrink-0">Remarks</span>
                           <input
@@ -1930,7 +1911,7 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
                 <td colSpan={4} className="px-3 py-3 text-right text-[9px] uppercase tracking-widest text-slate-300">Grand Total</td>
                 <td className="px-3 py-3 text-right font-mono">₹{totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td className="px-3 py-3 text-right font-mono">₹{mfSnapshotValuation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td colSpan={2} className={`px-3 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                <td className={`px-3 py-3 text-right font-mono ${totalUnrealised >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {totalUnrealised >= 0 ? "+" : ""}₹{totalUnrealised.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   {totalInvested > 0 && <span className="ml-2 text-[9px] opacity-70">({totalUnrealised >= 0 ? "+" : ""}{((totalUnrealised / totalInvested) * 100).toFixed(1)}%)</span>}
                 </td>
