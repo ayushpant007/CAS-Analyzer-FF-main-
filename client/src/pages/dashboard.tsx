@@ -16,6 +16,7 @@ import {
   Sparkles, Shield, ArrowUpRight, Construction, User,
 } from "lucide-react";
 import { AuthModal, type AuthView } from "./auth";
+import { GmailPanel } from "@/components/GmailPanel";
 
 // ─── Injected CSS ──────────────────────────────────────────────────────────────
 const STYLE = `
@@ -1259,6 +1260,13 @@ export default function Dashboard() {
               );
             })}
           </div>
+
+          {/* ── GMAIL AUTO-IMPORT ── */}
+          {userEmail && (
+            <div style={{ marginBottom: 20 }}>
+              <GmailPanel userEmail={userEmail} />
+            </div>
+          )}
 
           {/* ── CHART ROW ── */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, marginBottom: 20 }} className="chart-grid">
