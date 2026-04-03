@@ -92,7 +92,7 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
   const [status, setStatus] = useState<{ connected: boolean; lastCheckedAt?: string; createdAt?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [checkDone, setCheckDone] = useState(false);
+  const [checkResult, setCheckResult] = useState<{ pdfCount: number } | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -128,17 +128,21 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
   async function handleManualCheck() {
     if (checking) return;
     setChecking(true);
-    setCheckDone(false);
+    setCheckResult(null);
+    showToast("Scanning inbox for CAS emails...", "info");
     try {
       const res = await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}`, { method: "POST" });
       if (res.ok) {
-        showToast("Scanning inbox for CAS emails...", "info");
-        // Wait 12s for the background Gmail scan to complete
-        await new Promise(r => setTimeout(r, 12000));
+        const data = await res.json();
+        const pdfCount: number = data.pdfCount ?? 0;
         await loadStatus();
-        setCheckDone(true);
-        showToast("Inbox scan complete.", "success");
-        setTimeout(() => setCheckDone(false), 3000);
+        setCheckResult({ pdfCount });
+        if (pdfCount > 0) {
+          showToast(`Fetched ${pdfCount} PDF${pdfCount === 1 ? "" : "s"} from your inbox.`, "success");
+        } else {
+          showToast("No new PDFs found in your inbox.", "info");
+        }
+        setTimeout(() => setCheckResult(null), 8000);
       } else {
         showToast("Check request failed. Please try again.", "error");
       }
@@ -230,10 +234,12 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-white/35 mt-0.5">
+                <p className="text-xs mt-0.5" style={{ color: checkResult !== null ? (checkResult.pdfCount > 0 ? "#34d399" : "rgba(255,255,255,0.45)") : "rgba(255,255,255,0.35)" }}>
                   {status.connected
-                    ? checkDone
-                      ? "✓ Inbox checked just now"
+                    ? checkResult !== null
+                      ? checkResult.pdfCount > 0
+                        ? `✓ Fetched ${checkResult.pdfCount} PDF${checkResult.pdfCount === 1 ? "" : "s"} from your inbox`
+                        : "No new PDFs found in your inbox"
                       : status.lastCheckedAt
                         ? `Last checked ${formatDistanceToNow(new Date(status.lastCheckedAt), { addSuffix: true })}`
                         : "Connected — first scan pending"

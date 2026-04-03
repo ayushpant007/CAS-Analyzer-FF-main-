@@ -882,7 +882,7 @@ Text:\n${text}`;
   }
 
   // Poll one Gmail account for new CAS emails
-  async function pollGmailAccount(conn: { userEmail: string; accessToken: string; refreshToken: string; expiresAt: Date; casPassword: string | null }) {
+  async function pollGmailAccount(conn: { userEmail: string; accessToken: string; refreshToken: string; expiresAt: Date; casPassword: string | null }): Promise<{ pdfCount: number }> {
     try {
       const oauth2 = makeOAuth2Client();
       oauth2.setCredentials({ access_token: conn.accessToken, refresh_token: conn.refreshToken });
@@ -925,6 +925,8 @@ Text:\n${text}`;
 
       console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential CAS emails (official + any-sender scan)`);
 
+      let pdfCount = 0;
+
       for (const msg of messages) {
         try {
           const fullMsg = await gmail.users.messages.get({ userId: "me", id: msg.id! });
@@ -947,6 +949,7 @@ Text:\n${text}`;
             const filename = part.filename || `cas-${Date.now()}.pdf`;
             const password = conn.casPassword || "";
 
+            pdfCount++;
             try {
               await analyzeCasPdfBuffer(pdfBuffer, filename, password, conn.userEmail);
             } catch (e: any) {
@@ -959,8 +962,11 @@ Text:\n${text}`;
       }
 
       await storage.updateGmailLastChecked(conn.userEmail);
+      console.log(`[Gmail] Done checking ${conn.userEmail} — fetched ${pdfCount} PDF(s)`);
+      return { pdfCount };
     } catch (e: any) {
       console.error(`[Gmail] Error polling account ${conn.userEmail}:`, e.message);
+      return { pdfCount: 0 };
     }
   }
 
@@ -1057,8 +1063,8 @@ Text:\n${text}`;
     if (!email) return res.status(400).json({ error: "Missing email" });
     const conn = await storage.getGmailConnection(email);
     if (!conn) return res.status(404).json({ error: "Gmail not connected" });
-    pollGmailAccount(conn as any).catch(console.error);
-    res.json({ ok: true, message: "Check started in background" });
+    const result = await pollGmailAccount(conn as any);
+    res.json({ ok: true, pdfCount: result.pdfCount });
   });
 
   // ────────────────────────────────────────────────────────────────────────────
