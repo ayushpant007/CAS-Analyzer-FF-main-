@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useSpring, useInView } from "framer-motion";
+import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star, Lock, Activity } from "lucide-react";
 
 function goToLogin() {
   try {
@@ -49,16 +50,6 @@ function CyberBackground() {
   );
 }
 
-function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ duration: 0.2 }}
-      className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-5 flex flex-col gap-1">
-      <span className="text-2xl font-bold" style={{ color }}>{value}</span>
-      <span className="text-xs text-white/40 tracking-wide">{label}</span>
-    </motion.div>
-  );
-}
-
 function FeatureCard({ icon: Icon, title, desc, color, delay }: {
   icon: React.ElementType; title: string; desc: string; color: string; delay: number;
 }) {
@@ -75,17 +66,267 @@ function FeatureCard({ icon: Icon, title, desc, color, delay }: {
   );
 }
 
-function MiniChart() {
-  const bars = [40, 65, 45, 80, 55, 90, 70, 85, 60, 95];
+// ── Animated counter ──────────────────────────────────────────────────────────
+function CountUp({ value, prefix = "", suffix = "", decimals = 0 }: { value: number; prefix?: string; suffix?: string; decimals?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const spring = useSpring(0, { stiffness: 60, damping: 18 });
+
+  useEffect(() => {
+    if (inView) spring.set(value);
+  }, [inView, value, spring]);
+
+  useEffect(() => {
+    return spring.on("change", v => {
+      if (ref.current) ref.current.textContent = prefix + v.toFixed(decimals) + suffix;
+    });
+  }, [spring, prefix, suffix, decimals]);
+
+  return <span ref={ref}>{prefix}0{suffix}</span>;
+}
+
+// ── Real portfolio preview card ───────────────────────────────────────────────
+function PortfolioCard() {
+  const [data, setData] = useState<{
+    totalValue: number;
+    totalInvested: number;
+    returnPct: number;
+    fundCount: number;
+    investorName: string;
+    topFunds: { name: string; returnPct: number; valuation: number }[];
+    historicalBars: number[];
+    isLoggedIn: boolean;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const raw = localStorage.getItem("cas_user");
+        if (!raw) { setLoading(false); setData(null); return; }
+        const user = JSON.parse(raw);
+        const res = await fetch(`/api/reports?email=${encodeURIComponent(user.email)}`);
+        const reports: any[] = await res.json();
+        const analyzed = reports.filter(r => r.analysis?.mf_snapshot?.length || r.analysis?.funds?.length);
+        if (!analyzed.length) { setLoading(false); setData(null); return; }
+
+        // Use the most recent report
+        const latest = analyzed[analyzed.length - 1];
+        const funds: any[] = latest.analysis?.mf_snapshot ?? latest.analysis?.funds ?? [];
+        const totalValue = funds.reduce((s: number, f: any) => s + (f.valuation ?? 0), 0);
+        const totalInvested = funds.reduce((s: number, f: any) => s + (f.invested_amount ?? 0), 0);
+        const returnPct = totalInvested > 0 ? ((totalValue - totalInvested) / totalInvested) * 100 : 0;
+
+        // Historical bars from historical_valuations if available
+        const hist: any[] = latest.analysis?.historical_valuations ?? [];
+        let bars: number[] = [];
+        if (hist.length >= 2) {
+          const vals = hist.slice(-10).map((h: any) => h.valuation);
+          const min = Math.min(...vals);
+          const max = Math.max(...vals);
+          bars = vals.map(v => max === min ? 60 : Math.round(20 + ((v - min) / (max - min)) * 75));
+        } else {
+          bars = [40, 55, 45, 65, 52, 70, 62, 78, 68, 85];
+        }
+
+        // Top 3 funds by valuation
+        const topFunds = [...funds]
+          .sort((a, b) => (b.valuation ?? 0) - (a.valuation ?? 0))
+          .slice(0, 3)
+          .map(f => ({
+            name: f.scheme_name ?? f.name ?? "Fund",
+            valuation: f.valuation ?? 0,
+            returnPct: f.invested_amount > 0
+              ? ((f.valuation - f.invested_amount) / f.invested_amount) * 100
+              : 0,
+          }));
+
+        if (!cancelled) setData({
+          totalValue,
+          totalInvested,
+          returnPct,
+          fundCount: funds.length,
+          investorName: latest.analysis?.investor_name ?? user.name ?? "",
+          topFunds,
+          historicalBars: bars,
+          isLoggedIn: true,
+        });
+      } catch {
+        if (!cancelled) setData(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const formatValue = (v: number) => {
+    if (v >= 10000000) return `₹${(v / 10000000).toFixed(2)} Cr`;
+    if (v >= 100000) return `₹${(v / 100000).toFixed(2)} L`;
+    return `₹${v.toLocaleString("en-IN")}`;
+  };
+
+  // ── Not logged in state ──
+  if (!loading && (!data || !data.isLoggedIn)) {
+    return (
+      <div className="relative">
+        <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#00d4ff]/15 via-transparent to-[#7c3aed]/15 blur-2xl" />
+        {/* HUD corner brackets */}
+        {[["top-0 left-0","border-t border-l"],["top-0 right-0","border-t border-r"],["bottom-0 left-0","border-b border-l"],["bottom-0 right-0","border-b border-r"]].map(([pos, border], i) => (
+          <div key={i} className={`absolute ${pos} w-5 h-5 ${border} border-[#00d4ff]/60 z-20`} />
+        ))}
+        <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 text-center space-y-4 overflow-hidden">
+          <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/50 to-transparent" />
+          <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }}
+            className="w-14 h-14 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center mx-auto">
+            <Lock size={22} className="text-[#00d4ff]" />
+          </motion.div>
+          <p className="text-xs text-[#00d4ff] uppercase tracking-widest font-medium">Live Portfolio Preview</p>
+          <p className="text-white font-semibold text-sm">Sign in to see your real portfolio data here</p>
+          <p className="text-white/30 text-xs">Your actual holdings, returns, and fund analysis will appear in this panel</p>
+          <button onClick={goToLogin}
+            className="mt-2 px-5 py-2 rounded-lg text-xs font-semibold text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_18px_rgba(0,212,255,0.4)]">
+            Connect Portfolio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="relative">
+        <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#00d4ff]/15 via-transparent to-[#7c3aed]/15 blur-2xl" />
+        <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 space-y-4">
+          {[1,2,3,4].map(i => (
+            <motion.div key={i} className="h-8 rounded-lg bg-white/[0.05]"
+              animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const d = data!;
+  const FUND_COLORS = ["#00d4ff", "#7c3aed", "#f59e0b", "#10b981", "#ec4899"];
+
   return (
-    <div className="flex items-end gap-1 h-12">
-      {bars.map((h, i) => (
-        <motion.div key={i} className="flex-1 rounded-sm"
-          style={{ height: `${h}%`, background: i === bars.length - 1 ? "#00d4ff" : `rgba(0,212,255,${0.2 + i * 0.06})` }}
-          initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-          transition={{ delay: 0.8 + i * 0.05, duration: 0.4, ease: "easeOut" }}
-        />
+    <div className="relative">
+      {/* Outer glow */}
+      <motion.div className="absolute -inset-4 rounded-3xl blur-2xl"
+        style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(0,212,255,0.15) 0%, rgba(124,58,237,0.10) 60%, transparent 100%)" }}
+        animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 3, repeat: Infinity }} />
+
+      {/* HUD corner brackets */}
+      {[["top-0 left-0","border-t border-l"],["top-0 right-0","border-t border-r"],["bottom-0 left-0","border-b border-l"],["bottom-0 right-0","border-b border-r"]].map(([pos, border], i) => (
+        <motion.div key={i} className={`absolute ${pos} w-6 h-6 ${border} border-[#00d4ff] z-20`}
+          animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }} />
       ))}
+
+      <div className="relative rounded-2xl border border-[#00d4ff]/20 bg-[#020817]/80 backdrop-blur-xl overflow-hidden">
+        {/* Scan line */}
+        <motion.div className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/60 to-transparent z-10 pointer-events-none"
+          animate={{ top: ["0%", "100%", "0%"] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+
+        {/* Top accent */}
+        <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/70 to-transparent" />
+
+        <div className="p-6 space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                  animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-semibold">Live · {d.investorName || "Portfolio"}</span>
+              </div>
+              <p className="text-[10px] text-white/30 uppercase tracking-widest">Total Portfolio Value</p>
+              <motion.p className="text-white font-bold text-xl mt-0.5 tabular-nums"
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                {formatValue(d.totalValue)}
+              </motion.p>
+            </div>
+            <motion.div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+              style={{
+                background: d.returnPct >= 0 ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
+                border: `1px solid ${d.returnPct >= 0 ? "rgba(52,211,153,0.4)" : "rgba(248,113,113,0.4)"}`,
+              }}
+              animate={{ boxShadow: d.returnPct >= 0
+                ? ["0 0 0px rgba(52,211,153,0)","0 0 12px rgba(52,211,153,0.4)","0 0 0px rgba(52,211,153,0)"]
+                : ["0 0 0px rgba(248,113,113,0)","0 0 12px rgba(248,113,113,0.4)","0 0 0px rgba(248,113,113,0)"] }}
+              transition={{ duration: 2, repeat: Infinity }}>
+              <TrendingUp size={12} style={{ color: d.returnPct >= 0 ? "#34d399" : "#f87171" }} />
+              <span className="text-xs font-semibold" style={{ color: d.returnPct >= 0 ? "#34d399" : "#f87171" }}>
+                {d.returnPct >= 0 ? "+" : ""}{d.returnPct.toFixed(1)}%
+              </span>
+            </motion.div>
+          </div>
+
+          {/* Historical bar chart */}
+          <div className="flex items-end gap-1 h-14 px-1">
+            {d.historicalBars.map((h, i) => (
+              <motion.div key={i} className="flex-1 rounded-sm"
+                style={{
+                  background: i === d.historicalBars.length - 1
+                    ? "linear-gradient(180deg,#00d4ff,#0096b4)"
+                    : `rgba(0,212,255,${0.15 + i * 0.07})`,
+                  boxShadow: i === d.historicalBars.length - 1 ? "0 0 10px rgba(0,212,255,0.6)" : "none",
+                }}
+                initial={{ scaleY: 0 }} animate={{ scaleY: 1, height: `${h}%` }}
+                transition={{ delay: 0.6 + i * 0.05, duration: 0.5, ease: "easeOut" }}
+              />
+            ))}
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "RETURN", value: `${d.returnPct >= 0 ? "+" : ""}${d.returnPct.toFixed(1)}%`, color: d.returnPct >= 0 ? "#34d399" : "#f87171" },
+              { label: "INVESTED", value: formatValue(d.totalInvested), color: "#7c3aed" },
+              { label: "FUNDS", value: String(d.fundCount), color: "#f59e0b" },
+            ].map(({ label, value, color }, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 + i * 0.1 }}
+                whileHover={{ scale: 1.04 }}
+                className="rounded-xl p-3 text-center relative overflow-hidden"
+                style={{ background: `${color}0d`, border: `1px solid ${color}25` }}>
+                <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity"
+                  style={{ background: `radial-gradient(ellipse at 50% 100%,${color}15,transparent 70%)` }} />
+                <p className="text-sm font-bold" style={{ color }}>{value}</p>
+                <p className="text-[9px] text-white/30 tracking-widest mt-0.5">{label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Top funds */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <Activity size={10} className="text-[#00d4ff]" />
+              <span className="text-[9px] text-[#00d4ff] uppercase tracking-widest font-semibold">Top Holdings</span>
+            </div>
+            {d.topFunds.map((fund, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.1 + i * 0.12 }}
+                whileHover={{ x: 3 }}
+                className="flex items-center justify-between py-2 px-3 rounded-xl relative overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <motion.div className="absolute left-0 top-0 bottom-0 w-[2px] rounded-l"
+                  style={{ background: FUND_COLORS[i % FUND_COLORS.length] }}
+                  animate={{ boxShadow: [`0 0 4px ${FUND_COLORS[i % FUND_COLORS.length]}60`, `0 0 10px ${FUND_COLORS[i % FUND_COLORS.length]}`, `0 0 4px ${FUND_COLORS[i % FUND_COLORS.length]}60`] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }} />
+                <div className="ml-3 min-w-0">
+                  <p className="text-[11px] font-medium text-white/85 truncate max-w-[160px]">{fund.name}</p>
+                  <p className="text-[9px] text-white/30">{formatValue(fund.valuation)}</p>
+                </div>
+                <span className={`text-xs font-bold ml-2 shrink-0 ${fund.returnPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {fund.returnPct >= 0 ? "+" : ""}{fund.returnPct.toFixed(1)}%
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -145,54 +386,11 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Right: Dashboard Preview Card */}
+          {/* Right: Real Portfolio Card */}
           <motion.div initial={{ opacity: 0, x: 30, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ delay: 0.35, duration: 0.6 }}
             className="flex-1 w-full max-w-md lg:max-w-none">
-            <div className="relative">
-              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#00d4ff]/15 via-transparent to-[#7c3aed]/15 blur-2xl" />
-              <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 space-y-5">
-                <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/50 to-transparent" />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-white/30 uppercase tracking-widest">Portfolio Overview</p>
-                    <p className="text-white font-bold text-lg mt-0.5">₹14,82,350</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                    <TrendingUp size={12} className="text-emerald-400" />
-                    <span className="text-xs text-emerald-400 font-semibold">+18.4%</span>
-                  </div>
-                </div>
-                <MiniChart />
-                <div className="grid grid-cols-3 gap-3">
-                  <StatCard label="XIRR" value="18.4%" color="#00d4ff" />
-                  <StatCard label="Alpha" value="+3.2%" color="#7c3aed" />
-                  <StatCard label="Funds" value="12" color="#f59e0b" />
-                </div>
-                <div className="space-y-2">
-                  {[
-                    { name: "Mirae Asset Large Cap", score: 87, change: "+2.1%", color: "#00d4ff" },
-                    { name: "Parag Parikh Flexi Cap", score: 92, change: "+4.8%", color: "#7c3aed" },
-                    { name: "Axis Small Cap Fund", score: 78, change: "-1.2%", color: "#f59e0b" },
-                  ].map((fund, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 1 + i * 0.1 }}
-                      className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: fund.color, boxShadow: `0 0 8px ${fund.color}80` }} />
-                        <div>
-                          <p className="text-xs font-medium text-white/80">{fund.name}</p>
-                          <p className="text-[10px] text-white/30">Score: {fund.score}/100</p>
-                        </div>
-                      </div>
-                      <span className={`text-xs font-semibold ${fund.change.startsWith("+") ? "text-emerald-400" : "text-red-400"}`}>
-                        {fund.change}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <PortfolioCard />
           </motion.div>
         </div>
       </section>
