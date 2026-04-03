@@ -129,7 +129,7 @@ const NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", section: "dashboard", active: true,  comingSoon: false },
   { icon: BarChart2,        label: "Analytics", href: "",           section: "analytics", active: false, comingSoon: false },
   { icon: Upload,           label: "Upload CAS",href: "/home",      section: "",          active: false, comingSoon: false },
-  { icon: FileText,         label: "Reports",   href: "/home",      section: "",          active: false, comingSoon: false },
+  { icon: FileText,         label: "Reports",   href: "/dashboard", section: "",          active: false, comingSoon: false },
 ];
 
 // ─── Floating Particles ────────────────────────────────────────────────────────
