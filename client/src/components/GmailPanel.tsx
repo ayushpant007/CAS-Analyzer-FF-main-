@@ -132,12 +132,13 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
     try {
       const res = await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}`, { method: "POST" });
       if (res.ok) {
-        showToast("Inbox scan started — checking for new CAS emails now.", "info");
-        // Keep spinner for 2s so user can see it
-        await new Promise(r => setTimeout(r, 2000));
-        setCheckDone(true);
+        showToast("Scanning inbox for CAS emails...", "info");
+        // Wait 12s for the background Gmail scan to complete
+        await new Promise(r => setTimeout(r, 12000));
         await loadStatus();
-        setTimeout(() => setCheckDone(false), 2000);
+        setCheckDone(true);
+        showToast("Inbox scan complete.", "success");
+        setTimeout(() => setCheckDone(false), 3000);
       } else {
         showToast("Check request failed. Please try again.", "error");
       }
