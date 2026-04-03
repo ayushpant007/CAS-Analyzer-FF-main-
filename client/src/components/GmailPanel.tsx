@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose: () => void }) {
@@ -65,7 +65,7 @@ function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose:
               onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
             />
           </div>
-          <p className="text-xs text-white/30 mt-2">Most CAS PDFs are password-protected with your PAN number. This is used to auto-decrypt and analyze PDFs found in your Gmail.</p>
+          <p className="text-xs text-white/30 mt-2">Most CAS PDFs are password-protected with your PAN number.</p>
         </div>
 
         <button
@@ -92,17 +92,28 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
   const [status, setStatus] = useState<{ connected: boolean; lastCheckedAt?: string; createdAt?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [checkDone, setCheckDone] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const params = new URLSearchParams(window.location.search);
   const justConnected = params.get("gmail") === "connected";
   const justError = params.get("gmail") === "error";
+
+  function showToast(msg: string, type: "success" | "error" | "info") {
+    setToast({ msg, type });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }
 
   useEffect(() => {
     if (justConnected || justError) {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
 
   async function loadStatus() {
     try {
@@ -115,22 +126,53 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
   useEffect(() => { if (userEmail) loadStatus(); }, [userEmail]);
 
   async function handleManualCheck() {
+    if (checking) return;
     setChecking(true);
+    setCheckDone(false);
     try {
-      await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}`, { method: "POST" });
-      setTimeout(loadStatus, 3000);
-    } finally { setChecking(false); }
+      const res = await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}`, { method: "POST" });
+      if (res.ok) {
+        showToast("Inbox scan started — checking for new CAS emails now.", "info");
+        // Keep spinner for 2s so user can see it
+        await new Promise(r => setTimeout(r, 2000));
+        setCheckDone(true);
+        await loadStatus();
+        setTimeout(() => setCheckDone(false), 2000);
+      } else {
+        showToast("Check request failed. Please try again.", "error");
+      }
+    } catch {
+      showToast("Network error — could not trigger check.", "error");
+    } finally {
+      setChecking(false);
+    }
   }
 
   async function handleDisconnect() {
+    if (disconnecting) return;
     setDisconnecting(true);
     try {
-      await fetch(`/api/gmail/disconnect?email=${encodeURIComponent(userEmail)}`, { method: "DELETE" });
-      await loadStatus();
-    } finally { setDisconnecting(false); }
+      const res = await fetch(`/api/gmail/disconnect?email=${encodeURIComponent(userEmail)}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Gmail disconnected successfully.", "success");
+        await loadStatus();
+      } else {
+        showToast("Disconnect failed. Please try again.", "error");
+      }
+    } catch {
+      showToast("Network error — could not disconnect.", "error");
+    } finally {
+      setDisconnecting(false);
+    }
   }
 
   if (!status) return null;
+
+  const toastColors = {
+    success: { bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.3)", color: "#34d399" },
+    error:   { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.3)", color: "#f87171" },
+    info:    { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.3)",  color: "#60a5fa" },
+  };
 
   return (
     <>
@@ -139,19 +181,31 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+
+        {/* Toasts */}
         <AnimatePresence>
           {justConnected && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            <motion.div key="connected-toast" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl mb-3 text-sm font-medium"
               style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)", color: "#34d399" }}>
-              <CheckCircle2 size={15} /> Gmail connected! We're scanning your inbox for CAS PDFs now.
+              <CheckCircle2 size={15} /> Gmail connected! Scanning your inbox for CAS PDFs now.
             </motion.div>
           )}
           {justError && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            <motion.div key="error-toast" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl mb-3 text-sm font-medium"
               style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
               <AlertCircle size={15} /> Gmail connection failed. Please try again.
+            </motion.div>
+          )}
+          {toast && (
+            <motion.div key="toast" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl mb-3 text-sm font-medium"
+              style={{ background: toastColors[toast.type].bg, border: `1px solid ${toastColors[toast.type].border}`, color: toastColors[toast.type].color }}>
+              {toast.type === "success" && <CheckCircle2 size={15} />}
+              {toast.type === "error" && <AlertCircle size={15} />}
+              {toast.type === "info" && <RefreshCw size={15} className="animate-spin" />}
+              {toast.msg}
             </motion.div>
           )}
         </AnimatePresence>
@@ -177,9 +231,11 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
                 </div>
                 <p className="text-xs text-white/35 mt-0.5">
                   {status.connected
-                    ? status.lastCheckedAt
-                      ? `Last checked ${formatDistanceToNow(new Date(status.lastCheckedAt), { addSuffix: true })}`
-                      : "Scanning your inbox now..."
+                    ? checkDone
+                      ? "✓ Inbox checked just now"
+                      : status.lastCheckedAt
+                        ? `Last checked ${formatDistanceToNow(new Date(status.lastCheckedAt), { addSuffix: true })}`
+                        : "Connected — first scan pending"
                     : "Auto-import CAS PDFs from CAMS, KFintech & MFCentral emails"}
                 </p>
               </div>
@@ -193,20 +249,32 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
                     disabled={checking}
                     data-testid="button-gmail-check"
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
-                    style={{ background: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.25)", color: "#60a5fa" }}
+                    style={{
+                      background: checking ? "rgba(96,165,250,0.2)" : "rgba(96,165,250,0.1)",
+                      border: "1px solid rgba(96,165,250,0.25)",
+                      color: "#60a5fa",
+                      cursor: checking ? "not-allowed" : "pointer",
+                      opacity: checking ? 0.8 : 1,
+                    }}
                   >
                     <RefreshCw size={12} className={checking ? "animate-spin" : ""} />
-                    {checking ? "Checking..." : "Check Now"}
+                    {checking ? "Checking inbox..." : "Check Now"}
                   </button>
                   <button
                     onClick={handleDisconnect}
                     disabled={disconnecting}
                     data-testid="button-gmail-disconnect"
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
-                    style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171" }}
+                    style={{
+                      background: disconnecting ? "rgba(248,113,113,0.15)" : "rgba(248,113,113,0.08)",
+                      border: "1px solid rgba(248,113,113,0.2)",
+                      color: "#f87171",
+                      cursor: disconnecting ? "not-allowed" : "pointer",
+                      opacity: disconnecting ? 0.7 : 1,
+                    }}
                   >
-                    <Unlink size={12} />
-                    {disconnecting ? "..." : "Disconnect"}
+                    <Unlink size={12} className={disconnecting ? "animate-pulse" : ""} />
+                    {disconnecting ? "Disconnecting..." : "Disconnect"}
                   </button>
                 </>
               ) : (
@@ -214,7 +282,7 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
                   onClick={() => setShowModal(true)}
                   data-testid="button-connect-gmail-open"
                   className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all"
-                  style={{ background: "linear-gradient(135deg,rgba(59,111,255,0.8),rgba(124,58,237,0.8))", color: "#fff", boxShadow: "0 0 18px rgba(59,111,255,0.3)" }}
+                  style={{ background: "linear-gradient(135deg,rgba(59,111,255,0.8),rgba(124,58,237,0.8))", color: "#fff", boxShadow: "0 0 18px rgba(59,111,255,0.3)", cursor: "pointer" }}
                 >
                   <Mail size={12} />
                   Connect Gmail
@@ -222,6 +290,31 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
               )}
             </div>
           </div>
+
+          {/* Gmail API not yet enabled warning */}
+          {status.connected && !status.lastCheckedAt && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+              className="mt-4 pt-4 flex items-start gap-3"
+              style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+            >
+              <WifiOff size={14} className="text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-amber-400">Gmail API not yet enabled</p>
+                <p className="text-[11px] text-white/40 mt-0.5">
+                  Go to{" "}
+                  <a
+                    href="https://console.developers.google.com/apis/api/gmail.googleapis.com/overview?project=693039780218"
+                    target="_blank" rel="noopener noreferrer"
+                    className="underline text-blue-400 hover:text-blue-300"
+                  >
+                    Google Cloud Console → Gmail API
+                  </a>
+                  {" "}and click <strong className="text-white/60">Enable</strong>. Once enabled, click Check Now.
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {!status.connected && (
             <div className="mt-4 pt-4 grid grid-cols-3 gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
