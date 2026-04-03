@@ -898,44 +898,99 @@ Text:\n${text}`;
 
       const gmail = google.gmail({ version: "v1", auth: oauth2 });
 
-      // Build date query (last 7 days if never checked, else since last check)
-      const dateQuery = (() => {
-        const d = conn.lastCheckedAt ? new Date(conn.lastCheckedAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        return `after:${Math.floor(d.getTime() / 1000)}`;
-      })();
+      // Log which inbox is actually being scanned (helps debug wrong-account issues)
+      try {
+        const profile = await gmail.users.getProfile({ userId: "me" });
+        console.log(`[Gmail] Authenticated as: ${profile.data.emailAddress} (app account: ${conn.userEmail})`);
+      } catch (e: any) {
+        console.error(`[Gmail] Could not get profile:`, e.message);
+      }
 
-      // Search 1: official CAS senders only
+      // Build date queries
+      // Primary: since last check (or 7 days if never checked), with 30-min buffer to avoid edge cases
+      const baseDate = conn.lastCheckedAt
+        ? new Date(Math.min(new Date(conn.lastCheckedAt).getTime() - 30 * 60 * 1000, Date.now() - 2 * 60 * 60 * 1000))
+        : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const dateQuery = `after:${Math.floor(baseDate.getTime() / 1000)}`;
+
+      // Fallback always searches last 48 hours to catch any emails missed by timing gaps
+      const fallback48hDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      const fallbackDateQuery = `after:${Math.floor(fallback48hDate.getTime() / 1000)}`;
+
+      console.log(`[Gmail] Primary date filter: emails after ${baseDate.toISOString()} (${dateQuery})`);
+      console.log(`[Gmail] Fallback date filter: emails after ${fallback48hDate.toISOString()} (${fallbackDateQuery})`);
+
+      // Search 1: official CAS senders
       const senderQuery = CAS_SENDERS.map(s => `from:${s}`).join(" OR ");
-      const officialQ = `(${senderQuery}) has:attachment filename:pdf ${dateQuery}`;
+      const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateQuery}`;
 
-      // Search 2: ANY sender — catches manually forwarded CAS PDFs
-      const broadQ = `has:attachment filename:pdf ${dateQuery} -from:noreply@accounts.google.com`;
+      // Search 2: ANY sender with PDF attachment — catches manually forwarded CAS PDFs
+      const broadQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateQuery} -from:noreply@accounts.google.com`;
 
-      const [officialRes, broadRes] = await Promise.all([
-        gmail.users.messages.list({ userId: "me", q: officialQ, maxResults: 20 }),
-        gmail.users.messages.list({ userId: "me", q: broadQ,    maxResults: 20 }),
+      // Search 3: Most permissive fallback — any inbox attachment in last 48h (catches edge timing cases)
+      const fallbackQ = `has:attachment ${fallbackDateQuery} in:inbox`;
+
+      console.log(`[Gmail] officialQ: ${officialQ}`);
+      console.log(`[Gmail] broadQ:    ${broadQ}`);
+      console.log(`[Gmail] fallbackQ: ${fallbackQ}`);
+
+      const [officialRes, broadRes, fallbackRes] = await Promise.all([
+        gmail.users.messages.list({ userId: "me", q: officialQ,  maxResults: 20 }),
+        gmail.users.messages.list({ userId: "me", q: broadQ,     maxResults: 20 }),
+        gmail.users.messages.list({ userId: "me", q: fallbackQ,  maxResults: 30 }),
       ]);
 
-      // Deduplicate by message ID
+      console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}`);
+
+      // Deduplicate by message ID across all three searches
       const seen = new Set<string>();
       const messages: { id?: string | null; threadId?: string | null }[] = [];
-      for (const msg of [...(officialRes.data.messages || []), ...(broadRes.data.messages || [])]) {
+      for (const msg of [
+        ...(officialRes.data.messages || []),
+        ...(broadRes.data.messages  || []),
+        ...(fallbackRes.data.messages || []),
+      ]) {
         if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
       }
 
-      console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential CAS emails (official + any-sender scan)`);
+      console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential emails to inspect`);
+
+      // Recursively collect all PDF parts from nested multipart structures
+      type MsgPart = { mimeType?: string | null; filename?: string | null; body?: { attachmentId?: string | null; data?: string | null } | null; parts?: MsgPart[] | null };
+      function collectPdfParts(parts: MsgPart[]): MsgPart[] {
+        const result: MsgPart[] = [];
+        for (const part of parts) {
+          const isPdf = part.mimeType === "application/pdf" ||
+            part.mimeType === "application/octet-stream" ||
+            (part.filename && part.filename.toLowerCase().endsWith(".pdf"));
+          if (isPdf && part.body?.attachmentId) {
+            result.push(part);
+          }
+          if (part.parts && part.parts.length > 0) {
+            result.push(...collectPdfParts(part.parts));
+          }
+        }
+        return result;
+      }
 
       let pdfCount = 0;
 
       for (const msg of messages) {
         try {
-          const fullMsg = await gmail.users.messages.get({ userId: "me", id: msg.id! });
-          const parts = fullMsg.data.payload?.parts || [];
+          const fullMsg = await gmail.users.messages.get({ userId: "me", id: msg.id!, format: "full" });
+          const payload = fullMsg.data.payload;
+          if (!payload) continue;
 
-          const pdfParts = parts.filter(
-            p => p.mimeType === "application/pdf" ||
-              (p.filename && p.filename.toLowerCase().endsWith(".pdf"))
-          );
+          // Collect parts from both top-level and nested structures
+          const allParts: MsgPart[] = [];
+          if (payload.parts) allParts.push(...payload.parts);
+          // Also handle single-part messages
+          if (payload.mimeType === "application/pdf" && payload.body?.attachmentId) {
+            allParts.push(payload as MsgPart);
+          }
+
+          const pdfParts = collectPdfParts(allParts);
+          console.log(`[Gmail] Message ${msg.id}: found ${pdfParts.length} PDF part(s) — filenames: [${pdfParts.map(p => p.filename || "(unnamed)").join(", ")}]`);
 
           for (const part of pdfParts) {
             if (!part.body?.attachmentId) continue;
@@ -947,13 +1002,41 @@ Text:\n${text}`;
 
             const pdfBuffer = Buffer.from(data, "base64url");
             const filename = part.filename || `cas-${Date.now()}.pdf`;
-            const password = conn.casPassword || "";
+
+            // Build list of passwords to try:
+            // 1. User's stored password, 2. PAN extracted from filename, 3. empty string
+            const passwords: string[] = [];
+            if (conn.casPassword) passwords.push(conn.casPassword);
+            // Extract PAN-like patterns from filename: e.g. "(AGNPA6149B)" or "AGNPA6149B"
+            const panMatches = filename.match(/\(([A-Z]{5}[0-9]{4}[A-Z])\)/g) || filename.match(/([A-Z]{5}[0-9]{4}[A-Z])/g);
+            if (panMatches) {
+              for (const m of panMatches) {
+                const pan = m.replace(/[()]/g, "");
+                if (!passwords.includes(pan)) passwords.push(pan);
+              }
+            }
+            if (!passwords.includes("")) passwords.push("");
 
             pdfCount++;
-            try {
-              await analyzeCasPdfBuffer(pdfBuffer, filename, password, conn.userEmail);
-            } catch (e: any) {
-              console.error(`[Gmail] Failed to analyze ${filename}:`, e.message);
+            console.log(`[Gmail] Processing PDF: ${filename} (trying ${passwords.length} password(s))`);
+            let analyzed = false;
+            for (const pwd of passwords) {
+              try {
+                await analyzeCasPdfBuffer(pdfBuffer, filename, pwd, conn.userEmail);
+                console.log(`[Gmail] ✅ Successfully analyzed ${filename} with password hint: ${pwd ? pwd.slice(0, 3) + "***" : "(empty)"}`);
+                analyzed = true;
+                break;
+              } catch (e: any) {
+                if (e.message === "PDF_PASSWORD_WRONG" || e.message === "PDF_EMPTY") {
+                  console.log(`[Gmail] Password attempt failed for ${filename}, trying next...`);
+                  continue;
+                }
+                console.error(`[Gmail] Non-password error analyzing ${filename}:`, e.message);
+                break;
+              }
+            }
+            if (!analyzed) {
+              console.error(`[Gmail] ❌ Could not decrypt ${filename} — all passwords failed`);
             }
           }
         } catch (e: any) {
