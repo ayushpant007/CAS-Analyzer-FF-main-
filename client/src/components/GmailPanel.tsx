@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
+import { api } from "@shared/routes";
 
 function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose: () => void }) {
   const [password, setPassword] = useState("");
@@ -88,7 +90,7 @@ function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose:
   );
 }
 
-export function GmailPanel({ userEmail }: { userEmail: string }) {
+export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onNewReports?: () => void }) {
   const [status, setStatus] = useState<{ connected: boolean; lastCheckedAt?: string; createdAt?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -96,6 +98,7 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
   const [disconnecting, setDisconnecting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queryClient = useQueryClient();
 
   const params = new URLSearchParams(window.location.search);
   const justConnected = params.get("gmail") === "connected";
@@ -139,6 +142,8 @@ export function GmailPanel({ userEmail }: { userEmail: string }) {
         setCheckResult({ pdfCount });
         if (pdfCount > 0) {
           showToast(`Fetched ${pdfCount} PDF${pdfCount === 1 ? "" : "s"} from your inbox.`, "success");
+          await queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
+          onNewReports?.();
         } else {
           showToast("No new PDFs found in your inbox.", "info");
         }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, useSpring, useInView, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Sector,
@@ -942,6 +942,7 @@ function AnalyticsView({ reports, user }: { reports: any[]; user: { name: string
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDonut, setActiveDonut] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1264,7 +1265,14 @@ export default function Dashboard() {
           {/* ── GMAIL AUTO-IMPORT ── */}
           {userEmail && (
             <div style={{ marginBottom: 20 }}>
-              <GmailPanel userEmail={userEmail} />
+              <GmailPanel
+                userEmail={userEmail}
+                onNewReports={() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/reports/timeline"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/reports/categories"] });
+                }}
+              />
             </div>
           )}
 

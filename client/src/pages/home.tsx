@@ -155,7 +155,21 @@ export default function Home() {
               </div>
 
               {/* Gmail Auto-Import Panel */}
-              {userEmail && <GmailPanel userEmail={userEmail} />}
+              {userEmail && (
+                <GmailPanel
+                  userEmail={userEmail}
+                  onNewReports={async () => {
+                    const res = await fetch("/api/reports");
+                    if (res.ok) {
+                      const list = await res.json();
+                      if (list && list.length > 0) {
+                        setAutoAnalyzeNewReport(false);
+                        setActiveReportId(list[0].id);
+                      }
+                    }
+                  }}
+                />
+              )}
 
               {/* Upload Component */}
               <motion.div
@@ -165,7 +179,7 @@ export default function Home() {
                 className="relative z-10"
               >
                 <div
-                  className="absolute inset-0 -z-10 blur-3xl scale-150 transform opacity-20"
+                  className="absolute inset-0 -z-10 blur-3xl scale-150 transform opacity-20 pointer-events-none"
                   style={{
                     background: "radial-gradient(ellipse, #3b6fff 0%, transparent 70%)",
                   }}
