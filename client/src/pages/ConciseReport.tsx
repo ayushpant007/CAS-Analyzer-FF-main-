@@ -532,7 +532,7 @@ export default function ConciseReport() {
       const perfFunds = snap.filter((mf: any) => storedPerformances[mf.isin]);
       const perfHdrs = ["#", "Fund Name", "ISIN", "Category", "Risk Type", "SIP Amt (₹)",
         "1Y CAGR%", "BM 1Y%", "3Y CAGR%", "BM 3Y%", "5Y CAGR%", "BM 5Y%",
-        "Fin Score", "Perf Score", "Total /80", "Rating", "Action", "Target Category", "Target Fund"];
+        "Fin Score", "Perf Score", "Total /80", "Rating", "Target Category", "Target Fund"];
       const cagrColor = (val: number, bm: number) => isNaN(val) ? "1E293B" : val >= bm ? C.GREEN : C.RED;
 
       const perf: any[][] = [
@@ -606,7 +606,6 @@ export default function ConciseReport() {
             num(perfScore, "0", i),
             num(total, "0", i),
             ratingStyle(rating),
-            actionStyle(action),
             txt(targetCategory[mf.scheme_name] || "—", i),
             txt(targetFund[mf.scheme_name] || "—", i, true),
           ];
@@ -1242,7 +1241,6 @@ export default function ConciseReport() {
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">5Y CAGR</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Score</th>
                         <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Rating</th>
-                        <th className="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1308,88 +1306,6 @@ export default function ConciseReport() {
                                   {r.rating}
                                 </span>
                               ) : <span className="text-slate-300 text-[10px]">—</span>}
-                            </td>
-                            <td className="px-4 py-3">
-                              {(() => {
-                                const sn = r.mf.scheme_name;
-                                const action = actionSelections[sn] || "hold";
-                                const cls = ACTION_STYLES[action] ?? ACTION_STYLES.hold;
-                                const tCat = targetCategory[sn] || "";
-                                const tFund = targetFund[sn] || "";
-                                const query = fundSearchQuery[sn] || "";
-                                const isOpen = openFundDropdown === sn;
-                                const filtered = query.length >= 2
-                                  ? fundSchemes.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, 60)
-                                  : [];
-                                return (
-                                  <div className="flex flex-col gap-1.5 min-w-[180px]">
-                                    <select
-                                      value={action}
-                                      onChange={(e) => updateAction(sn, e.target.value)}
-                                      className={`text-[9px] font-bold border rounded px-1.5 py-1 cursor-pointer uppercase tracking-wide focus:outline-none w-full ${cls}`}
-                                      data-testid={`concise-action-select-${idx}`}
-                                    >
-                                      <option value="hold">Hold</option>
-                                      <option value="switch">Switch</option>
-                                      <option value="merge">Merge</option>
-                                      <option value="sell">Sell</option>
-                                    </select>
-                                    {action !== "hold" && (
-                                      <div className="flex flex-col gap-1 mt-0.5">
-                                        <select
-                                          value={tCat}
-                                          onChange={(e) => updateTargetCategory(sn, e.target.value)}
-                                          className="text-[9px] border border-slate-200 rounded px-1.5 py-1 focus:outline-none focus:border-blue-400 bg-white text-slate-700 w-full"
-                                          data-testid={`target-cat-${idx}`}
-                                        >
-                                          <option value="">Category…</option>
-                                          <option value="Equity">Equity</option>
-                                          <option value="Debt">Debt</option>
-                                          <option value="Hybrid">Hybrid</option>
-                                          <option value="Others">Others</option>
-                                        </select>
-                                        <div className="relative">
-                                          <input
-                                            type="text"
-                                            placeholder="Search fund…"
-                                            value={isOpen ? query : (tFund || query)}
-                                            onFocus={() => {
-                                              setOpenFundDropdown(sn);
-                                              setFundSearchQuery(prev => ({ ...prev, [sn]: tFund || "" }));
-                                            }}
-                                            onChange={(e) => setFundSearchQuery(prev => ({ ...prev, [sn]: e.target.value }))}
-                                            onBlur={() => setTimeout(() => setOpenFundDropdown(null), 200)}
-                                            className="text-[9px] border border-slate-200 rounded px-1.5 py-1 focus:outline-none focus:border-blue-400 bg-white text-slate-700 w-full"
-                                            data-testid={`target-fund-search-${idx}`}
-                                          />
-                                          {isOpen && filtered.length > 0 && (
-                                            <div className="absolute z-50 left-0 right-0 top-full mt-0.5 bg-white border border-slate-200 rounded shadow-lg max-h-40 overflow-y-auto text-[9px]">
-                                              {filtered.map((s, fi) => (
-                                                <div
-                                                  key={fi}
-                                                  className="px-2 py-1.5 hover:bg-blue-50 cursor-pointer text-slate-700 border-b border-slate-50 last:border-0"
-                                                  onMouseDown={() => {
-                                                    updateTargetFund(sn, s);
-                                                    setFundSearchQuery(prev => ({ ...prev, [sn]: s }));
-                                                    setOpenFundDropdown(null);
-                                                  }}
-                                                >
-                                                  {s}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-                                          {isOpen && query.length >= 2 && filtered.length === 0 && (
-                                            <div className="absolute z-50 left-0 right-0 top-full mt-0.5 bg-white border border-slate-200 rounded shadow-lg px-2 py-2 text-[9px] text-slate-400">
-                                              No matching funds
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })()}
                             </td>
                           </tr>
                         );
