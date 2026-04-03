@@ -1,6 +1,8 @@
 import { reports, users, gmailConnections, type Report, type InsertReport, type User, type InsertUser, type GmailConnection, type InsertGmailConnection } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
+
+export const DAILY_UPLOAD_LIMIT = 10;
 
 export interface IStorage {
   createReport(report: InsertReport): Promise<Report>;
@@ -8,6 +10,7 @@ export interface IStorage {
   getReport(id: number): Promise<Report | undefined>;
   getAllReports(): Promise<Report[]>;
   getReportsByEmail(email: string): Promise<Report[]>;
+  getDailyUploadCount(userEmail: string): Promise<number>;
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   updateUserPassword(email: string, passwordHash: string): Promise<void>;
@@ -55,6 +58,16 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(reports)
       .where(eq(reports.userEmail, email.toLowerCase()))
       .orderBy(desc(reports.createdAt));
+  }
+
+  async getDailyUploadCount(userEmail: string): Promise<number> {
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const [row] = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(reports)
+      .where(and(eq(reports.userEmail, userEmail.toLowerCase()), gte(reports.createdAt, todayStart)));
+    return row?.count ?? 0;
   }
 
   async createUser(user: InsertUser): Promise<User> {

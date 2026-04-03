@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, DAILY_UPLOAD_LIMIT } from "./storage";
 import { api } from "@shared/routes";
 import multer from "multer";
 import { exec } from "child_process";
@@ -146,6 +146,18 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     const ageGroup = req.body.ageGroup || "20-35";
     const userEmail = req.body.userEmail ? String(req.body.userEmail).toLowerCase() : null;
 
+    // ── Daily upload limit check ──────────────────────────────────────────────
+    if (userEmail) {
+      const used = await storage.getDailyUploadCount(userEmail);
+      if (used >= DAILY_UPLOAD_LIMIT) {
+        return res.status(429).json({
+          message: `You've reached your daily limit of ${DAILY_UPLOAD_LIMIT} PDF uploads. Your limit resets at midnight UTC.`,
+          limit: DAILY_UPLOAD_LIMIT,
+          used,
+        });
+      }
+    }
+
     const tempPath = path.join(os.tmpdir(), `upload-${Date.now()}.pdf`);
 
     try {
@@ -271,6 +283,14 @@ ${text}`;
       ? await storage.getReportsByEmail(email)
       : await storage.getAllReports();
     res.json(list);
+  });
+
+  // ── Daily upload usage ─────────────────────────────────────────────────────────
+  app.get("/api/reports/daily-usage", async (req, res) => {
+    const email = req.query.email as string | undefined;
+    if (!email) return res.json({ limit: DAILY_UPLOAD_LIMIT, used: 0, remaining: DAILY_UPLOAD_LIMIT });
+    const used = await storage.getDailyUploadCount(email);
+    res.json({ limit: DAILY_UPLOAD_LIMIT, used, remaining: Math.max(0, DAILY_UPLOAD_LIMIT - used) });
   });
 
   // ── Dashboard: 30-day upload timeline from real DB data ───────────────────────
@@ -827,6 +847,13 @@ ${text}`;
     investorType = "Aggressive",
     ageGroup = "20-35",
   ): Promise<void> {
+    // Enforce daily upload limit
+    const used = await storage.getDailyUploadCount(userEmail);
+    if (used >= DAILY_UPLOAD_LIMIT) {
+      console.log(`[Gmail] ⛔ Daily limit reached for ${userEmail} (${used}/${DAILY_UPLOAD_LIMIT}) — skipping ${filename}`);
+      throw new Error("DAILY_LIMIT_REACHED");
+    }
+
     const tempPath = path.join(os.tmpdir(), `gmail-import-${Date.now()}.pdf`);
     try {
       await fs.writeFile(tempPath, pdfBuffer);
@@ -974,8 +1001,9 @@ Text:\n${text}`;
       }
 
       let pdfCount = 0;
+      let dailyLimitReached = false;
 
-      for (const msg of messages) {
+      messageLoop: for (const msg of messages) {
         try {
           const fullMsg = await gmail.users.messages.get({ userId: "me", id: msg.id!, format: "full" });
           const payload = fullMsg.data.payload;
@@ -1027,6 +1055,10 @@ Text:\n${text}`;
                 analyzed = true;
                 break;
               } catch (e: any) {
+                if (e.message === "DAILY_LIMIT_REACHED") {
+                  dailyLimitReached = true;
+                  break;
+                }
                 if (e.message === "PDF_PASSWORD_WRONG" || e.message === "PDF_EMPTY") {
                   console.log(`[Gmail] Password attempt failed for ${filename}, trying next...`);
                   continue;
@@ -1035,6 +1067,7 @@ Text:\n${text}`;
                 break;
               }
             }
+            if (dailyLimitReached) break messageLoop; // stop processing all further emails
             if (!analyzed) {
               console.error(`[Gmail] ❌ Could not decrypt ${filename} — all passwords failed`);
             }
@@ -1042,6 +1075,9 @@ Text:\n${text}`;
         } catch (e: any) {
           console.error(`[Gmail] Error processing message ${msg.id}:`, e.message);
         }
+      }
+      if (dailyLimitReached) {
+        console.log(`[Gmail] ⛔ Daily limit of ${DAILY_UPLOAD_LIMIT} reached for ${conn.userEmail} — stopping Gmail import`);
       }
 
       await storage.updateGmailLastChecked(conn.userEmail);

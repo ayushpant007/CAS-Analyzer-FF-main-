@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { useAnalyzeReport } from "@/hooks/use-reports";
-import { Upload, FileText, Lock, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { Upload, FileText, Lock, Loader2, AlertCircle, Sparkles, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface UploadCardProps {
   onSuccess: (reportId: number) => void;
@@ -20,9 +21,25 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
   const { mutate: analyze, isPending, error } = useAnalyzeReport();
   const { toast } = useToast();
 
+  const { data: dailyUsage, refetch: refetchUsage } = useQuery<{ limit: number; used: number; remaining: number }>({
+    queryKey: ["/api/reports/daily-usage", userEmail],
+    queryFn: async () => {
+      const url = userEmail
+        ? `/api/reports/daily-usage?email=${encodeURIComponent(userEmail)}`
+        : "/api/reports/daily-usage";
+      const res = await fetch(url);
+      return res.json();
+    },
+    enabled: !!userEmail,
+    refetchInterval: 60_000,
+  });
+
+  const isLimitReached = (dailyUsage?.remaining ?? 1) <= 0;
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+    if (isLimitReached) return;
     if (e.dataTransfer.files?.[0]) {
       const f = e.dataTransfer.files[0];
       if (f.type === "application/pdf") {
@@ -42,10 +59,16 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
           toast({ title: "Analysis Complete", description: "Your portfolio has been successfully analyzed." });
           setFile(null);
           setPassword("");
+          refetchUsage();
           onSuccess(data.id);
         },
-        onError: (err) => {
-          toast({ title: "Analysis Failed", description: err.message, variant: "destructive" });
+        onError: (err: any) => {
+          if (err.message?.includes("daily limit") || err.message?.includes("Daily limit")) {
+            refetchUsage();
+            toast({ title: "Daily limit reached", description: "You can upload up to 10 PDFs per day. Try again tomorrow.", variant: "destructive" });
+          } else {
+            toast({ title: "Analysis Failed", description: err.message, variant: "destructive" });
+          }
         },
       }
     );
@@ -66,12 +89,14 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
         <motion.div
           className="absolute inset-0 rounded-3xl pointer-events-none"
           animate={{
-            boxShadow: [
-              "0 0 20px 2px rgba(59,111,255,0.3), inset 0 0 20px 2px rgba(59,111,255,0.05)",
-              "0 0 40px 6px rgba(147,51,234,0.4), inset 0 0 30px 4px rgba(147,51,234,0.07)",
-              "0 0 30px 4px rgba(6,182,212,0.35), inset 0 0 25px 3px rgba(6,182,212,0.06)",
-              "0 0 20px 2px rgba(59,111,255,0.3), inset 0 0 20px 2px rgba(59,111,255,0.05)",
-            ],
+            boxShadow: isLimitReached
+              ? ["0 0 20px 2px rgba(239,68,68,0.3)", "0 0 30px 4px rgba(239,68,68,0.4)", "0 0 20px 2px rgba(239,68,68,0.3)"]
+              : [
+                "0 0 20px 2px rgba(59,111,255,0.3), inset 0 0 20px 2px rgba(59,111,255,0.05)",
+                "0 0 40px 6px rgba(147,51,234,0.4), inset 0 0 30px 4px rgba(147,51,234,0.07)",
+                "0 0 30px 4px rgba(6,182,212,0.35), inset 0 0 25px 3px rgba(6,182,212,0.06)",
+                "0 0 20px 2px rgba(59,111,255,0.3), inset 0 0 20px 2px rgba(59,111,255,0.05)",
+              ],
           }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
           style={{ zIndex: 10 }}
@@ -82,7 +107,9 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
           className="absolute inset-0 rounded-3xl pointer-events-none"
           style={{
             padding: "1.5px",
-            background: "linear-gradient(135deg, #3b6fff, #9333ea, #06b6d4, #3b6fff)",
+            background: isLimitReached
+              ? "linear-gradient(135deg, #ef4444, #f97316, #ef4444)"
+              : "linear-gradient(135deg, #3b6fff, #9333ea, #06b6d4, #3b6fff)",
             backgroundSize: "300% 300%",
             zIndex: 2,
             WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
@@ -106,12 +133,14 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
           <motion.div
             className="h-1.5 w-full"
             animate={{
-              background: [
-                "linear-gradient(90deg, #3b6fff, #9333ea, #06b6d4)",
-                "linear-gradient(90deg, #9333ea, #06b6d4, #3b6fff)",
-                "linear-gradient(90deg, #06b6d4, #3b6fff, #9333ea)",
-                "linear-gradient(90deg, #3b6fff, #9333ea, #06b6d4)",
-              ],
+              background: isLimitReached
+                ? ["linear-gradient(90deg, #ef4444, #f97316)", "linear-gradient(90deg, #f97316, #ef4444)"]
+                : [
+                  "linear-gradient(90deg, #3b6fff, #9333ea, #06b6d4)",
+                  "linear-gradient(90deg, #9333ea, #06b6d4, #3b6fff)",
+                  "linear-gradient(90deg, #06b6d4, #3b6fff, #9333ea)",
+                  "linear-gradient(90deg, #3b6fff, #9333ea, #06b6d4)",
+                ],
             }}
             transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -120,7 +149,9 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
           <motion.div
             className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 pointer-events-none"
             style={{
-              background: "radial-gradient(ellipse, rgba(59,111,255,0.15) 0%, transparent 70%)",
+              background: isLimitReached
+                ? "radial-gradient(ellipse, rgba(239,68,68,0.12) 0%, transparent 70%)"
+                : "radial-gradient(ellipse, rgba(59,111,255,0.15) 0%, transparent 70%)",
               filter: "blur(20px)",
             }}
             animate={{ opacity: [0.4, 0.8, 0.4] }}
@@ -137,23 +168,63 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
             >
               <motion.div
                 className="p-3 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(59,111,255,0.2)", color: "#60a5fa" }}
+                style={{ background: isLimitReached ? "rgba(239,68,68,0.2)" : "rgba(59,111,255,0.2)", color: isLimitReached ? "#f87171" : "#60a5fa" }}
                 animate={{ y: [0, -4, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
-                <FileText className="w-6 h-6" />
+                {isLimitReached ? <ShieldAlert className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
               </motion.div>
-              <div>
+              <div className="flex-1">
                 <h2
                   className="text-xl font-bold font-display"
                   style={{ color: "#e2e8f0" }}
                 >
                   Upload CAS Statement
                 </h2>
-                <p className="text-sm" style={{ color: "rgba(148,163,184,0.7)" }}>Upload your any 
+                <p className="text-sm" style={{ color: "rgba(148,163,184,0.7)" }}>Upload your any
                 NSDL/CDSL Consolidated Account Statement</p>
               </div>
+              {/* Daily usage badge */}
+              {dailyUsage && (
+                <div
+                  className="flex flex-col items-center px-3 py-2 rounded-xl shrink-0"
+                  style={{
+                    background: isLimitReached ? "rgba(239,68,68,0.15)" : "rgba(59,111,255,0.12)",
+                    border: `1px solid ${isLimitReached ? "rgba(239,68,68,0.35)" : "rgba(96,165,250,0.2)"}`,
+                  }}
+                  data-testid="daily-usage-badge"
+                >
+                  <span
+                    className="text-lg font-bold leading-none"
+                    style={{ color: isLimitReached ? "#f87171" : "#60a5fa" }}
+                  >
+                    {dailyUsage.used}/{dailyUsage.limit}
+                  </span>
+                  <span className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.6)" }}>
+                    today
+                  </span>
+                </div>
+              )}
             </motion.div>
+
+            {/* Limit reached banner */}
+            {isLimitReached && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 rounded-xl p-4 flex items-start gap-3"
+                style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)" }}
+                data-testid="limit-reached-banner"
+              >
+                <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#f87171" }} />
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: "#f87171" }}>Daily upload limit reached</p>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(248,113,113,0.75)" }}>
+                    You've used all 10 uploads for today. Your quota resets at midnight UTC.
+                  </p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Download links */}
             <motion.div
@@ -243,7 +314,32 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
             </motion.div>
 
             <AnimatePresence mode="wait">
-              {!file ? (
+              {isLimitReached ? (
+                <motion.div
+                  key="limit-locked"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="border-2 border-dashed rounded-2xl p-10 text-center"
+                  style={{
+                    borderColor: "rgba(239,68,68,0.25)",
+                    background: "rgba(239,68,68,0.05)",
+                  }}
+                  data-testid="upload-locked-zone"
+                >
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}
+                  >
+                    <ShieldAlert className="w-8 h-8" />
+                  </div>
+                  <h3 className="font-semibold mb-1" style={{ color: "#f87171" }}>
+                    Upload limit reached
+                  </h3>
+                  <p className="text-sm" style={{ color: "rgba(248,113,113,0.6)" }}>
+                    Come back tomorrow to upload more CAS statements
+                  </p>
+                </motion.div>
+              ) : !file ? (
                 <motion.div
                   key="dropzone"
                   initial={{ opacity: 0, rotateX: -90, transformOrigin: "top" }}
@@ -459,6 +555,7 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
                       }}
                       whileHover={!isPending ? { scale: 1.02, y: -2 } : {}}
                       whileTap={!isPending ? { scale: 0.98 } : {}}
+                      data-testid="button-analyze"
                     >
                       {/* Button shimmer */}
                       {!isPending && (
