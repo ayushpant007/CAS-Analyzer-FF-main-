@@ -898,18 +898,32 @@ Text:\n${text}`;
 
       const gmail = google.gmail({ version: "v1", auth: oauth2 });
 
-      // Build search query: from any CAS sender, with PDF attachment, in last 7 days
-      const senderQuery = CAS_SENDERS.map(s => `from:${s}`).join(" OR ");
+      // Build date query (last 7 days if never checked, else since last check)
       const dateQuery = (() => {
         const d = conn.lastCheckedAt ? new Date(conn.lastCheckedAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return `after:${Math.floor(d.getTime() / 1000)}`;
       })();
-      const q = `(${senderQuery}) has:attachment filename:pdf ${dateQuery}`;
 
-      const listRes = await gmail.users.messages.list({ userId: "me", q, maxResults: 10 });
-      const messages = listRes.data.messages || [];
+      // Search 1: official CAS senders only
+      const senderQuery = CAS_SENDERS.map(s => `from:${s}`).join(" OR ");
+      const officialQ = `(${senderQuery}) has:attachment filename:pdf ${dateQuery}`;
 
-      console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential CAS emails`);
+      // Search 2: ANY sender — catches manually forwarded CAS PDFs
+      const broadQ = `has:attachment filename:pdf ${dateQuery} -from:noreply@accounts.google.com`;
+
+      const [officialRes, broadRes] = await Promise.all([
+        gmail.users.messages.list({ userId: "me", q: officialQ, maxResults: 20 }),
+        gmail.users.messages.list({ userId: "me", q: broadQ,    maxResults: 20 }),
+      ]);
+
+      // Deduplicate by message ID
+      const seen = new Set<string>();
+      const messages: { id?: string | null; threadId?: string | null }[] = [];
+      for (const msg of [...(officialRes.data.messages || []), ...(broadRes.data.messages || [])]) {
+        if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
+      }
+
+      console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential CAS emails (official + any-sender scan)`);
 
       for (const msg of messages) {
         try {

@@ -39,10 +39,10 @@ function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose:
 
         <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.15)" }}>
           <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">What we'll watch for</p>
-          {["CAMS (camsonline.com)", "KFintech (kfintech.com)", "MFCentral (mfcentral.com)", "NSDL / CDSL"].map(s => (
+          {["CAMS (camsonline.com)", "KFintech (kfintech.com)", "MFCentral (mfcentral.com)", "NSDL / CDSL", "Any sender — friend / advisor forwarding a CAS PDF"].map((s, i) => (
             <div key={s} className="flex items-center gap-2">
-              <CheckCircle2 size={11} className="text-emerald-400 shrink-0" />
-              <span className="text-xs text-white/60">{s}</span>
+              <CheckCircle2 size={11} className={i === 4 ? "text-purple-400 shrink-0" : "text-emerald-400 shrink-0"} />
+              <span className={`text-xs ${i === 4 ? "text-purple-300" : "text-white/60"}`}>{s}</span>
             </div>
           ))}
         </div>
