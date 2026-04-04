@@ -187,7 +187,7 @@ export default function Home() {
                 <UploadCard onSuccess={(id) => { setAutoAnalyzeNewReport(true); setActiveReportId(id); }} userEmail={userEmail || undefined} />
               </motion.div>
 
-              {/* Recent Reports List */}
+              {/* Recent Reports List - deduplicated by filename */}
               {reportsList && reportsList.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -203,7 +203,9 @@ export default function Home() {
                     Recent Analyses
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {reportsList.map((report) => (
+                    {reportsList.filter((report, idx, arr) =>
+                      arr.findIndex(r => r.filename === report.filename) === idx
+                    ).map((report) => (
                       <div
                         key={report.id}
                         onClick={() => { setAutoAnalyzeNewReport(false); setActiveReportId(report.id); }}

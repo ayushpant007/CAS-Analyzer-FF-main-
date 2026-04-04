@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff, DatabaseZap, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { api } from "@shared/routes";
 
 function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose: () => void }) {
@@ -100,6 +101,7 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const params = new URLSearchParams(window.location.search);
   const justConnected = params.get("gmail") === "connected";
@@ -133,20 +135,27 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
     if (checking || fullScanning) return;
     setChecking(true);
     setCheckResult(null);
-    showToast("Scanning inbox for CAS emails...", "info");
+    showToast("Scanning inbox for latest CAS email...", "info");
     try {
-      const res = await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}`, { method: "POST" });
+      const res = await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}&latestOnly=true`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         const pdfCount: number = data.pdfCount ?? 0;
+        const reportIds: number[] = data.reportIds ?? [];
         await loadStatus();
         setCheckResult({ pdfCount });
         if (pdfCount > 0) {
-          showToast(`Fetched ${pdfCount} PDF${pdfCount === 1 ? "" : "s"} from your inbox.`, "success");
+          showToast(`Fetched latest CAS PDF — auto-downloading concise report...`, "success");
           await queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
           onNewReports?.();
+          if (reportIds.length > 0) {
+            const latestId = reportIds[0];
+            setTimeout(() => {
+              navigate(`/reports/${latestId}/concise?autoDownload=true`);
+            }, 1500);
+          }
         } else {
-          showToast("No new PDFs found in your inbox.", "info");
+          showToast("No new CAS PDF found in your latest email.", "info");
         }
         setTimeout(() => setCheckResult(null), 8000);
       } else {

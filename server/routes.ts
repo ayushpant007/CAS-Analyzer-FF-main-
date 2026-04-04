@@ -306,9 +306,12 @@ ${text}`;
   // ── Daily upload usage ─────────────────────────────────────────────────────────
   app.get("/api/reports/daily-usage", async (req, res) => {
     const email = req.query.email as string | undefined;
-    if (!email) return res.json({ limit: DAILY_UPLOAD_LIMIT, used: 0, remaining: DAILY_UPLOAD_LIMIT });
-    const used = await storage.getDailyUploadCount(email);
-    res.json({ limit: DAILY_UPLOAD_LIMIT, used, remaining: Math.max(0, DAILY_UPLOAD_LIMIT - used) });
+    const allReports = await storage.getAllReports();
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const used = allReports.filter(r => r.createdAt && new Date(r.createdAt) >= todayStart).length;
+    const userUsed = email ? await storage.getDailyUploadCount(email) : 0;
+    res.json({ limit: DAILY_UPLOAD_LIMIT, used, remaining: Math.max(0, DAILY_UPLOAD_LIMIT - userUsed) });
   });
 
   // ── Dashboard: 30-day upload timeline from real DB data ───────────────────────
@@ -884,7 +887,7 @@ ${text}`;
     userEmail: string,
     investorType = "Aggressive",
     ageGroup = "20-35",
-  ): Promise<void> {
+  ): Promise<number> {
     // Enforce daily upload limit
     const used = await storage.getDailyUploadCount(userEmail);
     if (used >= DAILY_UPLOAD_LIMIT) {
@@ -938,7 +941,7 @@ Text:\n${text}`;
       analysis.cas_source = detectCasSource(text);
 
       const investorName = analysis.investor_name || "";
-      await storage.upsertReportByInvestorName({
+      const savedReport = await storage.upsertReportByInvestorName({
         filename,
         investorType,
         ageGroup,
@@ -946,7 +949,8 @@ Text:\n${text}`;
         analysis,
       }, investorName);
 
-      console.log(`[Gmail] ✅ Auto-imported and analyzed: ${filename} for ${userEmail}`);
+      console.log(`[Gmail] ✅ Auto-imported and analyzed: ${filename} for ${userEmail} (reportId=${savedReport.id})`);
+      return savedReport.id;
     } finally {
       fs.unlink(tempPath).catch(() => {});
     }
@@ -977,7 +981,8 @@ Text:\n${text}`;
   async function pollGmailAccount(
     conn: { userEmail: string; accessToken: string; refreshToken: string; expiresAt: Date; casPassword: string | null },
     fullScan = false,
-  ): Promise<{ pdfCount: number }> {
+    latestOnly = false,
+  ): Promise<{ pdfCount: number; reportIds: number[] }> {
     try {
       const oauth2 = makeOAuth2Client();
       oauth2.setCredentials({ access_token: conn.accessToken, refresh_token: conn.refreshToken });
@@ -1118,8 +1123,16 @@ Text:\n${text}`;
         return result;
       }
 
+      // For latestOnly (Check New), sort messages by internalDate descending and take only the first
+      if (latestOnly && messages.length > 1) {
+        // Gmail returns newest first by default; just take the first
+        messages = [messages[0]];
+        console.log(`[Gmail] latestOnly=true — processing only the most recent email`);
+      }
+
       let pdfCount = 0;
       let dailyLimitReached = false;
+      const reportIds: number[] = [];
 
       messageLoop: for (const msg of messages) {
         try {
@@ -1176,8 +1189,9 @@ Text:\n${text}`;
             let analyzed = false;
             for (const pwd of passwords) {
               try {
-                await analyzeCasPdfBuffer(pdfBuffer, filename, pwd, conn.userEmail);
+                const reportId = await analyzeCasPdfBuffer(pdfBuffer, filename, pwd, conn.userEmail);
                 console.log(`[Gmail] ✅ Successfully analyzed ${filename} with password hint: ${pwd ? pwd.slice(0, 3) + "***" : "(empty)"}`);
+                reportIds.push(reportId);
                 analyzed = true;
                 break;
               } catch (e: any) {
@@ -1210,11 +1224,11 @@ Text:\n${text}`;
       }
 
       await storage.updateGmailLastChecked(conn.userEmail);
-      console.log(`[Gmail] Done checking ${conn.userEmail} — fetched ${pdfCount} PDF(s)`);
-      return { pdfCount };
+      console.log(`[Gmail] Done checking ${conn.userEmail} — fetched ${pdfCount} PDF(s), reportIds: [${reportIds.join(",")}]`);
+      return { pdfCount, reportIds };
     } catch (e: any) {
       console.error(`[Gmail] Error polling account ${conn.userEmail}:`, e.message);
-      return { pdfCount: 0 };
+      return { pdfCount: 0, reportIds: [] };
     }
   }
 
@@ -1316,11 +1330,12 @@ Text:\n${text}`;
   app.post("/api/gmail/check", async (req, res) => {
     const email = req.query.email as string;
     const fullScan = req.query.fullScan === "true";
+    const latestOnly = req.query.latestOnly === "true";
     if (!email) return res.status(400).json({ error: "Missing email" });
     const conn = await storage.getGmailConnection(email);
     if (!conn) return res.status(404).json({ error: "Gmail not connected" });
-    const result = await pollGmailAccount(conn as any, fullScan);
-    res.json({ ok: true, pdfCount: result.pdfCount, fullScan });
+    const result = await pollGmailAccount(conn as any, fullScan, latestOnly);
+    res.json({ ok: true, pdfCount: result.pdfCount, fullScan, reportIds: result.reportIds });
   });
 
   // ────────────────────────────────────────────────────────────────────────────

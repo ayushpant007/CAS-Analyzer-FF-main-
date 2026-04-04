@@ -1015,9 +1015,9 @@ export default function Dashboard() {
   const comingSoonToast = (label: string) => { setComingSoon(label); setTimeout(() => setComingSoon(null), 2800); };
 
   const userEmail = user?.email ?? "";
-  const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports", userEmail], queryFn: () => fetch(`/api/reports${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
-  const { data: timelineData = [] } = useQuery<{ day: string; uploads: number; analyzed: number }[]>({ queryKey: ["/api/reports/timeline", userEmail], queryFn: () => fetch(`/api/reports/timeline${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
-  const { data: categoryData = DEFAULT_CATEGORY_DATA } = useQuery<{ name: string; value: number; fill: string }[]>({ queryKey: ["/api/reports/categories", userEmail], queryFn: () => fetch(`/api/reports/categories${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`).then(r => r.json()), refetchInterval: 30000 });
+  const { data: reports = [] } = useQuery<any[]>({ queryKey: ["/api/reports"], queryFn: () => fetch("/api/reports").then(r => r.json()), refetchInterval: 30000 });
+  const { data: timelineData = [] } = useQuery<{ day: string; uploads: number; analyzed: number }[]>({ queryKey: ["/api/reports/timeline"], queryFn: () => fetch("/api/reports/timeline").then(r => r.json()), refetchInterval: 30000 });
+  const { data: categoryData = DEFAULT_CATEGORY_DATA } = useQuery<{ name: string; value: number; fill: string }[]>({ queryKey: ["/api/reports/categories"], queryFn: () => fetch("/api/reports/categories").then(r => r.json()), refetchInterval: 30000 });
 
   const totalReports = reports.length;
   const completedReports = reports.filter((r: any) => r.analysis != null).length;
