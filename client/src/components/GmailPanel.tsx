@@ -145,13 +145,13 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
         await loadStatus();
         setCheckResult({ pdfCount });
         if (pdfCount > 0) {
-          showToast(`Fetched latest CAS PDF — auto-downloading concise report...`, "success");
+          showToast(`Fetched latest CAS PDF — opening concise report...`, "success");
           await queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
           onNewReports?.();
           if (reportIds.length > 0) {
             const latestId = reportIds[0];
             setTimeout(() => {
-              navigate(`/reports/${latestId}/concise?autoDownload=true`);
+              navigate(`/reports/${latestId}/concise`);
             }, 1500);
           }
         } else {

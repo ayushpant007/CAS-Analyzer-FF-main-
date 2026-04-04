@@ -70,8 +70,6 @@ export default function ConciseReport() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const autoDownloadTriggered = useRef(false);
-
   const [actionSelections, setActionSelections] = useState<Record<string, string>>(() => {
     if (!reportId) return {};
     try { return JSON.parse(localStorage.getItem(`fin_actions_${reportId}`) || "{}"); } catch { return {}; }
@@ -211,29 +209,6 @@ export default function ConciseReport() {
     name = name.replace(/\b(CDSL|NSDL|BSE|NSE)\b/gi, "").replace(/\s{2,}/g, " ").trim();
     return name;
   })();
-
-  useEffect(() => {
-    if (!report || isLoading || autoDownloadTriggered.current) return;
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("autoDownload") !== "true") return;
-    autoDownloadTriggered.current = true;
-    window.history.replaceState({}, "", window.location.pathname);
-    const timer = setTimeout(async () => {
-      try {
-        await downloadExcel();
-      } catch (e) {
-        console.error("Auto Excel download failed:", e);
-      }
-      setTimeout(async () => {
-        try {
-          await downloadPDF();
-        } catch (e) {
-          console.error("Auto PDF download failed:", e);
-        }
-      }, 1000);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [report, isLoading]);
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
