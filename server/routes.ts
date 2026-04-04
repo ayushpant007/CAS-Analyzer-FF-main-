@@ -1010,23 +1010,31 @@ Text:\n${text}`;
 
         // Query 1: official CAS senders — very targeted, paginate all
         const officialAllQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf)`;
-        // Query 2: CAS-related emails from any sender — subject must mention CAS/statement/portfolio
-        // This catches forwarded CAS PDFs without pulling in every random PDF in the inbox
-        const broadAllQ = `has:attachment (filename:.pdf OR filename:pdf) in:inbox -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"portfolio" OR subject:"nsdl" OR subject:"cdsl" OR subject:"kfintech" OR subject:"cams")`;
+        // Query 2: subject-based — any sender whose email subject mentions CAS keywords
+        const subjectAllQ = `has:attachment (filename:.pdf OR filename:pdf) -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"portfolio" OR subject:"nsdl" OR subject:"cdsl" OR subject:"kfintech" OR subject:"cams")`;
+        // Query 3: filename-based — PDF filenames with CAS-related words
+        const filenameAllQ = `has:attachment -from:noreply@accounts.google.com (filename:CAS OR filename:consolidated OR filename:statement OR filename:portfolio OR filename:CAMS OR filename:kfintech OR filename:nsdl OR filename:cdsl)`;
+        // Query 4: personal/forwarded — any PDF from gmail.com senders (friends forwarding CAS PDFs)
+        // The isCasPdfText() validator will reject any non-CAS PDFs after download
+        const personalAllQ = `has:attachment (filename:.pdf OR filename:pdf) from:gmail.com`;
 
-        console.log(`[Gmail] fullScan officialQ: ${officialAllQ}`);
-        console.log(`[Gmail] fullScan broadQ:    ${broadAllQ}`);
+        console.log(`[Gmail] fullScan officialQ:  ${officialAllQ}`);
+        console.log(`[Gmail] fullScan subjectQ:   ${subjectAllQ}`);
+        console.log(`[Gmail] fullScan filenameQ:  ${filenameAllQ}`);
+        console.log(`[Gmail] fullScan personalQ:  ${personalAllQ}`);
 
-        const [officialMsgs, broadMsgs] = await Promise.all([
+        const [officialMsgs, subjectMsgs, filenameMsgs, personalMsgs] = await Promise.all([
           fetchAllMessageIds(gmail, officialAllQ, 500),
-          fetchAllMessageIds(gmail, broadAllQ, 500),
+          fetchAllMessageIds(gmail, subjectAllQ, 500),
+          fetchAllMessageIds(gmail, filenameAllQ, 500),
+          fetchAllMessageIds(gmail, personalAllQ, 100),
         ]);
 
-        console.log(`[Gmail] fullScan — official: ${officialMsgs.length}, broad: ${broadMsgs.length}`);
+        console.log(`[Gmail] fullScan — official: ${officialMsgs.length}, subject: ${subjectMsgs.length}, filename: ${filenameMsgs.length}, personal: ${personalMsgs.length}`);
 
         const seen = new Set<string>();
         messages = [];
-        for (const msg of [...officialMsgs, ...broadMsgs]) {
+        for (const msg of [...officialMsgs, ...subjectMsgs, ...filenameMsgs, ...personalMsgs]) {
           if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
         }
       } else {
@@ -1045,28 +1053,33 @@ Text:\n${text}`;
         console.log(`[Gmail] Fallback date filter: emails after ${fallback48hDate.toISOString()} (${fallbackDateQuery})`);
 
         const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateQuery}`;
-        // Tightened: only pick up PDFs from emails that explicitly mention CAS/statement keywords in the subject
+        // Subject-based: pick up PDFs from emails whose subject mentions CAS keywords
         const broadQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateQuery} -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
-        // Fallback now also restricted to CAS-related subjects — no more grabbing every inbox PDF
-        const fallbackQ = `has:attachment ${fallbackDateQuery} in:inbox (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
+        // Filename-based: catches forwarded/personal emails where the PDF filename itself is CAS-related
+        const filenameQ = `has:attachment ${dateQuery} -from:noreply@accounts.google.com (filename:CAS OR filename:consolidated OR filename:statement OR filename:portfolio OR filename:CAMS OR filename:kfintech OR filename:nsdl OR filename:cdsl)`;
+        // Fallback: recent inbox emails with CAS subject keywords
+        const fallbackQ = `has:attachment ${fallbackDateQuery} (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
 
-        console.log(`[Gmail] officialQ: ${officialQ}`);
-        console.log(`[Gmail] broadQ:    ${broadQ}`);
-        console.log(`[Gmail] fallbackQ: ${fallbackQ}`);
+        console.log(`[Gmail] officialQ:  ${officialQ}`);
+        console.log(`[Gmail] broadQ:     ${broadQ}`);
+        console.log(`[Gmail] filenameQ:  ${filenameQ}`);
+        console.log(`[Gmail] fallbackQ:  ${fallbackQ}`);
 
-        const [officialRes, broadRes, fallbackRes] = await Promise.all([
+        const [officialRes, broadRes, filenameRes, fallbackRes] = await Promise.all([
           gmail.users.messages.list({ userId: "me", q: officialQ,  maxResults: 20 }),
           gmail.users.messages.list({ userId: "me", q: broadQ,     maxResults: 20 }),
+          gmail.users.messages.list({ userId: "me", q: filenameQ,  maxResults: 20 }),
           gmail.users.messages.list({ userId: "me", q: fallbackQ,  maxResults: 30 }),
         ]);
 
-        console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}`);
+        console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, filename hits: ${filenameRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}`);
 
         const seen = new Set<string>();
         messages = [];
         for (const msg of [
           ...(officialRes.data.messages || []),
           ...(broadRes.data.messages  || []),
+          ...(filenameRes.data.messages || []),
           ...(fallbackRes.data.messages || []),
         ]) {
           if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
