@@ -11,6 +11,8 @@ export interface IStorage {
   getAllReports(): Promise<Report[]>;
   getReportsByEmail(email: string): Promise<Report[]>;
   getDailyUploadCount(userEmail: string): Promise<number>;
+  deleteReport(id: number, userEmail?: string): Promise<boolean>;
+  deleteNonCasReports(userEmail?: string): Promise<number>;
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   updateUserPassword(email: string, passwordHash: string): Promise<void>;
@@ -68,6 +70,30 @@ export class DatabaseStorage implements IStorage {
       .from(reports)
       .where(and(eq(reports.userEmail, userEmail.toLowerCase()), gte(reports.createdAt, todayStart)));
     return row?.count ?? 0;
+  }
+
+  async deleteReport(id: number, userEmail?: string): Promise<boolean> {
+    const conditions = userEmail
+      ? and(eq(reports.id, id), eq(reports.userEmail, userEmail.toLowerCase()))
+      : eq(reports.id, id);
+    const result = await db.delete(reports).where(conditions).returning({ id: reports.id });
+    return result.length > 0;
+  }
+
+  async deleteNonCasReports(userEmail?: string): Promise<number> {
+    // Non-CAS: cas_source is UNKNOWN AND (mf_snapshot is empty/null OR net_asset_value is null/0)
+    const emailFilter = userEmail ? sql`lower(${reports.userEmail}) = lower(${userEmail})` : sql`1=1`;
+    const result = await db.delete(reports)
+      .where(sql`
+        (${reports.analysis}->>'cas_source' = 'UNKNOWN' OR ${reports.analysis}->>'cas_source' IS NULL)
+        AND (
+          jsonb_array_length(COALESCE(${reports.analysis}->'mf_snapshot', '[]'::jsonb)) = 0
+          OR (${reports.analysis}->'summary'->>'net_asset_value' IS NULL OR ${reports.analysis}->'summary'->>'net_asset_value' = 'null')
+        )
+        AND ${emailFilter}
+      `)
+      .returning({ id: reports.id });
+    return result.length;
   }
 
   async createUser(user: InsertUser): Promise<User> {

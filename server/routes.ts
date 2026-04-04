@@ -285,6 +285,24 @@ ${text}`;
     res.json(list);
   });
 
+  // ── Delete a single report ─────────────────────────────────────────────────
+  app.delete("/api/reports/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const email = req.query.email as string | undefined;
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid report ID" });
+    const deleted = await storage.deleteReport(id, email);
+    if (!deleted) return res.status(404).json({ message: "Report not found" });
+    res.json({ ok: true, id });
+  });
+
+  // ── Bulk-delete non-CAS reports ────────────────────────────────────────────
+  app.delete("/api/reports/cleanup/non-cas", async (req, res) => {
+    const email = req.query.email as string | undefined;
+    const count = await storage.deleteNonCasReports(email);
+    console.log(`[Cleanup] Deleted ${count} non-CAS report(s)${email ? ` for ${email}` : ""}`);
+    res.json({ ok: true, deleted: count });
+  });
+
   // ── Daily upload usage ─────────────────────────────────────────────────────────
   app.get("/api/reports/daily-usage", async (req, res) => {
     const email = req.query.email as string | undefined;
@@ -838,6 +856,26 @@ ${text}`;
     "consolidatedaccountstatement@camsonline.com",
   ];
 
+  // Validate extracted PDF text to confirm it's actually a CAS statement
+  function isCasPdfText(text: string): boolean {
+    const markers = [
+      /consolidated account statement/i,
+      /portfolio\s+valuation/i,
+      /\bNSDL\b/,
+      /\bCDSL\b/,
+      /\bCAMS\b/,
+      /\bkfintech\b/i,
+      /\bMFCentral\b/i,
+      /folio\s*(no|number)/i,
+      /\bISIN\b/,
+      /net\s+asset\s+value/i,
+      /mutual\s+fund\s+statement/i,
+      /\bunits\b.*\bnav\b/i,
+    ];
+    const matched = markers.filter(r => r.test(text)).length;
+    return matched >= 2;
+  }
+
   // Core: analyze a PDF buffer and store as report
   async function analyzeCasPdfBuffer(
     pdfBuffer: Buffer,
@@ -868,6 +906,12 @@ ${text}`;
       }
 
       if (!text || text.trim().length < 100) throw new Error("PDF_EMPTY");
+
+      // Reject non-CAS PDFs before calling AI
+      if (!isCasPdfText(text)) {
+        console.log(`[Gmail] ⚠️  Skipping "${filename}" — not a CAS statement (no CAS markers found)`);
+        throw new Error("NOT_CAS_PDF");
+      }
 
       let csvContent = "";
       try { csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8"); } catch {}
@@ -966,8 +1010,9 @@ Text:\n${text}`;
 
         // Query 1: official CAS senders — very targeted, paginate all
         const officialAllQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf)`;
-        // Query 2: any PDF email in inbox — catches forwarded/personal CAS
-        const broadAllQ = `has:attachment (filename:.pdf OR filename:pdf) in:inbox -from:noreply@accounts.google.com`;
+        // Query 2: CAS-related emails from any sender — subject must mention CAS/statement/portfolio
+        // This catches forwarded CAS PDFs without pulling in every random PDF in the inbox
+        const broadAllQ = `has:attachment (filename:.pdf OR filename:pdf) in:inbox -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"portfolio" OR subject:"nsdl" OR subject:"cdsl" OR subject:"kfintech" OR subject:"cams")`;
 
         console.log(`[Gmail] fullScan officialQ: ${officialAllQ}`);
         console.log(`[Gmail] fullScan broadQ:    ${broadAllQ}`);
@@ -1104,6 +1149,9 @@ Text:\n${text}`;
                 if (e.message === "DAILY_LIMIT_REACHED") {
                   dailyLimitReached = true;
                   break;
+                }
+                if (e.message === "NOT_CAS_PDF") {
+                  break; // skip this PDF silently — not a CAS statement
                 }
                 if (e.message === "PDF_PASSWORD_WRONG" || e.message === "PDF_EMPTY") {
                   console.log(`[Gmail] Password attempt failed for ${filename}, trying next...`);
