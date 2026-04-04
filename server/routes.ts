@@ -1201,11 +1201,18 @@ Text:\n${text}`;
   setTimeout(pollAllGmailAccounts, 10_000);
 
   // ── OAuth: start Gmail connect flow
+  // Debug endpoint — returns the exact redirect URI being used
+  app.get("/auth/gmail/debug-redirect", (req, res) => {
+    res.json({ redirect_uri: GMAIL_REDIRECT_URI });
+  });
+
   app.get("/auth/gmail", (req, res) => {
     const userEmail = req.query.email as string;
     const casPassword = req.query.password as string || "";
     if (!userEmail) return res.status(400).send("Missing email param");
     if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET) return res.status(500).send("Gmail OAuth not configured");
+
+    console.log(`[Gmail] OAuth flow started — redirect_uri: ${GMAIL_REDIRECT_URI}`);
 
     const oauth2 = makeOAuth2Client();
     const state = Buffer.from(JSON.stringify({ email: userEmail, password: casPassword })).toString("base64");
