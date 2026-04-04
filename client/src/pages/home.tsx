@@ -175,37 +175,47 @@ export default function Home() {
               {/* Greeting Card */}
               {userName && (
                 <motion.div
-                  initial={{ opacity: 0, x: -24 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: -16 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 }}
-                  className="rounded-2xl px-7 py-6 max-w-sm"
+                  className="w-full rounded-2xl px-10 py-10"
                   style={{
-                    background: "rgba(15,20,50,0.65)",
+                    background: "rgba(15,20,50,0.7)",
                     border: "1px solid rgba(96,165,250,0.18)",
-                    backdropFilter: "blur(16px)",
-                    boxShadow: "0 4px 32px rgba(59,111,255,0.12)",
+                    backdropFilter: "blur(18px)",
+                    boxShadow: "0 4px 40px rgba(59,111,255,0.13)",
                   }}
                 >
-                  <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "rgba(148,163,184,0.55)" }}>
-                    {getGreeting()}
-                  </p>
-                  <h2 className="text-2xl font-bold font-display mb-4" style={{ color: "#f1f5f9" }}>
-                    {userName} <span style={{ background: "linear-gradient(90deg,#60a5fa,#c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>👋</span>
-                  </h2>
-                  <div className="space-y-2.5">
-                    {[
-                      { icon: Upload,     text: "Upload your CAS statement" },
-                      { icon: BarChart2,  text: "Analyze your portfolio instantly" },
-                      { icon: TrendingUp, text: "Track fund performance over time" },
-                      { icon: PieChart,   text: "Visualize asset allocation" },
-                    ].map(({ icon: Icon, text }) => (
-                      <div key={text} className="flex items-center gap-2.5">
-                        <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "rgba(59,111,255,0.15)" }}>
-                          <Icon className="w-3.5 h-3.5" style={{ color: "#60a5fa" }} />
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+                    {/* Left: greeting + name */}
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(148,163,184,0.5)" }}>
+                        {getGreeting()}
+                      </p>
+                      <h2 className="text-3xl md:text-4xl font-bold font-display" style={{ color: "#f1f5f9" }}>
+                        {userName}{" "}
+                        <span style={{ background: "linear-gradient(90deg,#60a5fa,#c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>👋</span>
+                      </h2>
+                      <p className="mt-2 text-sm" style={{ color: "rgba(148,163,184,0.55)" }}>
+                        Ready to explore your investment portfolio?
+                      </p>
+                    </div>
+                    {/* Right: feature bullets */}
+                    <div className="grid grid-cols-2 gap-x-10 gap-y-3 flex-shrink-0">
+                      {[
+                        { icon: Upload,     text: "Upload your CAS statement" },
+                        { icon: BarChart2,  text: "Analyze your portfolio instantly" },
+                        { icon: TrendingUp, text: "Track fund performance over time" },
+                        { icon: PieChart,   text: "Visualize asset allocation" },
+                      ].map(({ icon: Icon, text }) => (
+                        <div key={text} className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(59,111,255,0.15)" }}>
+                            <Icon className="w-4 h-4" style={{ color: "#60a5fa" }} />
+                          </div>
+                          <span className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.85)" }}>{text}</span>
                         </div>
-                        <span className="text-sm" style={{ color: "rgba(148,163,184,0.8)" }}>{text}</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </motion.div>
               )}
