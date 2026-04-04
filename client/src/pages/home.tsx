@@ -3,7 +3,7 @@ import { UploadCard } from "@/components/UploadCard";
 import { ReportView } from "@/components/ReportView";
 import { useReport, useReports } from "@/hooks/use-reports";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap, LogOut } from "lucide-react";
+import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap, LogOut, Upload, TrendingUp, PieChart } from "lucide-react";
 import { format } from "date-fns";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { GmailPanel } from "@/components/GmailPanel";
@@ -73,12 +73,21 @@ export default function Home() {
               FinAnalyze
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {userName ? (
               <>
-                <div className="text-sm font-medium hidden sm:block" style={{ color: "rgba(148,163,184,0.7)" }}>
-                  {getGreeting()},{" "}
-                  <span style={{ color: "#93c5fd", fontWeight: 600 }}>{userName}</span>
+                {/* Avatar circle with initials */}
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold select-none flex-shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, #3b6fff, #9333ea)",
+                    color: "#fff",
+                    boxShadow: "0 0 12px rgba(59,111,255,0.45)",
+                    letterSpacing: "0.02em",
+                  }}
+                  title={userName}
+                >
+                  {userName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
                 </div>
                 <button
                   data-testid="button-logout"
@@ -163,6 +172,44 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-12"
             >
+              {/* Greeting Card */}
+              {userName && (
+                <motion.div
+                  initial={{ opacity: 0, x: -24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 }}
+                  className="rounded-2xl px-7 py-6 max-w-sm"
+                  style={{
+                    background: "rgba(15,20,50,0.65)",
+                    border: "1px solid rgba(96,165,250,0.18)",
+                    backdropFilter: "blur(16px)",
+                    boxShadow: "0 4px 32px rgba(59,111,255,0.12)",
+                  }}
+                >
+                  <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "rgba(148,163,184,0.55)" }}>
+                    {getGreeting()}
+                  </p>
+                  <h2 className="text-2xl font-bold font-display mb-4" style={{ color: "#f1f5f9" }}>
+                    {userName} <span style={{ background: "linear-gradient(90deg,#60a5fa,#c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>👋</span>
+                  </h2>
+                  <div className="space-y-2.5">
+                    {[
+                      { icon: Upload,     text: "Upload your CAS statement" },
+                      { icon: BarChart2,  text: "Analyze your portfolio instantly" },
+                      { icon: TrendingUp, text: "Track fund performance over time" },
+                      { icon: PieChart,   text: "Visualize asset allocation" },
+                    ].map(({ icon: Icon, text }) => (
+                      <div key={text} className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "rgba(59,111,255,0.15)" }}>
+                          <Icon className="w-3.5 h-3.5" style={{ color: "#60a5fa" }} />
+                        </div>
+                        <span className="text-sm" style={{ color: "rgba(148,163,184,0.8)" }}>{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Hero Section */}
               <div className="text-center space-y-6 max-w-3xl mx-auto">
                 <motion.div
