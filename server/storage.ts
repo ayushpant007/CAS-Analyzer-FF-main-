@@ -10,6 +10,7 @@ export interface IStorage {
   getReport(id: number): Promise<Report | undefined>;
   getAllReports(): Promise<Report[]>;
   getReportsByEmail(email: string): Promise<Report[]>;
+  getReportByFilename(filename: string): Promise<Report | undefined>;
   getDailyUploadCount(userEmail: string): Promise<number>;
   deleteReport(id: number, userEmail?: string): Promise<boolean>;
   deleteNonCasReports(userEmail?: string): Promise<number>;
@@ -60,6 +61,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(reports)
       .where(eq(reports.userEmail, email.toLowerCase()))
       .orderBy(desc(reports.createdAt));
+  }
+
+  async getReportByFilename(filename: string): Promise<Report | undefined> {
+    const [report] = await db.select().from(reports)
+      .where(eq(reports.filename, filename))
+      .orderBy(desc(reports.createdAt))
+      .limit(1);
+    return report;
   }
 
   async getDailyUploadCount(userEmail: string): Promise<number> {

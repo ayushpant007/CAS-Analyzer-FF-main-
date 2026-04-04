@@ -1046,14 +1046,19 @@ Text:\n${text}`;
       } else {
         // ── Regular incremental check with date filter ────────────────────────
         // Primary: since last check (or 7 days if never checked), with 30-min buffer
-        const baseDate = conn.lastCheckedAt
-          ? new Date(Math.min(new Date(conn.lastCheckedAt).getTime() - 30 * 60 * 1000, Date.now() - 2 * 60 * 60 * 1000))
+        const baseDate = (conn as any).lastCheckedAt
+          ? new Date(Math.min(new Date((conn as any).lastCheckedAt).getTime() - 30 * 60 * 1000, Date.now() - 2 * 60 * 60 * 1000))
           : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         const dateQuery = `after:${Math.floor(baseDate.getTime() / 1000)}`;
 
         // Fallback always searches last 48 hours to catch any emails missed by timing gaps
         const fallback48hDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
         const fallbackDateQuery = `after:${Math.floor(fallback48hDate.getTime() / 1000)}`;
+
+        // For "Check Now" (latestOnly): also search ANY PDF in last 6 hours — no keyword filter
+        // This catches emails from personal contacts (e.g. forwarded CAS with no subject/keywords)
+        const last6hDate = new Date(Date.now() - 6 * 60 * 60 * 1000);
+        const last6hQuery = `after:${Math.floor(last6hDate.getTime() / 1000)}`;
 
         console.log(`[Gmail] Primary date filter: emails after ${baseDate.toISOString()} (${dateQuery})`);
         console.log(`[Gmail] Fallback date filter: emails after ${fallback48hDate.toISOString()} (${fallbackDateQuery})`);
@@ -1065,29 +1070,39 @@ Text:\n${text}`;
         const filenameQ = `has:attachment ${dateQuery} -from:noreply@accounts.google.com (filename:CAS OR filename:consolidated OR filename:statement OR filename:portfolio OR filename:CAMS OR filename:kfintech OR filename:nsdl OR filename:cdsl)`;
         // Fallback: recent inbox emails with CAS subject keywords
         const fallbackQ = `has:attachment ${fallbackDateQuery} (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
+        // Super-broad (latestOnly only): ANY PDF from last 6 hours — catches personal/forwarded emails with no keywords
+        const superBroadQ = `has:attachment (filename:.pdf OR filename:pdf) ${last6hQuery} -from:noreply@accounts.google.com -from:no-reply`;
 
         console.log(`[Gmail] officialQ:  ${officialQ}`);
         console.log(`[Gmail] broadQ:     ${broadQ}`);
         console.log(`[Gmail] filenameQ:  ${filenameQ}`);
         console.log(`[Gmail] fallbackQ:  ${fallbackQ}`);
+        if (latestOnly) console.log(`[Gmail] superBroadQ: ${superBroadQ}`);
 
-        const [officialRes, broadRes, filenameRes, fallbackRes] = await Promise.all([
+        const queryPromises: Promise<any>[] = [
           gmail.users.messages.list({ userId: "me", q: officialQ,  maxResults: 20 }),
           gmail.users.messages.list({ userId: "me", q: broadQ,     maxResults: 20 }),
           gmail.users.messages.list({ userId: "me", q: filenameQ,  maxResults: 20 }),
           gmail.users.messages.list({ userId: "me", q: fallbackQ,  maxResults: 30 }),
-        ]);
+        ];
+        if (latestOnly) {
+          queryPromises.push(gmail.users.messages.list({ userId: "me", q: superBroadQ, maxResults: 10 }));
+        }
 
-        console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, filename hits: ${filenameRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}`);
+        const [officialRes, broadRes, filenameRes, fallbackRes, superBroadRes] = await Promise.all(queryPromises);
+
+        console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, filename hits: ${filenameRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}${latestOnly ? `, superBroad hits: ${superBroadRes?.data.messages?.length ?? 0}` : ""}`);
 
         const seen = new Set<string>();
         messages = [];
-        for (const msg of [
+        const allMsgSources = [
           ...(officialRes.data.messages || []),
           ...(broadRes.data.messages  || []),
           ...(filenameRes.data.messages || []),
           ...(fallbackRes.data.messages || []),
-        ]) {
+          ...(latestOnly && superBroadRes ? (superBroadRes.data.messages || []) : []),
+        ];
+        for (const msg of allMsgSources) {
           if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
         }
       }
@@ -1123,11 +1138,27 @@ Text:\n${text}`;
         return result;
       }
 
-      // For latestOnly (Check New), sort messages by internalDate descending and take only the first
-      if (latestOnly && messages.length > 1) {
-        // Gmail returns newest first by default; just take the first
-        messages = [messages[0]];
-        console.log(`[Gmail] latestOnly=true — processing only the most recent email`);
+      // For latestOnly (Check Now), fetch internalDate for all candidates and pick the absolute newest
+      if (latestOnly && messages.length > 0) {
+        if (messages.length === 1) {
+          console.log(`[Gmail] latestOnly=true — only 1 candidate email found`);
+        } else {
+          // Fetch internalDate for all candidates to find the truly newest email
+          const withDates = await Promise.all(
+            messages.map(async (msg) => {
+              try {
+                const meta = await gmail.users.messages.get({ userId: "me", id: msg.id!, format: "metadata", metadataHeaders: ["Date"] });
+                return { msg, internalDate: parseInt(meta.data.internalDate || "0", 10) };
+              } catch {
+                return { msg, internalDate: 0 };
+              }
+            })
+          );
+          withDates.sort((a, b) => b.internalDate - a.internalDate);
+          messages = [withDates[0].msg];
+          const newestDate = new Date(withDates[0].internalDate);
+          console.log(`[Gmail] latestOnly=true — picking newest of ${withDates.length} candidates: ${newestDate.toISOString()}`);
+        }
       }
 
       let pdfCount = 0;
@@ -1155,9 +1186,21 @@ Text:\n${text}`;
             if (!part.body?.attachmentId) continue;
 
             // Pre-filter: skip obvious non-CAS files before wasting an API call to download them
+            // In latestOnly mode we relax this filter to accept any PDF from the user's inbox
             const preFilterName = (part.filename || "").trim();
-            if (preFilterName && !looksLikeCasPdf(preFilterName)) {
+            if (preFilterName && !latestOnly && !looksLikeCasPdf(preFilterName)) {
               console.log(`[Gmail] ⏭️  Pre-filter skip: "${preFilterName}" (filename has no PAN/CAS pattern)`);
+              continue;
+            }
+
+            const filename = part.filename || `cas-${Date.now()}.pdf`;
+
+            // Skip if this PDF was already imported — avoids redundant AI re-analysis
+            const existingReport = await storage.getReportByFilename(filename);
+            if (existingReport) {
+              console.log(`[Gmail] ⏭️  Already imported: "${filename}" (reportId=${existingReport.id}) — skipping re-analysis`);
+              reportIds.push(existingReport.id);
+              pdfCount++;
               continue;
             }
 
@@ -1168,7 +1211,6 @@ Text:\n${text}`;
             if (!data) continue;
 
             const pdfBuffer = Buffer.from(data, "base64url");
-            const filename = part.filename || `cas-${Date.now()}.pdf`;
 
             // Build list of passwords to try:
             // 1. User's stored password, 2. PAN extracted from filename, 3. empty string
