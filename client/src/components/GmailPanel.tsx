@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff, DatabaseZap } from "lucide-react";
+import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff, DatabaseZap, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
@@ -352,26 +352,18 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
             </div>
           </div>
 
-          {/* Gmail API not yet enabled warning */}
+          {/* First scan pending notice */}
           {status.connected && !status.lastCheckedAt && (
             <motion.div
               initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
               className="mt-4 pt-4 flex items-start gap-3"
               style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
             >
-              <WifiOff size={14} className="text-amber-400 shrink-0 mt-0.5" />
+              <Clock size={14} className="text-blue-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-semibold text-amber-400">Gmail API not yet enabled</p>
+                <p className="text-xs font-semibold text-blue-400">First scan pending</p>
                 <p className="text-[11px] text-white/40 mt-0.5">
-                  Go to{" "}
-                  <a
-                    href="https://console.developers.google.com/apis/api/gmail.googleapis.com/overview?project=693039780218"
-                    target="_blank" rel="noopener noreferrer"
-                    className="underline text-blue-400 hover:text-blue-300"
-                  >
-                    Google Cloud Console → Gmail API
-                  </a>
-                  {" "}and click <strong className="text-white/60">Enable</strong>. Once enabled, click Check Now.
+                  Gmail is connected. Click <strong className="text-white/60">Check Now</strong> to scan your inbox immediately, or wait — it will auto-scan within the next few minutes.
                 </p>
               </div>
             </motion.div>
