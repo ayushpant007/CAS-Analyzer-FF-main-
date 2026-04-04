@@ -3,19 +3,35 @@ import { UploadCard } from "@/components/UploadCard";
 import { ReportView } from "@/components/ReportView";
 import { useReport, useReports } from "@/hooks/use-reports";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap } from "lucide-react";
+import { FileText, ChevronRight, BarChart2, ShieldCheck, Zap, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { GmailPanel } from "@/components/GmailPanel";
+import { useLocation } from "wouter";
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 export default function Home() {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [autoAnalyzeNewReport, setAutoAnalyzeNewReport] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [, navigate] = useLocation();
 
-  const userEmail = (() => {
-    try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s)?.email ?? "" : ""; } catch { return ""; }
+  const casUser = (() => {
+    try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }
   })();
+  const userName: string = casUser?.name ?? "";
+  const userEmail: string = casUser?.email ?? "";
+
+  function handleLogout() {
+    localStorage.removeItem("cas_user");
+    navigate("/login");
+  }
 
   const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
   const { data: reportsList } = useReports(userEmail);
@@ -58,12 +74,85 @@ export default function Home() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
-              AI-Powered Portfolio Insights
-            </div>
+            {userName ? (
+              <>
+                <div className="text-sm font-medium hidden sm:block" style={{ color: "rgba(148,163,184,0.7)" }}>
+                  {getGreeting()},{" "}
+                  <span style={{ color: "#93c5fd", fontWeight: 600 }}>{userName}</span>
+                </div>
+                <button
+                  data-testid="button-logout"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+                  style={{ color: "#f87171", border: "1px solid rgba(248,113,113,0.3)", background: "rgba(248,113,113,0.08)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.16)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.08)"; }}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log out
+                </button>
+              </>
+            ) : (
+              <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
+                AI-Powered Portfolio Insights
+              </div>
+            )}
           </div>
         </div>
       </nav>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-2xl p-7 w-full max-w-sm mx-4"
+            style={{
+              background: "rgba(10,14,46,0.97)",
+              border: "1px solid rgba(96,165,250,0.2)",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+            }}
+          >
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(248,113,113,0.12)" }}>
+                <LogOut className="w-6 h-6" style={{ color: "#f87171" }} />
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-center mb-2" style={{ color: "#f1f5f9" }}>
+              Log out?
+            </h3>
+            <p className="text-sm text-center mb-6" style={{ color: "rgba(148,163,184,0.8)" }}>
+              Are you sure you want to log out?
+            </p>
+            <div className="flex gap-3">
+              <button
+                data-testid="button-logout-no"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={{ background: "rgba(96,165,250,0.1)", color: "#93c5fd", border: "1px solid rgba(96,165,250,0.25)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(96,165,250,0.18)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(96,165,250,0.1)"; }}
+              >
+                No
+              </button>
+              <button
+                data-testid="button-logout-yes"
+                onClick={handleLogout}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={{ background: "rgba(248,113,113,0.15)", color: "#f87171", border: "1px solid rgba(248,113,113,0.3)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.25)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.15)"; }}
+              >
+                Yes, log out
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 relative z-10">
         <AnimatePresence mode="wait">
           {!activeReportId ? (
