@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, useSpring, useInView, AnimatePresence } from "framer-motion";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Sector,
@@ -13,7 +14,7 @@ import {
   Search, Bell, Zap, TrendingUp, TrendingDown,
   CheckCircle2, Clock, XCircle, Upload,
   ChevronRight, Activity, Menu, X,
-  Sparkles, Shield, ArrowUpRight, Construction, User,
+  Sparkles, Shield, ArrowUpRight, Construction, User, Trash2,
 } from "lucide-react";
 import { AuthModal, type AuthView } from "./auth";
 import { GmailPanel } from "@/components/GmailPanel";
@@ -943,6 +944,19 @@ function AnalyticsView({ reports, user }: { reports: any[]; user: { name: string
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const deleteReport = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/reports/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports/timeline"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports/categories"] });
+      setDeletingId(null);
+    },
+    onError: () => setDeletingId(null),
+  });
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDonut, setActiveDonut] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1486,15 +1500,37 @@ export default function Dashboard() {
                             {row.date}
                           </td>
                           <td style={{ padding: "12px 0 12px 0" }}>
-                            <motion.button
-                              data-testid={`button-view-${row.id}`}
-                              whileHover={{ x: 3, color: "#22d3ee" }}
-                              className="view-btn"
-                              onClick={() => navigate(`/reports/${row.id}/concise`)}
-                              style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.18)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
-                            >
-                              View <ChevronRight size={11} />
-                            </motion.button>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <motion.button
+                                data-testid={`button-view-${row.id}`}
+                                whileHover={{ x: 3, color: "#22d3ee" }}
+                                className="view-btn"
+                                onClick={() => navigate(`/reports/${row.id}/concise`)}
+                                style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.18)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
+                              >
+                                View <ChevronRight size={11} />
+                              </motion.button>
+                              <motion.button
+                                data-testid={`button-delete-${row.id}`}
+                                whileHover={{ color: "#f87171", scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => {
+                                  if (deletingId === row.id) return;
+                                  if (window.confirm("Delete this report?")) {
+                                    setDeletingId(row.id);
+                                    deleteReport.mutate(row.id);
+                                  }
+                                }}
+                                style={{
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  background: "none", border: "none", cursor: "pointer",
+                                  color: "rgba(255,255,255,0.15)", padding: 3, borderRadius: 6,
+                                  opacity: deletingId === row.id ? 0.4 : 1,
+                                }}
+                              >
+                                <Trash2 size={12} />
+                              </motion.button>
+                            </div>
                           </td>
                         </motion.tr>
                       );

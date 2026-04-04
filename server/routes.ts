@@ -1045,8 +1045,10 @@ Text:\n${text}`;
         console.log(`[Gmail] Fallback date filter: emails after ${fallback48hDate.toISOString()} (${fallbackDateQuery})`);
 
         const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateQuery}`;
-        const broadQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateQuery} -from:noreply@accounts.google.com`;
-        const fallbackQ = `has:attachment ${fallbackDateQuery} in:inbox`;
+        // Tightened: only pick up PDFs from emails that explicitly mention CAS/statement keywords in the subject
+        const broadQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateQuery} -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
+        // Fallback now also restricted to CAS-related subjects — no more grabbing every inbox PDF
+        const fallbackQ = `has:attachment ${fallbackDateQuery} in:inbox (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
 
         console.log(`[Gmail] officialQ: ${officialQ}`);
         console.log(`[Gmail] broadQ:    ${broadQ}`);
