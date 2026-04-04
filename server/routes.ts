@@ -1014,9 +1014,10 @@ Text:\n${text}`;
         const subjectAllQ = `has:attachment (filename:.pdf OR filename:pdf) -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"portfolio" OR subject:"nsdl" OR subject:"cdsl" OR subject:"kfintech" OR subject:"cams")`;
         // Query 3: filename-based — PDF filenames with CAS-related words
         const filenameAllQ = `has:attachment -from:noreply@accounts.google.com (filename:CAS OR filename:consolidated OR filename:statement OR filename:portfolio OR filename:CAMS OR filename:kfintech OR filename:nsdl OR filename:cdsl)`;
-        // Query 4: personal/forwarded — any PDF from gmail.com senders (friends forwarding CAS PDFs)
-        // The isCasPdfText() validator will reject any non-CAS PDFs after download
-        const personalAllQ = `has:attachment (filename:.pdf OR filename:pdf) from:gmail.com`;
+        // Query 4: personal/forwarded — PDFs from gmail.com senders in last 30 days only
+        // The isCasPdfText() validator rejects non-CAS PDFs after download
+        const thirtyDaysAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000);
+        const personalAllQ = `has:attachment (filename:.pdf OR filename:pdf) from:gmail.com after:${thirtyDaysAgo}`;
 
         console.log(`[Gmail] fullScan officialQ:  ${officialAllQ}`);
         console.log(`[Gmail] fullScan subjectQ:   ${subjectAllQ}`);
@@ -1088,6 +1089,17 @@ Text:\n${text}`;
 
       console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential emails to inspect`);
 
+      // Pre-filter: check if PDF filename looks like a CAS statement before downloading
+      // Avoids wasting time downloading resumes, bills, etc.
+      function looksLikeCasPdf(filename: string): boolean {
+        const f = filename.toLowerCase();
+        // PAN pattern in filename (AAAAA0000A) — CAMS/KFintech always include PAN in filename
+        if (/[a-z]{5}[0-9]{4}[a-z]/.test(f)) return true;
+        // CAS-related keywords in the filename itself
+        const CAS_FILENAME_KW = ["cas", "consolidated", "mfcentral", "cams", "kfintech", "nsdl", "cdsl", "account_statement", "account-statement"];
+        return CAS_FILENAME_KW.some(kw => f.includes(kw));
+      }
+
       // Recursively collect all PDF parts from nested multipart structures
       type MsgPart = { mimeType?: string | null; filename?: string | null; body?: { attachmentId?: string | null; data?: string | null } | null; parts?: MsgPart[] | null };
       function collectPdfParts(parts: MsgPart[]): MsgPart[] {
@@ -1128,6 +1140,14 @@ Text:\n${text}`;
 
           for (const part of pdfParts) {
             if (!part.body?.attachmentId) continue;
+
+            // Pre-filter: skip obvious non-CAS files before wasting an API call to download them
+            const preFilterName = (part.filename || "").trim();
+            if (preFilterName && !looksLikeCasPdf(preFilterName)) {
+              console.log(`[Gmail] ⏭️  Pre-filter skip: "${preFilterName}" (filename has no PAN/CAS pattern)`);
+              continue;
+            }
+
             const att = await gmail.users.messages.attachments.get({
               userId: "me", messageId: msg.id!, id: part.body.attachmentId,
             });
