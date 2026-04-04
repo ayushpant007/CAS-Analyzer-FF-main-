@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import ConciseReport from "@/pages/ConciseReport";
 import LandingPage from "@/pages/landing";
-import Dashboard from "@/pages/dashboard";
 import ReportsPage from "@/pages/ReportsPage";
 import AuthPage from "@/pages/auth";
 import GoogleCallback from "@/pages/google-callback";
@@ -20,7 +19,7 @@ function Router() {
       <Route path="/landing" component={LandingPage} />
       <Route path="/login" component={AuthPage} />
       <Route path="/home" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dashboard" component={Home} />
       <Route path="/auth/google/callback" component={GoogleCallback} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/reports" component={ReportsPage} />

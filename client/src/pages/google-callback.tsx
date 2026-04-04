@@ -17,14 +17,14 @@ export default function GoogleCallback() {
     if (error) {
       setErrorMsg(error === "access_denied" ? "You cancelled Google sign-in." : `Google error: ${error}`);
       setStatus("error");
-      setTimeout(() => navigate("/dashboard"), 3000);
+      setTimeout(() => navigate("/home"), 3000);
       return;
     }
 
     if (!accessToken) {
       setErrorMsg("No access token received from Google.");
       setStatus("error");
-      setTimeout(() => navigate("/dashboard"), 3000);
+      setTimeout(() => navigate("/home"), 3000);
       return;
     }
 
@@ -42,12 +42,12 @@ export default function GoogleCallback() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email }),
         }).catch(() => {});
-        navigate("/dashboard?welcome=1");
+        navigate("/home");
       })
       .catch(() => {
         setErrorMsg("Failed to fetch your Google profile. Please try again.");
         setStatus("error");
-        setTimeout(() => navigate("/dashboard"), 3000);
+        setTimeout(() => navigate("/home"), 3000);
       });
   }, [navigate]);
 
@@ -82,7 +82,7 @@ export default function GoogleCallback() {
             {errorMsg}
           </p>
           <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>
-            Redirecting back to the dashboard…
+            Redirecting…
           </p>
         </motion.div>
       )}

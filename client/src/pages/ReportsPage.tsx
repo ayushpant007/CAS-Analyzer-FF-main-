@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileText, Search, ChevronRight, BarChart2, Upload,
-  LayoutDashboard, Zap, LogOut, CheckCircle2, Clock,
+  Zap, LogOut, CheckCircle2, Clock,
   Filter, Calendar, TrendingUp, Eye, FolderOpen,
 } from "lucide-react";
 
@@ -27,10 +27,9 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; ico
 const AVATAR_COLORS = ["#22d3ee", "#a855f7", "#34d399", "#f59e0b", "#f472b6", "#60a5fa"];
 
 const NAV = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: BarChart2,        label: "Analytics", href: "",          comingSoon: true },
   { icon: Upload,           label: "Upload CAS", href: "/home" },
   { icon: FileText,         label: "Reports",    href: "/reports" },
+  { icon: BarChart2,        label: "Analytics", href: "",          comingSoon: true },
 ];
 
 function Sidebar({ onLogout }: { onLogout: () => void }) {

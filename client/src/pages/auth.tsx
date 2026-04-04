@@ -555,7 +555,7 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const handleSuccess = (u: { name: string; email: string }) => {
     localStorage.setItem("cas_user", JSON.stringify(u));
-    navigate("/dashboard?welcome=1");
+    navigate("/home");
   };
   return (
     <div className="fixed inset-0 bg-[#020817] flex items-center justify-center">

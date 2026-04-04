@@ -908,7 +908,7 @@ export default function ConciseReport() {
       {/* Navbar */}
       <nav className="border-b" style={{ background: "rgba(10,14,46,0.6)", backdropFilter: "blur(16px)", borderColor: "rgba(96,165,250,0.15)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/dashboard")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/home")}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-lg" style={{ background: "linear-gradient(135deg,#3b6fff,#9333ea)", boxShadow: "0 0 16px rgba(59,111,255,0.5)" }}>
               <BarChart2 className="w-5 h-5" />
             </div>
@@ -924,11 +924,11 @@ export default function ConciseReport() {
         {/* Top bar: Back + title + Download */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/home")}
             className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-sm transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Full Report
+            Back
           </button>
           <div className="flex items-center gap-2">
             <Button

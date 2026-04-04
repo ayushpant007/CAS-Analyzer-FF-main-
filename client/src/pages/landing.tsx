@@ -6,7 +6,7 @@ function goToLogin() {
   try {
     const cas = localStorage.getItem("cas_user");
     if (cas) {
-      window.location.href = "/dashboard";
+      window.location.href = "/home";
       return;
     }
   } catch {}
