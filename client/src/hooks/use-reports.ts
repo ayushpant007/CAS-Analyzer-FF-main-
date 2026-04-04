@@ -15,11 +15,15 @@ export interface EnhancedReport extends Omit<Report, "analysis"> {
 }
 
 // GET /api/reports
-export function useReports() {
+export function useReports(email?: string) {
   return useQuery({
-    queryKey: [api.reports.list.path],
+    queryKey: [api.reports.list.path, email ?? ""],
+    enabled: !!email,
     queryFn: async () => {
-      const res = await fetch(api.reports.list.path);
+      const url = email
+        ? `${api.reports.list.path}?email=${encodeURIComponent(email)}`
+        : api.reports.list.path;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch reports");
       const data = await res.json();
       return api.reports.list.responses[200].parse(data) as EnhancedReport[];

@@ -20,7 +20,7 @@ export default function Home() {
   })();
 
   const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
-  const { data: reportsList } = useReports();
+  const { data: reportsList } = useReports(userEmail);
 
   return (
     <div className="min-h-screen font-sans pb-20 relative">
