@@ -908,8 +908,32 @@ Text:\n${text}`;
     }
   }
 
+  // Helper: paginate all Gmail message IDs for a query (up to maxTotal)
+  async function fetchAllMessageIds(
+    gmail: ReturnType<typeof google.gmail>,
+    q: string,
+    maxTotal = 500,
+  ): Promise<{ id?: string | null; threadId?: string | null }[]> {
+    const results: { id?: string | null; threadId?: string | null }[] = [];
+    let pageToken: string | undefined;
+    do {
+      const res = await gmail.users.messages.list({
+        userId: "me", q,
+        maxResults: Math.min(500, maxTotal - results.length),
+        ...(pageToken ? { pageToken } : {}),
+      });
+      const msgs = res.data.messages || [];
+      results.push(...msgs);
+      pageToken = res.data.nextPageToken ?? undefined;
+    } while (pageToken && results.length < maxTotal);
+    return results;
+  }
+
   // Poll one Gmail account for new CAS emails
-  async function pollGmailAccount(conn: { userEmail: string; accessToken: string; refreshToken: string; expiresAt: Date; casPassword: string | null }): Promise<{ pdfCount: number }> {
+  async function pollGmailAccount(
+    conn: { userEmail: string; accessToken: string; refreshToken: string; expiresAt: Date; casPassword: string | null },
+    fullScan = false,
+  ): Promise<{ pdfCount: number }> {
     try {
       const oauth2 = makeOAuth2Client();
       oauth2.setCredentials({ access_token: conn.accessToken, refresh_token: conn.refreshToken });
@@ -928,56 +952,78 @@ Text:\n${text}`;
       // Log which inbox is actually being scanned (helps debug wrong-account issues)
       try {
         const profile = await gmail.users.getProfile({ userId: "me" });
-        console.log(`[Gmail] Authenticated as: ${profile.data.emailAddress} (app account: ${conn.userEmail})`);
+        console.log(`[Gmail] Authenticated as: ${profile.data.emailAddress} (app account: ${conn.userEmail}) fullScan=${fullScan}`);
       } catch (e: any) {
         console.error(`[Gmail] Could not get profile:`, e.message);
       }
 
-      // Build date queries
-      // Primary: since last check (or 7 days if never checked), with 30-min buffer to avoid edge cases
-      const baseDate = conn.lastCheckedAt
-        ? new Date(Math.min(new Date(conn.lastCheckedAt).getTime() - 30 * 60 * 1000, Date.now() - 2 * 60 * 60 * 1000))
-        : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const dateQuery = `after:${Math.floor(baseDate.getTime() / 1000)}`;
-
-      // Fallback always searches last 48 hours to catch any emails missed by timing gaps
-      const fallback48hDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
-      const fallbackDateQuery = `after:${Math.floor(fallback48hDate.getTime() / 1000)}`;
-
-      console.log(`[Gmail] Primary date filter: emails after ${baseDate.toISOString()} (${dateQuery})`);
-      console.log(`[Gmail] Fallback date filter: emails after ${fallback48hDate.toISOString()} (${fallbackDateQuery})`);
-
-      // Search 1: official CAS senders
       const senderQuery = CAS_SENDERS.map(s => `from:${s}`).join(" OR ");
-      const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateQuery}`;
+      let messages: { id?: string | null; threadId?: string | null }[];
 
-      // Search 2: ANY sender with PDF attachment — catches manually forwarded CAS PDFs
-      const broadQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateQuery} -from:noreply@accounts.google.com`;
+      if (fullScan) {
+        // ── Full inbox scan: no date filter, paginate through entire inbox ──────
+        console.log(`[Gmail] 🔍 Full inbox scan — fetching ALL CAS PDFs ever received`);
 
-      // Search 3: Most permissive fallback — any inbox attachment in last 48h (catches edge timing cases)
-      const fallbackQ = `has:attachment ${fallbackDateQuery} in:inbox`;
+        // Query 1: official CAS senders — very targeted, paginate all
+        const officialAllQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf)`;
+        // Query 2: any PDF email in inbox — catches forwarded/personal CAS
+        const broadAllQ = `has:attachment (filename:.pdf OR filename:pdf) in:inbox -from:noreply@accounts.google.com`;
 
-      console.log(`[Gmail] officialQ: ${officialQ}`);
-      console.log(`[Gmail] broadQ:    ${broadQ}`);
-      console.log(`[Gmail] fallbackQ: ${fallbackQ}`);
+        console.log(`[Gmail] fullScan officialQ: ${officialAllQ}`);
+        console.log(`[Gmail] fullScan broadQ:    ${broadAllQ}`);
 
-      const [officialRes, broadRes, fallbackRes] = await Promise.all([
-        gmail.users.messages.list({ userId: "me", q: officialQ,  maxResults: 20 }),
-        gmail.users.messages.list({ userId: "me", q: broadQ,     maxResults: 20 }),
-        gmail.users.messages.list({ userId: "me", q: fallbackQ,  maxResults: 30 }),
-      ]);
+        const [officialMsgs, broadMsgs] = await Promise.all([
+          fetchAllMessageIds(gmail, officialAllQ, 500),
+          fetchAllMessageIds(gmail, broadAllQ, 500),
+        ]);
 
-      console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}`);
+        console.log(`[Gmail] fullScan — official: ${officialMsgs.length}, broad: ${broadMsgs.length}`);
 
-      // Deduplicate by message ID across all three searches
-      const seen = new Set<string>();
-      const messages: { id?: string | null; threadId?: string | null }[] = [];
-      for (const msg of [
-        ...(officialRes.data.messages || []),
-        ...(broadRes.data.messages  || []),
-        ...(fallbackRes.data.messages || []),
-      ]) {
-        if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
+        const seen = new Set<string>();
+        messages = [];
+        for (const msg of [...officialMsgs, ...broadMsgs]) {
+          if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
+        }
+      } else {
+        // ── Regular incremental check with date filter ────────────────────────
+        // Primary: since last check (or 7 days if never checked), with 30-min buffer
+        const baseDate = conn.lastCheckedAt
+          ? new Date(Math.min(new Date(conn.lastCheckedAt).getTime() - 30 * 60 * 1000, Date.now() - 2 * 60 * 60 * 1000))
+          : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const dateQuery = `after:${Math.floor(baseDate.getTime() / 1000)}`;
+
+        // Fallback always searches last 48 hours to catch any emails missed by timing gaps
+        const fallback48hDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        const fallbackDateQuery = `after:${Math.floor(fallback48hDate.getTime() / 1000)}`;
+
+        console.log(`[Gmail] Primary date filter: emails after ${baseDate.toISOString()} (${dateQuery})`);
+        console.log(`[Gmail] Fallback date filter: emails after ${fallback48hDate.toISOString()} (${fallbackDateQuery})`);
+
+        const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateQuery}`;
+        const broadQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateQuery} -from:noreply@accounts.google.com`;
+        const fallbackQ = `has:attachment ${fallbackDateQuery} in:inbox`;
+
+        console.log(`[Gmail] officialQ: ${officialQ}`);
+        console.log(`[Gmail] broadQ:    ${broadQ}`);
+        console.log(`[Gmail] fallbackQ: ${fallbackQ}`);
+
+        const [officialRes, broadRes, fallbackRes] = await Promise.all([
+          gmail.users.messages.list({ userId: "me", q: officialQ,  maxResults: 20 }),
+          gmail.users.messages.list({ userId: "me", q: broadQ,     maxResults: 20 }),
+          gmail.users.messages.list({ userId: "me", q: fallbackQ,  maxResults: 30 }),
+        ]);
+
+        console.log(`[Gmail] official hits: ${officialRes.data.messages?.length ?? 0}, broad hits: ${broadRes.data.messages?.length ?? 0}, fallback hits: ${fallbackRes.data.messages?.length ?? 0}`);
+
+        const seen = new Set<string>();
+        messages = [];
+        for (const msg of [
+          ...(officialRes.data.messages || []),
+          ...(broadRes.data.messages  || []),
+          ...(fallbackRes.data.messages || []),
+        ]) {
+          if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); messages.push(msg); }
+        }
       }
 
       console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential emails to inspect`);
@@ -1179,11 +1225,12 @@ Text:\n${text}`;
   // ── Manual trigger check
   app.post("/api/gmail/check", async (req, res) => {
     const email = req.query.email as string;
+    const fullScan = req.query.fullScan === "true";
     if (!email) return res.status(400).json({ error: "Missing email" });
     const conn = await storage.getGmailConnection(email);
     if (!conn) return res.status(404).json({ error: "Gmail not connected" });
-    const result = await pollGmailAccount(conn as any);
-    res.json({ ok: true, pdfCount: result.pdfCount });
+    const result = await pollGmailAccount(conn as any, fullScan);
+    res.json({ ok: true, pdfCount: result.pdfCount, fullScan });
   });
 
   // ────────────────────────────────────────────────────────────────────────────

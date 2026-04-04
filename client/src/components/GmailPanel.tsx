@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff } from "lucide-react";
+import { Mail, RefreshCw, Unlink, Lock, CheckCircle2, AlertCircle, X, WifiOff, DatabaseZap } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
@@ -94,7 +94,8 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
   const [status, setStatus] = useState<{ connected: boolean; lastCheckedAt?: string; createdAt?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [checkResult, setCheckResult] = useState<{ pdfCount: number } | null>(null);
+  const [fullScanning, setFullScanning] = useState(false);
+  const [checkResult, setCheckResult] = useState<{ pdfCount: number; fullScan?: boolean } | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,7 +130,7 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
   useEffect(() => { if (userEmail) loadStatus(); }, [userEmail]);
 
   async function handleManualCheck() {
-    if (checking) return;
+    if (checking || fullScanning) return;
     setChecking(true);
     setCheckResult(null);
     showToast("Scanning inbox for CAS emails...", "info");
@@ -155,6 +156,36 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
       showToast("Network error — could not trigger check.", "error");
     } finally {
       setChecking(false);
+    }
+  }
+
+  async function handleFullScan() {
+    if (checking || fullScanning) return;
+    setFullScanning(true);
+    setCheckResult(null);
+    showToast("Scanning your entire inbox for CAS PDFs — this may take a minute...", "info");
+    try {
+      const res = await fetch(`/api/gmail/check?email=${encodeURIComponent(userEmail)}&fullScan=true`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        const pdfCount: number = data.pdfCount ?? 0;
+        await loadStatus();
+        setCheckResult({ pdfCount, fullScan: true });
+        if (pdfCount > 0) {
+          showToast(`Imported ${pdfCount} PDF${pdfCount === 1 ? "" : "s"} from your full inbox history.`, "success");
+          await queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
+          onNewReports?.();
+        } else {
+          showToast("No CAS PDFs found in your inbox history.", "info");
+        }
+        setTimeout(() => setCheckResult(null), 10000);
+      } else {
+        showToast("Full scan failed. Please try again.", "error");
+      }
+    } catch {
+      showToast("Network error — could not start full scan.", "error");
+    } finally {
+      setFullScanning(false);
     }
   }
 
@@ -241,36 +272,54 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
                 </div>
                 <p className="text-xs mt-0.5" style={{ color: checkResult !== null ? (checkResult.pdfCount > 0 ? "#34d399" : "rgba(255,255,255,0.45)") : "rgba(255,255,255,0.35)" }}>
                   {status.connected
-                    ? checkResult !== null
-                      ? checkResult.pdfCount > 0
-                        ? `✓ Fetched ${checkResult.pdfCount} PDF${checkResult.pdfCount === 1 ? "" : "s"} from your inbox`
-                        : "No new PDFs found in your inbox"
-                      : status.lastCheckedAt
-                        ? `Last checked ${formatDistanceToNow(new Date(status.lastCheckedAt), { addSuffix: true })}`
-                        : "Connected — first scan pending"
+                    ? fullScanning
+                      ? "Scanning full inbox history..."
+                      : checkResult !== null
+                        ? checkResult.pdfCount > 0
+                          ? `✓ ${checkResult.fullScan ? "Imported" : "Fetched"} ${checkResult.pdfCount} PDF${checkResult.pdfCount === 1 ? "" : "s"}${checkResult.fullScan ? " from full inbox history" : " from your inbox"}`
+                          : checkResult.fullScan ? "No CAS PDFs found in inbox history" : "No new PDFs found in your inbox"
+                        : status.lastCheckedAt
+                          ? `Last checked ${formatDistanceToNow(new Date(status.lastCheckedAt), { addSuffix: true })}`
+                          : "Connected — first scan pending"
                     : "Auto-import CAS PDFs from CAMS, KFintech & MFCentral emails"}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {status.connected ? (
                 <>
                   <button
                     onClick={handleManualCheck}
-                    disabled={checking}
+                    disabled={checking || fullScanning}
                     data-testid="button-gmail-check"
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
                     style={{
-                      background: checking ? "rgba(96,165,250,0.2)" : "rgba(96,165,250,0.1)",
+                      background: (checking || fullScanning) ? "rgba(96,165,250,0.2)" : "rgba(96,165,250,0.1)",
                       border: "1px solid rgba(96,165,250,0.25)",
                       color: "#60a5fa",
-                      cursor: checking ? "not-allowed" : "pointer",
-                      opacity: checking ? 0.8 : 1,
+                      cursor: (checking || fullScanning) ? "not-allowed" : "pointer",
+                      opacity: (checking || fullScanning) ? 0.8 : 1,
                     }}
                   >
                     <RefreshCw size={12} className={checking ? "animate-spin" : ""} />
-                    {checking ? "Checking inbox..." : "Check Now"}
+                    {checking ? "Checking..." : "Check Now"}
+                  </button>
+                  <button
+                    onClick={handleFullScan}
+                    disabled={checking || fullScanning}
+                    data-testid="button-gmail-full-scan"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+                    style={{
+                      background: fullScanning ? "rgba(147,51,234,0.25)" : "rgba(147,51,234,0.12)",
+                      border: "1px solid rgba(167,139,250,0.3)",
+                      color: "#c084fc",
+                      cursor: (checking || fullScanning) ? "not-allowed" : "pointer",
+                      opacity: (checking || fullScanning) ? 0.8 : 1,
+                    }}
+                  >
+                    <DatabaseZap size={12} className={fullScanning ? "animate-pulse" : ""} />
+                    {fullScanning ? "Scanning all..." : "Scan Full Inbox"}
                   </button>
                   <button
                     onClick={handleDisconnect}
