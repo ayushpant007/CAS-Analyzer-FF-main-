@@ -45,3 +45,6 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_gemini_ai
 [userenv]
 
 [userenv.shared]
+
+[userenv.production]
+GMAIL_REDIRECT_URI = "https://financialfriend.in/auth/gmail/callback"
