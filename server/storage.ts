@@ -1,4 +1,4 @@
-import { reports, users, gmailConnections, type Report, type InsertReport, type User, type InsertUser, type GmailConnection, type InsertGmailConnection } from "@shared/schema";
+import { reports, users, gmailConnections, uploadLogs, type Report, type InsertReport, type User, type InsertUser, type GmailConnection, type InsertGmailConnection } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 
@@ -12,6 +12,7 @@ export interface IStorage {
   getReportsByEmail(email: string): Promise<Report[]>;
   getReportByFilename(filename: string): Promise<Report | undefined>;
   getDailyUploadCount(userEmail: string): Promise<number>;
+  logUpload(userEmail: string): Promise<void>;
   deleteReport(id: number, userEmail?: string): Promise<boolean>;
   deleteNonCasReports(userEmail?: string): Promise<number>;
   createUser(user: InsertUser): Promise<User>;
@@ -77,9 +78,13 @@ export class DatabaseStorage implements IStorage {
     todayStart.setUTCHours(0, 0, 0, 0);
     const [row] = await db
       .select({ count: sql<number>`cast(count(*) as int)` })
-      .from(reports)
-      .where(and(eq(reports.userEmail, userEmail.toLowerCase()), gte(reports.createdAt, todayStart)));
+      .from(uploadLogs)
+      .where(and(eq(uploadLogs.userEmail, userEmail.toLowerCase()), gte(uploadLogs.uploadedAt, todayStart)));
     return row?.count ?? 0;
+  }
+
+  async logUpload(userEmail: string): Promise<void> {
+    await db.insert(uploadLogs).values({ userEmail: userEmail.toLowerCase() });
   }
 
   async deleteReport(id: number, userEmail?: string): Promise<boolean> {

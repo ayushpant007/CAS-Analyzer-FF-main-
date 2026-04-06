@@ -272,6 +272,8 @@ ${text}`;
         analysis
       }, investorName);
 
+      if (userEmail) await storage.logUpload(userEmail);
+
       res.json(report);
 
     } catch (error: any) {
@@ -313,12 +315,8 @@ ${text}`;
   // ── Daily upload usage ─────────────────────────────────────────────────────────
   app.get("/api/reports/daily-usage", async (req, res) => {
     const email = req.query.email as string | undefined;
-    const allReports = await storage.getAllReports();
-    const todayStart = new Date();
-    todayStart.setUTCHours(0, 0, 0, 0);
-    const used = allReports.filter(r => r.createdAt && new Date(r.createdAt) >= todayStart).length;
-    const userUsed = email ? await storage.getDailyUploadCount(email) : 0;
-    res.json({ limit: DAILY_UPLOAD_LIMIT, used, remaining: Math.max(0, DAILY_UPLOAD_LIMIT - userUsed) });
+    const used = email ? await storage.getDailyUploadCount(email) : 0;
+    res.json({ limit: DAILY_UPLOAD_LIMIT, used, remaining: Math.max(0, DAILY_UPLOAD_LIMIT - used) });
   });
 
   // ── Dashboard: 30-day upload timeline from real DB data ───────────────────────
@@ -975,6 +973,8 @@ Text:\n${text}`;
         userEmail: userEmail.toLowerCase(),
         analysis,
       }, investorName);
+
+      await storage.logUpload(userEmail);
 
       console.log(`[Gmail] ✅ Auto-imported and analyzed: ${filename} for ${userEmail} (reportId=${savedReport.id})`);
       return savedReport.id;

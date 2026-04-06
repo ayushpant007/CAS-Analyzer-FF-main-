@@ -49,3 +49,11 @@ export const insertReportSchema = createInsertSchema(reports).omit({
 
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
+
+export const uploadLogs = pgTable("upload_logs", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+export type UploadLog = typeof uploadLogs.$inferSelect;
