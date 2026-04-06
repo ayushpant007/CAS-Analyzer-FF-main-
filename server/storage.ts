@@ -16,6 +16,7 @@ export interface IStorage {
   deleteNonCasReports(userEmail?: string): Promise<number>;
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByMobile(mobile: string): Promise<User | undefined>;
   updateUserPassword(email: string, passwordHash: string): Promise<void>;
   getGmailConnection(userEmail: string): Promise<GmailConnection | undefined>;
   upsertGmailConnection(conn: InsertGmailConnection): Promise<GmailConnection>;
@@ -112,6 +113,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
+    return user;
+  }
+
+  async getUserByMobile(mobile: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.mobile, mobile.trim()));
     return user;
   }
 

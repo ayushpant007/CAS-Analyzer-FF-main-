@@ -681,6 +681,20 @@ ${text}`;
     const { email, name = "", password = "", mobile = "" } = req.body as { email: string; name?: string; password?: string; mobile?: string };
     if (!email) return res.status(400).json({ error: "Email is required" });
 
+    // Only run duplicate checks for sign-up (when password is provided)
+    if (password) {
+      const existingByEmail = await storage.getUserByEmail(email.toLowerCase());
+      if (existingByEmail) {
+        return res.status(409).json({ error: "An account with this email already exists. Please log in instead." });
+      }
+      if (mobile && mobile.trim()) {
+        const existingByMobile = await storage.getUserByMobile(mobile.trim());
+        if (existingByMobile) {
+          return res.status(409).json({ error: "An account with this mobile number already exists." });
+        }
+      }
+    }
+
     const otp = generateOtp();
     otpStore.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000, name, password, mobile });
 
