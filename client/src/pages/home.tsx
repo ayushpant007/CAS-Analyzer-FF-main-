@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UploadCard } from "@/components/UploadCard";
 import { ReportView } from "@/components/ReportView";
 import { useReport, useReports } from "@/hooks/use-reports";
@@ -21,6 +21,18 @@ export default function Home() {
   const [autoAnalyzeNewReport, setAutoAnalyzeNewReport] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [, navigate] = useLocation();
+
+  // Fallback: if Google OAuth sent the token to /home instead of /auth/google/callback,
+  // intercept it here and redirect to the proper callback handler
+  useEffect(() => {
+    const hash = window.location.hash.substring(1);
+    if (!hash) return;
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get("access_token");
+    if (!accessToken) return;
+    // Redirect to the callback handler with the token
+    window.location.replace(`/auth/google/callback#${hash}`);
+  }, [navigate]);
 
   const casUser = (() => {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }

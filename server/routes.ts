@@ -837,12 +837,18 @@ ${text}`;
     const { name, email } = req.body as { name: string; email: string };
     if (!email) return res.status(400).json({ error: "Email is required." });
 
-    const nameParts = (name || "").trim().split(" ");
+    const existingUser = await storage.getUserByEmail(email.toLowerCase());
+    if (!existingUser) {
+      return res.status(404).json({ error: "No account found for this email. Please sign up first.", notFound: true });
+    }
+
+    const dbName = existingUser.name || name;
+    const nameParts = dbName.trim().split(" ");
     const loginAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-    await appendToSheet([nameParts[0] || "", nameParts.slice(1).join(" ") || "", email.toLowerCase(), "", loginAt, "Login", "Google"]);
+    await appendToSheet([nameParts[0] || "", nameParts.slice(1).join(" ") || "", email.toLowerCase(), "", loginAt, "Login", "Google"]).catch(() => {});
     console.log("[Sheets] Google login logged:", email);
 
-    res.json({ ok: true });
+    res.json({ ok: true, name: dbName, email: existingUser.email });
   });
 
   // ── Gmail Auto-Import ─────────────────────────────────────────────────────────
