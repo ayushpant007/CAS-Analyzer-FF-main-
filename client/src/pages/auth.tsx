@@ -283,7 +283,13 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
           }).catch(() => {});
         }
         if (onSuccess) { onSuccess({ name, email }); }
-        else { onClose(); navigate("/home"); }
+        else {
+          // Save to localStorage so landing page knows the user is logged in
+          localStorage.setItem("cas_user", JSON.stringify({ name, email: email.toLowerCase() }));
+          onClose();
+          // Redirect to landing page so user sees "Go To CAS Analyzer" button
+          navigate("/landing");
+        }
       }
     } catch { setError("Verification failed."); }
     finally { setLoading(false); }

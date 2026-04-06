@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useSpring, useInView } from "framer-motion";
-import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star, Lock, Activity } from "lucide-react";
+import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star, Lock, Activity, Upload } from "lucide-react";
 
-function goToLogin() {
+function getLoggedInUser(): { name: string; email: string } | null {
   try {
     const cas = localStorage.getItem("cas_user");
-    if (cas) {
-      window.location.href = "/home";
-      return;
-    }
-  } catch {}
+    return cas ? JSON.parse(cas) : null;
+  } catch { return null; }
+}
+
+function goToLogin() {
   window.location.href = "/login";
 }
 
@@ -95,8 +95,9 @@ function PortfolioCard() {
     investorName: string;
     topFunds: { name: string; returnPct: number; valuation: number }[];
     historicalBars: number[];
-    isLoggedIn: boolean;
   } | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState<{ name: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -104,8 +105,10 @@ function PortfolioCard() {
     async function load() {
       try {
         const raw = localStorage.getItem("cas_user");
-        if (!raw) { setLoading(false); setData(null); return; }
+        if (!raw) { setIsLoggedIn(false); setLoading(false); setData(null); return; }
         const user = JSON.parse(raw);
+        setIsLoggedIn(true);
+        setLoggedInUser(user);
         const res = await fetch(`/api/reports?email=${encodeURIComponent(user.email)}`);
         const reports: any[] = await res.json();
         const analyzed = reports.filter(r => r.analysis?.mf_snapshot?.length || r.analysis?.funds?.length);
@@ -150,7 +153,6 @@ function PortfolioCard() {
           investorName: latest.analysis?.investor_name ?? user.name ?? "",
           topFunds,
           historicalBars: bars,
-          isLoggedIn: true,
         });
       } catch {
         if (!cancelled) setData(null);
@@ -169,11 +171,10 @@ function PortfolioCard() {
   };
 
   // ── Not logged in state ──
-  if (!loading && (!data || !data.isLoggedIn)) {
+  if (!loading && !isLoggedIn) {
     return (
       <div className="relative">
         <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#00d4ff]/15 via-transparent to-[#7c3aed]/15 blur-2xl" />
-        {/* HUD corner brackets */}
         {[["top-0 left-0","border-t border-l"],["top-0 right-0","border-t border-r"],["bottom-0 left-0","border-b border-l"],["bottom-0 right-0","border-b border-r"]].map(([pos, border], i) => (
           <div key={i} className={`absolute ${pos} w-5 h-5 ${border} border-[#00d4ff]/60 z-20`} />
         ))}
@@ -189,6 +190,44 @@ function PortfolioCard() {
           <button onClick={goToLogin}
             className="mt-2 px-5 py-2 rounded-lg text-xs font-semibold text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_18px_rgba(0,212,255,0.4)]">
             Connect Portfolio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Logged in but no CAS reports uploaded yet ──
+  if (!loading && isLoggedIn && !data) {
+    return (
+      <div className="relative">
+        <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#00d4ff]/15 via-transparent to-[#7c3aed]/15 blur-2xl" />
+        {[["top-0 left-0","border-t border-l"],["top-0 right-0","border-t border-r"],["bottom-0 left-0","border-b border-l"],["bottom-0 right-0","border-b border-r"]].map(([pos, border], i) => (
+          <motion.div key={i} className={`absolute ${pos} w-6 h-6 ${border} border-[#00d4ff] z-20`}
+            animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }} />
+        ))}
+        <div className="relative rounded-2xl border border-[#00d4ff]/20 bg-[#020817]/80 backdrop-blur-xl p-8 text-center space-y-4 overflow-hidden">
+          <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/50 to-transparent" />
+          <motion.div className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff]/40 to-transparent z-10 pointer-events-none"
+            animate={{ top: ["0%", "100%", "0%"] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <motion.div className="w-2 h-2 rounded-full bg-emerald-400"
+              animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
+            <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-semibold">Connected · {loggedInUser?.name}</span>
+          </div>
+
+          <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }}
+            className="w-14 h-14 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center mx-auto">
+            <Upload size={22} className="text-[#00d4ff]" />
+          </motion.div>
+
+          <p className="text-xs text-[#00d4ff] uppercase tracking-widest font-medium">Live Portfolio Preview</p>
+          <p className="text-white font-semibold text-sm">Upload your CAS to see live data</p>
+          <p className="text-white/30 text-xs leading-relaxed">Your account is connected. Upload your Consolidated Account Statement to see your holdings, returns, and fund analysis here.</p>
+
+          <button onClick={() => { window.location.href = "/home"; }}
+            className="mt-2 px-5 py-2 rounded-lg text-xs font-semibold text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_18px_rgba(0,212,255,0.4)] hover:shadow-[0_0_28px_rgba(0,212,255,0.6)] transition-all">
+            Upload CAS Now →
           </button>
         </div>
       </div>
@@ -332,6 +371,12 @@ function PortfolioCard() {
 }
 
 export default function LandingPage() {
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(getLoggedInUser());
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <CyberBackground />
@@ -348,6 +393,20 @@ export default function LandingPage() {
             <div className="text-[10px] text-white/30 tracking-widest uppercase leading-none">Portfolio Intelligence</div>
           </div>
         </motion.div>
+        {currentUser && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
+            className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", boxShadow: "0 0 12px rgba(0,212,255,0.4)" }}>
+              {currentUser.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+            </div>
+            <span className="text-sm text-white/60 font-medium hidden sm:block">{currentUser.name}</span>
+            <button onClick={() => { localStorage.removeItem("cas_user"); window.location.reload(); }}
+              className="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1 rounded-lg border border-white/10 hover:border-white/20">
+              Log out
+            </button>
+          </motion.div>
+        )}
       </header>
 
       {/* ── Hero ── */}
@@ -378,11 +437,19 @@ export default function LandingPage() {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              <button data-testid="button-hero-getstarted" onClick={goToLogin}
-                className="group flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_28px_rgba(0,212,255,0.5)] hover:shadow-[0_0_42px_rgba(0,212,255,0.7)] hover:scale-[1.03] transition-all duration-200">
-                Get Started Free
-                <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              {currentUser ? (
+                <button data-testid="button-hero-go-to-analyzer" onClick={() => { window.location.href = "/home"; }}
+                  className="group flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_28px_rgba(0,212,255,0.5)] hover:shadow-[0_0_42px_rgba(0,212,255,0.7)] hover:scale-[1.03] transition-all duration-200">
+                  Go To CAS Analyzer
+                  <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              ) : (
+                <button data-testid="button-hero-getstarted" onClick={goToLogin}
+                  className="group flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_28px_rgba(0,212,255,0.5)] hover:shadow-[0_0_42px_rgba(0,212,255,0.7)] hover:scale-[1.03] transition-all duration-200">
+                  Get Started Free
+                  <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              )}
             </motion.div>
           </div>
 
