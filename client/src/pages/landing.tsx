@@ -620,6 +620,9 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className="relative z-10 text-center pb-8 text-[11px] text-white/20 tracking-widest uppercase">
         CAS Analyzer · Secure · Encrypted · Powered by AI
+        <div className="mt-2">
+          <a href="/privacy" className="text-white/30 hover:text-white/60 normal-case tracking-normal transition-colors">Privacy Policy</a>
+        </div>
       </footer>
     </div>
   );
