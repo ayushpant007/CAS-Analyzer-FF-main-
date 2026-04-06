@@ -134,6 +134,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   registerChatRoutes(app);
   registerImageRoutes(app);
 
+  app.get("/privacy", (_req, res) => {
+    res.sendFile("privacy.html", { root: "./client/public" });
+  });
+
   app.get("/api/config/public", (_req, res) => {
     res.json({
       googleClientId: process.env.GOOGLE_CLIENT_ID || "",
