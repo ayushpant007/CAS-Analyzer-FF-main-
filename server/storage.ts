@@ -76,11 +76,15 @@ export class DatabaseStorage implements IStorage {
   async getDailyUploadCount(userEmail: string): Promise<number> {
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
-    const [row] = await db
+    const [logRow] = await db
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(uploadLogs)
       .where(and(eq(uploadLogs.userEmail, userEmail.toLowerCase()), gte(uploadLogs.uploadedAt, todayStart)));
-    return row?.count ?? 0;
+    const [reportRow] = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(reports)
+      .where(and(eq(reports.userEmail, userEmail.toLowerCase()), gte(reports.createdAt, todayStart)));
+    return Math.max(logRow?.count ?? 0, reportRow?.count ?? 0);
   }
 
   async logUpload(userEmail: string): Promise<void> {
