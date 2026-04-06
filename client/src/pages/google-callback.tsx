@@ -56,7 +56,7 @@ export default function GoogleCallback() {
 
         const name = loginData.name || googleName;
         localStorage.setItem("cas_user", JSON.stringify({ name, email }));
-        navigate("/home");
+        navigate("/landing");
       })
       .catch(() => {
         setErrorMsg("Failed to fetch your Google profile. Please try again.");

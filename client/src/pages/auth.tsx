@@ -210,7 +210,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       // Sync login to Firebase (best-effort, don't block on failure)
       firebaseLoginUser(form.email, form.password).catch(() => {});
       if (onSuccess) { onSuccess({ name, email: form.email }); }
-      else { onClose(); navigate("/home"); }
+      else { onClose(); navigate("/landing"); }
     } catch { setError("Login failed. Please try again."); }
     finally { setLoading(false); }
   };
@@ -571,7 +571,7 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const handleSuccess = (u: { name: string; email: string }) => {
     localStorage.setItem("cas_user", JSON.stringify(u));
-    navigate("/home");
+    navigate("/landing");
   };
   return (
     <div className="fixed inset-0 bg-[#020817] flex items-center justify-center">

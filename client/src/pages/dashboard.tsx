@@ -1561,7 +1561,7 @@ export default function Dashboard() {
               }
               const fmt = (v: number) => v >= 10000000 ? `₹${(v/10000000).toFixed(2)} Cr` : v >= 100000 ? `₹${(v/100000).toFixed(2)} L` : `₹${v.toLocaleString("en-IN")}`;
               const FUND_COLORS = ["#22d3ee", "#a855f7", "#f59e0b", "#34d399", "#ec4899"];
-              const investorName = latest.analysis?.investor_name ?? user?.name ?? "";
+              const investorName = user?.name ?? "";
               return (
                 <motion.div
                   initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}

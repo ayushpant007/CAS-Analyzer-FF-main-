@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useSpring, useInView } from "framer-motion";
-import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star, Lock, Activity, Upload } from "lucide-react";
+import { Zap, BarChart3, Shield, TrendingUp, Brain, FileText, ChevronRight, Star, Lock, Activity, Upload, AlertCircle, CheckCircle, Loader2, X } from "lucide-react";
 
 function getLoggedInUser(): { name: string; email: string } | null {
   try {
@@ -92,13 +92,59 @@ function PortfolioCard() {
     totalInvested: number;
     returnPct: number;
     fundCount: number;
-    investorName: string;
     topFunds: { name: string; returnPct: number; valuation: number }[];
     historicalBars: number[];
   } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<{ name: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshCount, setRefreshCount] = useState(0);
+
+  // Upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [needsPassword, setNeedsPassword] = useState(false);
+  const [pdfPassword, setPdfPassword] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  async function handleUpload(file: File, password?: string) {
+    const user = loggedInUser;
+    if (!user) return;
+    setUploading(true);
+    setUploadError(null);
+    const formData = new FormData();
+    formData.append("file", file);
+    if (password) formData.append("password", password);
+    formData.append("userEmail", user.email);
+    try {
+      const res = await fetch("/api/analyze", { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg: string = err.message ?? "Upload failed.";
+        if (/password/i.test(msg)) {
+          setNeedsPassword(true);
+          setUploadError("This PDF is password-protected. Please enter the password.");
+          return;
+        }
+        setUploadError(msg);
+        return;
+      }
+      setUploadSuccess(true);
+      setUploadFile(null);
+      setNeedsPassword(false);
+      setPdfPassword("");
+      setTimeout(() => {
+        setUploadSuccess(false);
+        setRefreshCount(c => c + 1);
+      }, 1500);
+    } catch {
+      setUploadError("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -150,7 +196,6 @@ function PortfolioCard() {
           totalInvested,
           returnPct,
           fundCount: funds.length,
-          investorName: latest.analysis?.investor_name ?? user.name ?? "",
           topFunds,
           historicalBars: bars,
         });
@@ -162,7 +207,7 @@ function PortfolioCard() {
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [refreshCount]);
 
   const formatValue = (v: number) => {
     if (v >= 10000000) return `₹${(v / 10000000).toFixed(2)} Cr`;
@@ -216,19 +261,91 @@ function PortfolioCard() {
             <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-semibold">Connected · {loggedInUser?.name}</span>
           </div>
 
-          <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }}
-            className="w-14 h-14 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center mx-auto">
-            <Upload size={22} className="text-[#00d4ff]" />
-          </motion.div>
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={e => {
+              const f = e.target.files?.[0];
+              if (f) { setUploadFile(f); setUploadError(null); setNeedsPassword(false); setPdfPassword(""); }
+              e.target.value = "";
+            }}
+          />
 
-          <p className="text-xs text-[#00d4ff] uppercase tracking-widest font-medium">Live Portfolio Preview</p>
-          <p className="text-white font-semibold text-sm">Upload your CAS to see live data</p>
-          <p className="text-white/30 text-xs leading-relaxed">Your account is connected. Upload your Consolidated Account Statement to see your holdings, returns, and fund analysis here.</p>
+          {uploadSuccess ? (
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center gap-3 py-2">
+              <div className="w-14 h-14 rounded-full bg-emerald-400/10 border border-emerald-400/40 flex items-center justify-center mx-auto">
+                <CheckCircle size={26} className="text-emerald-400" />
+              </div>
+              <p className="text-emerald-400 font-semibold text-sm">CAS uploaded successfully!</p>
+              <p className="text-white/40 text-xs">Refreshing your portfolio data...</p>
+            </motion.div>
+          ) : uploading ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-3 py-2">
+              <div className="w-14 h-14 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center mx-auto">
+                <Loader2 size={26} className="text-[#00d4ff] animate-spin" />
+              </div>
+              <p className="text-[#00d4ff] font-semibold text-sm">Analyzing your CAS...</p>
+              <p className="text-white/30 text-xs">This may take up to 30 seconds</p>
+            </motion.div>
+          ) : uploadFile ? (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              className="space-y-3">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+                <FileText size={14} className="text-[#00d4ff] shrink-0" />
+                <span className="text-xs text-white/70 truncate flex-1 text-left">{uploadFile.name}</span>
+                <button onClick={() => { setUploadFile(null); setUploadError(null); setNeedsPassword(false); setPdfPassword(""); }}
+                  className="text-white/30 hover:text-white/60 transition-colors shrink-0">
+                  <X size={12} />
+                </button>
+              </div>
 
-          <button onClick={() => { window.location.href = "/home"; }}
-            className="mt-2 px-5 py-2 rounded-lg text-xs font-semibold text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_18px_rgba(0,212,255,0.4)] hover:shadow-[0_0_28px_rgba(0,212,255,0.6)] transition-all">
-            Upload CAS Now →
-          </button>
+              {needsPassword && (
+                <input
+                  type="password"
+                  placeholder="PDF password"
+                  value={pdfPassword}
+                  onChange={e => setPdfPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-[#00d4ff]/60"
+                />
+              )}
+
+              {uploadError && (
+                <div className="flex items-start gap-1.5 text-left">
+                  <AlertCircle size={12} className="text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-red-400 leading-relaxed">{uploadError}</p>
+                </div>
+              )}
+
+              <button
+                onClick={() => handleUpload(uploadFile, needsPassword ? pdfPassword : undefined)}
+                disabled={needsPassword && !pdfPassword}
+                className="w-full py-2 rounded-lg text-xs font-semibold text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_18px_rgba(0,212,255,0.4)] hover:shadow-[0_0_28px_rgba(0,212,255,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                {needsPassword ? "Analyze with Password" : "Analyze CAS →"}
+              </button>
+            </motion.div>
+          ) : (
+            <>
+              <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }}
+                className="w-14 h-14 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center mx-auto">
+                <Upload size={22} className="text-[#00d4ff]" />
+              </motion.div>
+
+              <p className="text-xs text-[#00d4ff] uppercase tracking-widest font-medium">Live Portfolio Preview</p>
+              <p className="text-white font-semibold text-sm">Upload your CAS to see live data</p>
+              <p className="text-white/30 text-xs leading-relaxed">Your account is connected. Upload your Consolidated Account Statement to see your holdings, returns, and fund analysis here.</p>
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-2 px-5 py-2 rounded-lg text-xs font-semibold text-[#020817] bg-gradient-to-r from-[#00d4ff] to-[#0096b4] shadow-[0_0_18px_rgba(0,212,255,0.4)] hover:shadow-[0_0_28px_rgba(0,212,255,0.6)] transition-all">
+                Upload CAS Now →
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -279,7 +396,7 @@ function PortfolioCard() {
               <div className="flex items-center gap-1.5 mb-1">
                 <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400"
                   animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
-                <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-semibold">Live · {d.investorName || "Portfolio"}</span>
+                <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-semibold">Live · {loggedInUser?.name || "Portfolio"}</span>
               </div>
               <p className="text-[10px] text-white/30 uppercase tracking-widest">Total Portfolio Value</p>
               <motion.p className="text-white font-bold text-xl mt-0.5 tabular-nums"
