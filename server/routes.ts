@@ -867,6 +867,7 @@ ${text}`;
   const GMAIL_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
   const GMAIL_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
   const GMAIL_REDIRECT_URI = (() => {
+    if (process.env.GMAIL_REDIRECT_URI) return process.env.GMAIL_REDIRECT_URI;
     const domain = (process.env.REPLIT_DOMAINS || "localhost:5000").split(",")[0].trim();
     return `https://${domain}/auth/gmail/callback`;
   })();
