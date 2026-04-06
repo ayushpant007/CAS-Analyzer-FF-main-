@@ -134,6 +134,13 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   registerChatRoutes(app);
   registerImageRoutes(app);
 
+  app.get("/api/config/public", (_req, res) => {
+    res.json({
+      googleClientId: process.env.GOOGLE_CLIENT_ID || "",
+      googleRedirectUri: process.env.VITE_GOOGLE_REDIRECT_URI || "",
+    });
+  });
+
   app.post(api.analyze.path, upload.single("file"), async (req: any, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });

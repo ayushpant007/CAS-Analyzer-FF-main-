@@ -71,6 +71,16 @@ function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose:
           <p className="text-xs text-white/30 mt-2">Most CAS PDFs are password-protected with your PAN number.</p>
         </div>
 
+        <div className="rounded-xl p-3.5 mb-4" style={{ background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.2)" }}>
+          <p className="text-xs font-semibold text-yellow-400 mb-1">⚠ Google may show a warning screen</p>
+          <p className="text-xs text-white/50 leading-relaxed">
+            Google will show <span className="text-white/70 font-medium">"Google hasn't verified this app"</span> because our app verification is in progress. This is normal for new apps.
+          </p>
+          <p className="text-xs text-white/50 mt-1.5 leading-relaxed">
+            To proceed: click <span className="text-white/70 font-medium">Advanced</span> → <span className="text-white/70 font-medium">"Go to CAS Analyzer (unsafe)"</span>. Your data is safe — we only read emails, never modify them.
+          </p>
+        </div>
+
         <button
           onClick={handleConnect}
           disabled={!password.trim()}

@@ -215,22 +215,32 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     finally { setLoading(false); }
   };
 
-  const handleGoogleLogin = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      setError("Google Sign-In is not configured. Please contact support.");
-      return;
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const configRes = await fetch("/api/config/public");
+      const config = await configRes.json();
+      const clientId = config.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setError("Google Sign-In is not configured. Please contact support.");
+        return;
+      }
+      const redirectUri = config.googleRedirectUri || import.meta.env.VITE_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/google/callback`;
+      const params = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "token",
+        scope: "openid email profile",
+        include_granted_scopes: "true",
+        prompt: "select_account",
+      });
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    } catch {
+      setError("Google Sign-In is not available. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/google/callback`;
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: "token",
-      scope: "openid email profile",
-      include_granted_scopes: "true",
-      prompt: "select_account",
-    });
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };
 
   const handleResendOtp = async () => {
