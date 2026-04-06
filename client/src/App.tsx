@@ -10,6 +10,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import AuthPage from "@/pages/auth";
 import GoogleCallback from "@/pages/google-callback";
 import ResetPasswordPage from "@/pages/reset-password";
+import PrivacyPolicy from "@/pages/privacy";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/dashboard" component={Home} />
       <Route path="/auth/google/callback" component={GoogleCallback} />
       <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/reports" component={ReportsPage} />
       <Route path="/reports/:id/concise" component={ConciseReport} />
       {/* Fallback to 404 */}
