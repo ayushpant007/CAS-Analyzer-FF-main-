@@ -1035,18 +1035,30 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
           categories.forEach(c => { idealMap[c] = parseIdeal(idealRaw[c]); });
 
           const actualMap: Record<string, number> = {};
-          const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-
-          (analysis.mf_snapshot || []).forEach((mf: any) => {
-            const cat = (mf.fund_category || "").toLowerCase();
-            const valuation = mf.valuation || 0;
-            const pct = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
-            if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
-            else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
-            else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
-            else if (cat.includes("gold") || cat.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
-            else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
-          });
+          const assetAllocData: any[] = analysis.asset_allocation ?? [];
+          if (assetAllocData.length > 0) {
+            assetAllocData.forEach((a: any) => {
+              const cls = (a.asset_class || "").toLowerCase();
+              const pct = typeof a.percentage === "number" ? a.percentage : 0;
+              if (cls.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
+              else if (cls.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
+              else if (cls.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
+              else if (cls.includes("gold") || cls.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
+              else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
+            });
+          } else {
+            const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
+            (analysis.mf_snapshot || []).forEach((mf: any) => {
+              const cat = (mf.fund_category || "").toLowerCase();
+              const valuation = mf.valuation || 0;
+              const pct = totalValuation > 0 ? (valuation / totalValuation) * 100 : 0;
+              if (cat.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
+              else if (cat.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
+              else if (cat.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
+              else if (cat.includes("gold") || cat.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
+              else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
+            });
+          }
 
           const equityActual = actualMap["Equity"] || 0;
           const equityIdeal = idealMap["Equity"] || 0;
@@ -1174,6 +1186,21 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
           const actualMap: Record<string, number> = {};
           const typeMap: Record<string, Record<string, number>> = {};
 
+          // Build actualMap from asset_allocation (primary) or mf_snapshot (fallback)
+          const assetAllocData2: any[] = analysis.asset_allocation ?? [];
+          if (assetAllocData2.length > 0) {
+            assetAllocData2.forEach((a: any) => {
+              const cls = (a.asset_class || "").toLowerCase();
+              const pct = typeof a.percentage === "number" ? a.percentage : 0;
+              if (cls.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
+              else if (cls.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
+              else if (cls.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
+              else if (cls.includes("gold") || cls.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
+              else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
+            });
+          }
+
+          // Always build typeMap from mf_snapshot (needed for sub-category breakdown)
           (analysis.mf_snapshot || []).forEach((mf: any) => {
             const cat = (mf.fund_category || "").toLowerCase();
             const type = mf.fund_type || "Other";
@@ -1184,7 +1211,7 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
             else if (cat.includes("debt")) mainCat = "Debt";
             else if (cat.includes("hybrid")) mainCat = "Hybrid";
             else if (cat.includes("gold") || cat.includes("silver")) mainCat = "Gold/Silver";
-            actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
+            if (assetAllocData2.length === 0) actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
             if (!typeMap[mainCat]) typeMap[mainCat] = {};
             typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + pct;
           });
@@ -1347,14 +1374,27 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
                 <span className="text-sm font-bold">Portfolio Fit Score: {(() => {
                   const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
                   const actualMap: Record<string, number> = {};
-                  (analysis.mf_snapshot || []).forEach((mf: any) => {
-                    const cat = (mf.fund_category || "").toLowerCase();
-                    let mainCat = "Gold/Silver";
-                    if (cat.includes("equity")) mainCat = "Equity";
-                    else if (cat.includes("debt")) mainCat = "Debt";
-                    else if (cat.includes("hybrid")) mainCat = "Hybrid";
-                    actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
-                  });
+                  const _fitAllocSrc: any[] = analysis.asset_allocation ?? [];
+                  if (_fitAllocSrc.length > 0) {
+                    _fitAllocSrc.forEach((a: any) => {
+                      const cls = (a.asset_class || "").toLowerCase();
+                      const pct = typeof a.percentage === "number" ? a.percentage : 0;
+                      if (cls.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
+                      else if (cls.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
+                      else if (cls.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
+                      else if (cls.includes("gold") || cls.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
+                      else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
+                    });
+                  } else {
+                    (analysis.mf_snapshot || []).forEach((mf: any) => {
+                      const cat = (mf.fund_category || "").toLowerCase();
+                      let mainCat = "Gold/Silver";
+                      if (cat.includes("equity")) mainCat = "Equity";
+                      else if (cat.includes("debt")) mainCat = "Debt";
+                      else if (cat.includes("hybrid")) mainCat = "Hybrid";
+                      actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
+                    });
+                  }
                   const age = analysis.client_details?.age || 30;
                   const riskProfile = analysis.client_details?.risk_profile || "Aggressive";
                   let ageKey = "20-35";
@@ -1395,14 +1435,27 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
                     {(() => {
                       const totalValuation = (analysis.mf_snapshot || []).reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
                       const actualMap: Record<string, number> = {};
-                      (analysis.mf_snapshot || []).forEach((mf: any) => {
-                        const cat = (mf.fund_category || "").toLowerCase();
-                        let mainCat = "Gold/Silver";
-                        if (cat.includes("equity")) mainCat = "Equity";
-                        else if (cat.includes("debt")) mainCat = "Debt";
-                        else if (cat.includes("hybrid")) mainCat = "Hybrid";
-                        actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
-                      });
+                      const _tableAllocSrc: any[] = analysis.asset_allocation ?? [];
+                      if (_tableAllocSrc.length > 0) {
+                        _tableAllocSrc.forEach((a: any) => {
+                          const cls = (a.asset_class || "").toLowerCase();
+                          const pct = typeof a.percentage === "number" ? a.percentage : 0;
+                          if (cls.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
+                          else if (cls.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
+                          else if (cls.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
+                          else if (cls.includes("gold") || cls.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
+                          else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
+                        });
+                      } else {
+                        (analysis.mf_snapshot || []).forEach((mf: any) => {
+                          const cat = (mf.fund_category || "").toLowerCase();
+                          let mainCat = "Gold/Silver";
+                          if (cat.includes("equity")) mainCat = "Equity";
+                          else if (cat.includes("debt")) mainCat = "Debt";
+                          else if (cat.includes("hybrid")) mainCat = "Hybrid";
+                          actualMap[mainCat] = (actualMap[mainCat] || 0) + (totalValuation > 0 ? (mf.valuation / totalValuation) * 100 : 0);
+                        });
+                      }
                       const age = analysis.client_details?.age || 30;
                       const riskProfile = analysis.client_details?.risk_profile || "Aggressive";
                       let ageKey = "20-35";
