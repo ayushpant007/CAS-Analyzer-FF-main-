@@ -542,11 +542,8 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
 
   const totalInvested = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.invested_amount || 0), 0), [mfSnapshot]);
   const totalValuation = useMemo(() => {
-    const accounts: any[] = (analysis as any).account_summaries || [];
-    const accountsTotal = accounts.reduce((s: number, a: any) => s + (a.value || 0), 0);
-    if (accountsTotal > 0) return accountsTotal;
     return mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0);
-  }, [(analysis as any).account_summaries, mfSnapshot]);
+  }, [mfSnapshot]);
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.unrealised_profit_loss || 0), 0), [mfSnapshot]);
   const mfSnapshotValuation = useMemo(() => mfSnapshot.reduce((acc: number, curr: any) => acc + (curr.valuation || 0), 0), [mfSnapshot]);
 
@@ -980,44 +977,20 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
         <div className="p-5 space-y-5">
           {/* KPI Row */}
           {(() => {
-            const totalSchemes = (analysis.mf_snapshot || []).length;
-            const absoluteReturn = totalValuation - totalInvested;
-            const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
-            const approxCagr = totalInvested > 0 ? ((Math.pow(totalValuation / totalInvested, 1 / 2) - 1) * 100) : 0;
-            const accounts = analysis.account_summaries || [];
             const formatLakh = (v: number) => v >= 100000 ? `₹${(v / 100000).toFixed(2)} L` : `₹${v.toLocaleString()}`;
-
             return (
-              <>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-4 rounded-xl bg-slate-50">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
-                    <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
-                    <p className={`text-xs font-semibold mt-0.5 ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {absoluteReturn >= 0 ? '+' : ''}{absoluteReturnPct.toFixed(1)}% overall return
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Approx. CAGR</p>
-                    <p className="text-xl font-bold text-slate-900">{approxCagr.toFixed(1)}%</p>
-                    <p className="text-xs text-slate-400 mt-0.5">estimated 2-year</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Absolute Gain</p>
-                    <p className={`text-xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                      {absoluteReturn >= 0 ? '+' : ''}{formatLakh(Math.abs(absoluteReturn))}
-                    </p>
-                    <p className={`text-xs font-semibold mt-0.5 ${absoluteReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      on ₹{(totalInvested / 100000).toFixed(2)} L invested
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Schemes</p>
-                    <p className="text-xl font-bold text-slate-900">{totalSchemes}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">across {accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 rounded-xl bg-slate-50">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
+                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">current portfolio value</p>
                 </div>
-              </>
+                <div className="p-4 rounded-xl bg-slate-50">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Market Value</p>
+                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalInvested)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">total invested (cost)</p>
+                </div>
+              </div>
             );
           })()}
         </div>

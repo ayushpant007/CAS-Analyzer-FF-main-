@@ -4,7 +4,6 @@ import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, ArrowLeft, Calendar, TrendingUp, FileSpreadsheet } from "lucide-react";
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip } from "recharts";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { BarChart2 } from "lucide-react";
 
@@ -165,11 +164,8 @@ export default function ConciseReport() {
 
   const totalInvested = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.invested_amount || 0), 0), [mfSnapshot]);
   const totalValuation = useMemo(() => {
-    const accounts: any[] = analysis.account_summaries || [];
-    const accountsTotal = accounts.reduce((s: number, a: any) => s + (a.value || 0), 0);
-    if (accountsTotal > 0) return accountsTotal;
     return mfSnapshot.reduce((a: number, m: any) => a + (m.valuation || 0), 0);
-  }, [analysis.account_summaries, mfSnapshot]);
+  }, [mfSnapshot]);
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.unrealised_profit_loss || 0), 0), [mfSnapshot]);
 
   const sipAmounts = useMemo(() => {
@@ -949,102 +945,19 @@ export default function ConciseReport() {
                 Portfolio Overview&nbsp;&nbsp;·&nbsp;&nbsp;{format(new Date(), "MMM d, yyyy")}
               </p>
             </div>
-            <div className="p-5 space-y-5">
-              {(() => {
-                const absoluteReturn = totalValuation - totalInvested;
-                const absoluteReturnPct = totalInvested > 0 ? (absoluteReturn / totalInvested) * 100 : 0;
-                const approxCagr = totalInvested > 0 ? ((Math.pow(totalValuation / totalInvested, 1 / 2) - 1) * 100) : 0;
-                const accounts = analysis.account_summaries || [];
-                const totalSchemes = mfSnapshot.length;
-                const COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'];
-                const pieData = accounts.map((a: any) => ({ name: a.type, value: a.value || 0 }));
-                const pieTotal = accounts.reduce((s: number, a: any) => s + (a.value || 0), 0);
-                return (
-                  <>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="p-4 rounded-xl bg-slate-50">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
-                        <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
-                        <p className={`text-xs font-semibold mt-0.5 ${absoluteReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {absoluteReturn >= 0 ? '+' : ''}{absoluteReturnPct.toFixed(1)}% overall return
-                        </p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-slate-50">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Approx. CAGR</p>
-                        <p className="text-xl font-bold text-slate-900">{approxCagr.toFixed(1)}%</p>
-                        <p className="text-xs text-slate-400 mt-0.5">estimated 2-year</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-slate-50">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Absolute Gain</p>
-                        <p className={`text-xl font-bold ${absoluteReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {absoluteReturn >= 0 ? '+' : ''}{formatLakh(Math.abs(absoluteReturn))}
-                        </p>
-                        <p className={`text-xs font-semibold mt-0.5 ${absoluteReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                          on ₹{(totalInvested / 100000).toFixed(2)} L invested
-                        </p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-slate-50">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Schemes</p>
-                        <p className="text-xl font-bold text-slate-900">{totalSchemes}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">across {accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Allocation Donut */}
-                      <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">Allocation</p>
-                        {accounts.length > 0 ? (
-                          <div className="flex items-center gap-4">
-                            <PieChart width={130} height={130}>
-                              <Pie data={pieData} cx="50%" cy="50%" innerRadius={38} outerRadius={58} paddingAngle={3} dataKey="value">
-                                {pieData.map((_: any, idx: number) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
-                              </Pie>
-                              <RechartsTooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, '']} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
-                            </PieChart>
-                            <div className="flex flex-col gap-2 flex-1">
-                              {accounts.map((a: any, idx: number) => {
-                                const pct = pieTotal > 0 ? ((a.value / pieTotal) * 100).toFixed(1) : '0.0';
-                                return (
-                                  <div key={idx} className="flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                                    <span className="text-xs text-slate-600 flex-1 leading-tight">{a.type}</span>
-                                    <span className="text-xs font-bold text-slate-700">{pct}%</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ) : <div className="h-36 flex items-center justify-center text-slate-400 text-xs">No allocation data</div>}
-                      </div>
-                      {/* Accounts */}
-                      <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">Accounts</p>
-                        <div className="space-y-2">
-                          {accounts.map((acc: any, idx: number) => {
-                            const initials = (acc.type || '??').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-                            const pct = pieTotal > 0 ? ((acc.value / pieTotal) * 100).toFixed(1) : '0.0';
-                            return (
-                              <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-white border border-slate-100">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }}>
-                                  {initials}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-semibold text-slate-800 leading-tight truncate">{acc.type}</p>
-                                  <p className="text-[10px] text-slate-400 leading-tight truncate">{acc.count} scheme{acc.count !== 1 ? 's' : ''}{acc.details ? ` · ${acc.details}` : ''}</p>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className="text-xs font-bold text-slate-800">{formatLakh(acc.value || 0)}</p>
-                                  <p className="text-[10px] text-slate-400">{pct}%</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
+            <div className="p-5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 rounded-xl bg-slate-50">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
+                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">current portfolio value</p>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-50">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Market Value</p>
+                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalInvested)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">total invested (cost)</p>
+                </div>
+              </div>
             </div>
           </div>
 
