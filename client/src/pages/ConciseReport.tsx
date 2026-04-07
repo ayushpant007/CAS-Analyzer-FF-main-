@@ -949,13 +949,13 @@ export default function ConciseReport() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-4 rounded-xl bg-slate-50">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
-                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">current portfolio value</p>
+                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalInvested)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">total invested (cost)</p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Market Value</p>
-                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalInvested)}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">total invested (cost)</p>
+                  <p className="text-xl font-bold text-slate-900">{formatLakh(totalValuation)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">current portfolio value</p>
                 </div>
               </div>
             </div>
