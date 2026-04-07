@@ -813,21 +813,8 @@ export default function ConciseReport() {
   const typeMap: Record<string, Record<string, number>> = {};
   const totalVal = mfSnapshot.reduce((a: number, m: any) => a + (m.valuation || 0), 0);
 
-  // Use asset_allocation from AI (primary source — computed accurately by AI from mf_snapshot)
-  const _assetAllocSrc: any[] = analysis.asset_allocation ?? [];
-  if (_assetAllocSrc.length > 0) {
-    _assetAllocSrc.forEach((a: any) => {
-      const cls = (a.asset_class || "").toLowerCase();
-      const pct = typeof a.percentage === "number" ? a.percentage : 0;
-      if (cls.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
-      else if (cls.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
-      else if (cls.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
-      else if (cls.includes("gold") || cls.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
-      else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
-    });
-  }
-
-  // Always build typeMap from mf_snapshot; also build actualMap fallback if asset_allocation missing
+  // Build both actualMap and typeMap from mf_snapshot for consistency
+  // (sub-category breakdown must match category totals — both from the same source)
   mfSnapshot.forEach((mf: any) => {
     const cat = (mf.fund_category || "").toLowerCase();
     const type = mf.fund_type || "Other";
@@ -837,7 +824,7 @@ export default function ConciseReport() {
     else if (cat.includes("debt")) mainCat = "Debt";
     else if (cat.includes("hybrid")) mainCat = "Hybrid";
     else if (cat.includes("gold") || cat.includes("silver")) mainCat = "Gold/Silver";
-    if (_assetAllocSrc.length === 0) actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
+    actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
     if (!typeMap[mainCat]) typeMap[mainCat] = {};
     typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + pct;
   });

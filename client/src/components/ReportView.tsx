@@ -1186,21 +1186,8 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
           const actualMap: Record<string, number> = {};
           const typeMap: Record<string, Record<string, number>> = {};
 
-          // Build actualMap from asset_allocation (primary) or mf_snapshot (fallback)
-          const assetAllocData2: any[] = analysis.asset_allocation ?? [];
-          if (assetAllocData2.length > 0) {
-            assetAllocData2.forEach((a: any) => {
-              const cls = (a.asset_class || "").toLowerCase();
-              const pct = typeof a.percentage === "number" ? a.percentage : 0;
-              if (cls.includes("equity")) actualMap["Equity"] = (actualMap["Equity"] || 0) + pct;
-              else if (cls.includes("debt")) actualMap["Debt"] = (actualMap["Debt"] || 0) + pct;
-              else if (cls.includes("hybrid")) actualMap["Hybrid"] = (actualMap["Hybrid"] || 0) + pct;
-              else if (cls.includes("gold") || cls.includes("silver")) actualMap["Gold/Silver"] = (actualMap["Gold/Silver"] || 0) + pct;
-              else actualMap["Others"] = (actualMap["Others"] || 0) + pct;
-            });
-          }
-
-          // Always build typeMap from mf_snapshot (needed for sub-category breakdown)
+          // Build both actualMap and typeMap from mf_snapshot for consistency
+          // (sub-category breakdown must match category totals — both from the same source)
           (analysis.mf_snapshot || []).forEach((mf: any) => {
             const cat = (mf.fund_category || "").toLowerCase();
             const type = mf.fund_type || "Other";
@@ -1211,7 +1198,7 @@ export function ReportView({ report, autoAnalyze = false }: ReportViewProps) {
             else if (cat.includes("debt")) mainCat = "Debt";
             else if (cat.includes("hybrid")) mainCat = "Hybrid";
             else if (cat.includes("gold") || cat.includes("silver")) mainCat = "Gold/Silver";
-            if (assetAllocData2.length === 0) actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
+            actualMap[mainCat] = (actualMap[mainCat] || 0) + pct;
             if (!typeMap[mainCat]) typeMap[mainCat] = {};
             typeMap[mainCat][type] = (typeMap[mainCat][type] || 0) + pct;
           });
