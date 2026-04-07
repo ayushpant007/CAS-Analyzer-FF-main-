@@ -961,26 +961,131 @@ ${text}`;
       let csvContent = "";
       try { csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8"); } catch {}
 
-      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text.
+      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text EXACTLY as-is. Do NOT invent, hallucinate, or guess any numbers. Only extract what is explicitly present in the text.
 Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
 Reference Ratios CSV:\n${csvContent}
 
-Extract:
+Extract the following fields:
+
 0. Investor name from the CAS header. Return as "investor_name": string.
-1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
+
+1. Portfolio summary (from totals section):
+   {"net_asset_value": <total current portfolio value as number>, "total_cost": <total amount invested/cost basis as number>}
+
 2. Account-wise summary: [{"type": string, "details": string, "count": number, "value": number}]
-3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
-4. Asset Class Allocation: [{"asset_class": string, "value": number, "percentage": number}]
-5. Mutual Fund Snapshot: [{"scheme_name": string, "folio_no": string, "units": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
-6. Comparison Tables and Transactions: [{"date": string, "scheme_name": string, "type": string, "amount": number}]
 
-Return ONLY valid JSON: {"investor_name": string, "summary": {...}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...], "category_comparison": [...], "type_comparison": [...], "transactions": [...]}
+3. Historical Portfolio Valuation (monthly trend if present): [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
 
-Text:\n${text}`;
+4. Mutual Fund Snapshot — MOST CRITICAL SECTION. For EVERY fund/scheme listed, extract:
+   {
+     "scheme_name": <exact scheme name as in CAS>,
+     "folio_no": <folio number>,
+     "isin": <ISIN code e.g. INF123A01234>,
+     "units": <closing balance/units as number>,
+     "nav": <NAV per unit as number>,
+     "invested_amount": <cost/invested amount as number — NEVER 0 if cost data is present>,
+     "valuation": <current market value as number — if not explicit, compute as units × nav>,
+     "unrealised_profit_loss": <valuation - invested_amount>,
+     "fund_category": <MUST be exactly one of: "Equity", "Debt", "Hybrid", "Gold/Silver", "Others"
+       Rules:
+       - "Equity": for Equity funds, ELSS, Index Funds, ETFs (non-gold), Large Cap, Mid Cap, Small Cap, Multi Cap, Flexi Cap, Focused, Sectoral, Thematic, Value, Contra, Dividend Yield
+       - "Debt": for Debt funds, Liquid, Overnight, Money Market, Ultra Short, Low Duration, Short Duration, Medium Duration, Long Duration, Corporate Bond, Banking & PSU, Credit Risk, Gilt, Dynamic Bond, FMP, Floater
+       - "Hybrid": for Balanced Advantage, Aggressive Hybrid, Conservative Hybrid, Multi Asset Allocation, Equity Savings, Arbitrage, Dynamic Asset Allocation
+       - "Gold/Silver": for Gold ETF, Silver ETF, Gold Fund of Funds, Gold Savings Fund
+       - "Others": only if none of the above apply>,
+     "fund_type": <specific sub-type e.g. "Large Cap Fund", "Liquid Fund", "ELSS", etc.>
+   }
+
+5. Asset Class Allocation — derive from the mf_snapshot above by grouping fund_category:
+   For each unique fund_category (Equity/Debt/Hybrid/Gold/Silver/Others), sum all valuations:
+   [{"asset_class": <category>, "value": <sum of valuations in that category>, "percentage": <value / total_portfolio_value * 100>}]
+   RULE: Only include categories with value > 0. Percentage must add up to 100%. Never return 0% for a category that has holdings.
+
+6. Transactions (SIP/STP/SWP/Purchase/Redemption): [{"date": string, "scheme_name": string, "folio_no": string, "type": string, "amount": number, "nav": number, "units": number, "stamp_duty": number}]
+
+Return ONLY valid JSON (no markdown, no code blocks):
+{"investor_name": string, "summary": {...}, "account_summaries": [...], "historical_valuations": [...], "asset_allocation": [...], "mf_snapshot": [...], "category_comparison": [...], "type_comparison": [...], "transactions": [...]}
+
+CAS TEXT:\n${text}`;
 
       const raw = await generateWithFallback(prompt, { responseMimeType: "application/json" });
       const analysis = JSON.parse(typeof raw === "string" ? raw : "{}");
       analysis.cas_source = detectCasSource(text);
+
+      // ── Post-process: ensure asset_allocation percentages are correct ──────────
+      // If AI returned 0% or missing percentages, recompute from mf_snapshot values
+      if (analysis.mf_snapshot && Array.isArray(analysis.mf_snapshot) && analysis.mf_snapshot.length > 0) {
+        const catValMap: Record<string, number> = {};
+        let grandTotal = 0;
+
+        for (const mf of analysis.mf_snapshot) {
+          // Ensure valuation is computed from units × nav if missing or zero
+          let val = mf.valuation || 0;
+          if ((!val || val === 0) && mf.units > 0 && mf.nav > 0) {
+            val = mf.units * mf.nav;
+            mf.valuation = val;
+          }
+          if (!val || val <= 0) continue;
+
+          // Normalize fund_category to one of the 5 main categories
+          const rawCat = (mf.fund_category || "Others").toLowerCase();
+          let mainCat = "Others";
+          if (rawCat === "equity" || rawCat.includes("equity") || rawCat === "elss" || rawCat.includes("elss") || rawCat.includes("index") || rawCat.includes("large cap") || rawCat.includes("mid cap") || rawCat.includes("small cap") || rawCat.includes("multi cap") || rawCat.includes("flexi cap") || rawCat.includes("thematic") || rawCat.includes("sectoral") || rawCat.includes("focused") || rawCat.includes("value fund") || rawCat.includes("contra")) {
+            mainCat = "Equity";
+          } else if (rawCat === "debt" || rawCat.includes("debt") || rawCat.includes("liquid") || rawCat.includes("overnight") || rawCat.includes("money market") || rawCat.includes("duration") || rawCat.includes("corporate bond") || rawCat.includes("credit risk") || rawCat.includes("gilt") || rawCat.includes("banking") || rawCat.includes("floater") || rawCat.includes("fmp")) {
+            mainCat = "Debt";
+          } else if (rawCat === "hybrid" || rawCat.includes("hybrid") || rawCat.includes("balanced") || rawCat.includes("arbitrage") || rawCat.includes("equity savings") || rawCat.includes("multi asset") || rawCat.includes("dynamic asset")) {
+            mainCat = "Hybrid";
+          } else if (rawCat.includes("gold") || rawCat.includes("silver")) {
+            mainCat = "Gold/Silver";
+          }
+
+          // Normalize the stored fund_category to match one of the 5 canonical values
+          mf.fund_category = mainCat;
+          catValMap[mainCat] = (catValMap[mainCat] || 0) + val;
+          grandTotal += val;
+        }
+
+        // Rebuild asset_allocation from mf_snapshot if percentages are all 0 or missing
+        const existingAlloc = analysis.asset_allocation || [];
+        const allPercsZero = existingAlloc.length === 0 || existingAlloc.every((a: any) => !a.percentage || a.percentage === 0);
+        if (allPercsZero && grandTotal > 0) {
+          analysis.asset_allocation = Object.entries(catValMap)
+            .filter(([, val]) => val > 0)
+            .map(([asset_class, value]) => ({
+              asset_class,
+              value: Math.round(value * 100) / 100,
+              percentage: Math.round((value / grandTotal) * 10000) / 100,
+            }));
+        } else if (grandTotal > 0) {
+          // Recompute percentages even if they exist, to ensure accuracy
+          analysis.asset_allocation = (analysis.asset_allocation || []).map((a: any) => ({
+            ...a,
+            percentage: catValMap[a.asset_class]
+              ? Math.round((catValMap[a.asset_class] / grandTotal) * 10000) / 100
+              : a.percentage,
+            value: catValMap[a.asset_class] || a.value,
+          }));
+          // Add any categories from mf_snapshot not in the existing allocation
+          for (const [asset_class, value] of Object.entries(catValMap)) {
+            if (!analysis.asset_allocation.find((a: any) => a.asset_class === asset_class)) {
+              analysis.asset_allocation.push({
+                asset_class,
+                value: Math.round(value * 100) / 100,
+                percentage: Math.round((value / grandTotal) * 10000) / 100,
+              });
+            }
+          }
+        }
+
+        // Recompute summary totals from mf_snapshot if missing
+        if (!analysis.summary || !analysis.summary.net_asset_value) {
+          const totalInvested = analysis.mf_snapshot.reduce((s: number, m: any) => s + (m.invested_amount || 0), 0);
+          analysis.summary = analysis.summary || {};
+          if (!analysis.summary.net_asset_value) analysis.summary.net_asset_value = grandTotal;
+          if (!analysis.summary.total_cost) analysis.summary.total_cost = totalInvested;
+        }
+      }
 
       const investorName = analysis.investor_name || "";
       const savedReport = await storage.upsertReportByInvestorName({
@@ -1019,6 +1124,41 @@ Text:\n${text}`;
       pageToken = res.data.nextPageToken ?? undefined;
     } while (pageToken && results.length < maxTotal);
     return results;
+  }
+
+  // Shared Gmail helpers (used by pollGmailAccount AND scan-range endpoint)
+  type MsgPart = { mimeType?: string | null; filename?: string | null; body?: { attachmentId?: string | null; data?: string | null } | null; parts?: MsgPart[] | null };
+
+  function looksLikeCasPdf(filename: string): boolean {
+    const f = filename.toLowerCase();
+    if (/[a-z]{5}[0-9]{4}[a-z]/.test(f)) return true;
+    const CAS_FILENAME_KW = ["cas", "consolidated", "mfcentral", "cams", "kfintech", "nsdl", "cdsl", "account_statement", "account-statement"];
+    return CAS_FILENAME_KW.some(kw => f.includes(kw));
+  }
+
+  function collectPdfParts(parts: MsgPart[]): MsgPart[] {
+    const result: MsgPart[] = [];
+    for (const part of parts) {
+      const isPdf = part.mimeType === "application/pdf" ||
+        part.mimeType === "application/octet-stream" ||
+        (part.filename && part.filename.toLowerCase().endsWith(".pdf"));
+      if (isPdf && part.body?.attachmentId) result.push(part);
+      if (part.parts && part.parts.length > 0) result.push(...collectPdfParts(part.parts));
+    }
+    return result;
+  }
+
+  async function getGmailClient(conn: { accessToken: string; refreshToken: string; expiresAt: Date; userEmail: string }): Promise<ReturnType<typeof google.gmail>> {
+    const oauth2 = makeOAuth2Client();
+    oauth2.setCredentials({ access_token: conn.accessToken, refresh_token: conn.refreshToken });
+    if (conn.expiresAt && new Date(conn.expiresAt).getTime() - Date.now() < 5 * 60 * 1000) {
+      const { credentials } = await oauth2.refreshAccessToken();
+      if (credentials.access_token && credentials.expiry_date) {
+        await storage.updateGmailTokens(conn.userEmail, credentials.access_token, new Date(credentials.expiry_date));
+        oauth2.setCredentials(credentials);
+      }
+    }
+    return google.gmail({ version: "v1", auth: oauth2 });
   }
 
   // Poll one Gmail account for new CAS emails
@@ -1153,35 +1293,6 @@ Text:\n${text}`;
 
       console.log(`[Gmail] Checking ${conn.userEmail} — found ${messages.length} potential emails to inspect`);
 
-      // Pre-filter: check if PDF filename looks like a CAS statement before downloading
-      // Avoids wasting time downloading resumes, bills, etc.
-      function looksLikeCasPdf(filename: string): boolean {
-        const f = filename.toLowerCase();
-        // PAN pattern in filename (AAAAA0000A) — CAMS/KFintech always include PAN in filename
-        if (/[a-z]{5}[0-9]{4}[a-z]/.test(f)) return true;
-        // CAS-related keywords in the filename itself
-        const CAS_FILENAME_KW = ["cas", "consolidated", "mfcentral", "cams", "kfintech", "nsdl", "cdsl", "account_statement", "account-statement"];
-        return CAS_FILENAME_KW.some(kw => f.includes(kw));
-      }
-
-      // Recursively collect all PDF parts from nested multipart structures
-      type MsgPart = { mimeType?: string | null; filename?: string | null; body?: { attachmentId?: string | null; data?: string | null } | null; parts?: MsgPart[] | null };
-      function collectPdfParts(parts: MsgPart[]): MsgPart[] {
-        const result: MsgPart[] = [];
-        for (const part of parts) {
-          const isPdf = part.mimeType === "application/pdf" ||
-            part.mimeType === "application/octet-stream" ||
-            (part.filename && part.filename.toLowerCase().endsWith(".pdf"));
-          if (isPdf && part.body?.attachmentId) {
-            result.push(part);
-          }
-          if (part.parts && part.parts.length > 0) {
-            result.push(...collectPdfParts(part.parts));
-          }
-        }
-        return result;
-      }
-
       // For latestOnly (Check Now), fetch internalDate for all candidates and pick the absolute newest
       if (latestOnly && messages.length > 0) {
         if (messages.length === 1) {
@@ -1239,13 +1350,18 @@ Text:\n${text}`;
 
             const filename = part.filename || `cas-${Date.now()}.pdf`;
 
-            // Skip if this PDF was already imported — avoids redundant AI re-analysis
-            const existingReport = await storage.getReportByFilename(filename);
-            if (existingReport) {
-              console.log(`[Gmail] ⏭️  Already imported: "${filename}" (reportId=${existingReport.id}) — skipping re-analysis`);
-              reportIds.push(existingReport.id);
-              pdfCount++;
-              continue;
+            // Skip if already imported — BUT always re-analyze when latestOnly=true (Check Now)
+            // so the user always gets fresh, correctly-parsed data on Check Now
+            if (!latestOnly) {
+              const existingReport = await storage.getReportByFilename(filename);
+              if (existingReport) {
+                console.log(`[Gmail] ⏭️  Already imported: "${filename}" (reportId=${existingReport.id}) — skipping re-analysis`);
+                reportIds.push(existingReport.id);
+                pdfCount++;
+                continue;
+              }
+            } else {
+              console.log(`[Gmail] latestOnly=true — re-analyzing "${filename}" even if previously imported`);
             }
 
             const att = await gmail.users.messages.attachments.get({
@@ -1422,6 +1538,144 @@ Text:\n${text}`;
     if (!conn) return res.status(404).json({ error: "Gmail not connected" });
     const result = await pollGmailAccount(conn as any, fullScan, latestOnly);
     res.json({ ok: true, pdfCount: result.pdfCount, fullScan, reportIds: result.reportIds });
+  });
+
+  // ── Scan Gmail inbox for a date range (returns PDF metadata — no import) ─────
+  app.post("/api/gmail/scan-range", async (req, res) => {
+    const { email, fromDate, toDate } = req.body as { email: string; fromDate: string; toDate: string };
+    if (!email || !fromDate || !toDate) return res.status(400).json({ error: "Missing email, fromDate, or toDate" });
+
+    const conn = await storage.getGmailConnection(email);
+    if (!conn) return res.status(404).json({ error: "Gmail not connected" });
+
+    try {
+      const gmail = await getGmailClient(conn as any);
+
+      const fromUnix = Math.floor(new Date(fromDate).getTime() / 1000);
+      // toDate: end of that day
+      const toUnix = Math.floor(new Date(toDate).getTime() / 1000) + 86400;
+      const dateFilter = `after:${fromUnix} before:${toUnix}`;
+
+      const senderQuery = CAS_SENDERS.map(s => `from:${s}`).join(" OR ");
+      const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateFilter}`;
+      const subjectQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateFilter} -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
+      const filenameQ = `has:attachment ${dateFilter} -from:noreply@accounts.google.com (filename:CAS OR filename:consolidated OR filename:statement OR filename:portfolio OR filename:CAMS OR filename:kfintech OR filename:nsdl OR filename:cdsl)`;
+
+      console.log(`[Gmail] scan-range: from=${fromDate} to=${toDate} for ${email}`);
+
+      const [officialMsgs, subjectMsgs, filenameMsgs] = await Promise.all([
+        fetchAllMessageIds(gmail, officialQ, 200),
+        fetchAllMessageIds(gmail, subjectQ, 200),
+        fetchAllMessageIds(gmail, filenameQ, 200),
+      ]);
+
+      const seen = new Set<string>();
+      const allMsgs: { id?: string | null }[] = [];
+      for (const msg of [...officialMsgs, ...subjectMsgs, ...filenameMsgs]) {
+        if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); allMsgs.push(msg); }
+      }
+
+      console.log(`[Gmail] scan-range: found ${allMsgs.length} candidate messages`);
+
+      // For each message, get metadata + PDF parts (no body download)
+      const pdfs: { messageId: string; attachmentId: string; filename: string; emailDate: string; from: string; subject: string }[] = [];
+      const pdfSeen = new Set<string>();
+
+      await Promise.all(allMsgs.map(async (msg) => {
+        try {
+          const fullMsg = await gmail.users.messages.get({ userId: "me", id: msg.id!, format: "full" });
+          const payload = fullMsg.data.payload;
+          if (!payload) return;
+
+          // Extract headers
+          const headers = payload.headers || [];
+          const getHeader = (name: string) => headers.find((h: any) => h.name?.toLowerCase() === name.toLowerCase())?.value || "";
+          const from = getHeader("From");
+          const subject = getHeader("Subject");
+          const internalDate = parseInt(fullMsg.data.internalDate || "0", 10);
+          const emailDate = internalDate ? new Date(internalDate).toISOString() : "";
+
+          const allParts: MsgPart[] = [];
+          if (payload.parts) allParts.push(...(payload.parts as MsgPart[]));
+          if (payload.mimeType === "application/pdf" && (payload as any).body?.attachmentId) allParts.push(payload as MsgPart);
+
+          const pdfParts = collectPdfParts(allParts);
+          for (const part of pdfParts) {
+            if (!part.body?.attachmentId) continue;
+            const filename = (part.filename || `cas-${msg.id}.pdf`).trim();
+            const key = `${msg.id!}::${part.body.attachmentId}`;
+            if (pdfSeen.has(key)) continue;
+            pdfSeen.add(key);
+            pdfs.push({ messageId: msg.id!, attachmentId: part.body.attachmentId, filename, emailDate, from, subject });
+          }
+        } catch (e: any) {
+          console.error(`[Gmail] scan-range error on message ${msg.id}:`, e.message);
+        }
+      }));
+
+      // Sort by emailDate descending (newest first)
+      pdfs.sort((a, b) => new Date(b.emailDate).getTime() - new Date(a.emailDate).getTime());
+
+      console.log(`[Gmail] scan-range: found ${pdfs.length} PDFs in date range`);
+      res.json({ ok: true, pdfs, fromDate, toDate });
+    } catch (e: any) {
+      console.error(`[Gmail] scan-range error:`, e.message);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // ── Import a specific Gmail attachment by messageId + attachmentId ─────────
+  app.post("/api/gmail/import-attachment", async (req, res) => {
+    const { email, messageId, attachmentId, filename } = req.body as { email: string; messageId: string; attachmentId: string; filename: string };
+    if (!email || !messageId || !attachmentId) return res.status(400).json({ error: "Missing required fields" });
+
+    const conn = await storage.getGmailConnection(email);
+    if (!conn) return res.status(404).json({ error: "Gmail not connected" });
+
+    try {
+      const gmail = await getGmailClient(conn as any);
+
+      const att = await gmail.users.messages.attachments.get({ userId: "me", messageId, id: attachmentId });
+      const data = att.data.data;
+      if (!data) return res.status(400).json({ error: "Could not download attachment" });
+
+      const pdfBuffer = Buffer.from(data, "base64url");
+      const safeFilename = (filename || `cas-import-${Date.now()}.pdf`).trim();
+
+      // Build password list
+      const passwords: string[] = [];
+      if (conn.casPassword) passwords.push(conn.casPassword);
+      const panMatches = safeFilename.match(/\(([A-Z]{5}[0-9]{4}[A-Z])\)/g) || safeFilename.match(/([A-Z]{5}[0-9]{4}[A-Z])/g);
+      if (panMatches) {
+        for (const m of panMatches) {
+          const pan = m.replace(/[()]/g, "");
+          if (!passwords.includes(pan)) passwords.push(pan);
+        }
+      }
+      if (!passwords.includes("")) passwords.push("");
+
+      let reportId: number | null = null;
+      let lastError = "";
+      for (const pwd of passwords) {
+        try {
+          reportId = await analyzeCasPdfBuffer(pdfBuffer, safeFilename, pwd, email);
+          console.log(`[Gmail] import-attachment ✅ imported ${safeFilename} (reportId=${reportId})`);
+          break;
+        } catch (e: any) {
+          lastError = e.message;
+          if (e.message === "NOT_CAS_PDF" || e.message === "DAILY_LIMIT_REACHED") break;
+        }
+      }
+
+      if (reportId === null) {
+        return res.status(422).json({ error: lastError || "Could not analyze PDF" });
+      }
+
+      res.json({ ok: true, reportId });
+    } catch (e: any) {
+      console.error(`[Gmail] import-attachment error:`, e.message);
+      res.status(500).json({ error: e.message });
+    }
   });
 
   // ────────────────────────────────────────────────────────────────────────────

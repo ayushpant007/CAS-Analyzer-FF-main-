@@ -3,9 +3,11 @@ import { useReport } from "@/hooks/use-reports";
 import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ArrowLeft, Calendar, TrendingUp, FileSpreadsheet } from "lucide-react";
+import { Download, Loader2, ArrowLeft, Calendar, TrendingUp, FileSpreadsheet, ChevronRight, FileText } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { BarChart2 } from "lucide-react";
+
+const PENDING_SCAN_KEY = "gmail_pending_scan_pdfs";
 
 const IDEAL_ALLOCATIONS: Record<string, Record<string, Record<string, string>>> = {
   "20-35": {
@@ -69,6 +71,8 @@ export default function ConciseReport() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [pendingPdfs, setPendingPdfs] = useState<{ messageId: string; attachmentId: string; filename: string; emailDate: string; from: string; subject: string }[]>([]);
+  const [showNextPdfPrompt, setShowNextPdfPrompt] = useState(false);
   const [actionSelections, setActionSelections] = useState<Record<string, string>>(() => {
     if (!reportId) return {};
     try { return JSON.parse(localStorage.getItem(`fin_actions_${reportId}`) || "{}"); } catch { return {}; }
@@ -111,6 +115,13 @@ export default function ConciseReport() {
   const [fundSchemes, setFundSchemes] = useState<string[]>([]);
   const [fundSearchQuery, setFundSearchQuery] = useState<Record<string, string>>({});
   const [openFundDropdown, setOpenFundDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const pending = JSON.parse(sessionStorage.getItem(PENDING_SCAN_KEY) || "[]");
+      if (Array.isArray(pending) && pending.length > 0) setPendingPdfs(pending);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     fetch("/fund-schemes.csv")
@@ -256,6 +267,7 @@ export default function ConciseReport() {
       const name = (investorName || "Portfolio").replace(/\s+/g, "_");
       const dateStr = format(new Date(), "dd-MMM-yyyy");
       pdf.save(`ConciseReport_${name}_${dateStr}.pdf`);
+      if (pendingPdfs.length > 0) setShowNextPdfPrompt(true);
     } catch (err) {
       console.error("PDF generation failed", err);
     } finally {
@@ -764,6 +776,7 @@ export default function ConciseReport() {
       XLSX.utils.book_append_sheet(wb, ws5, "Monthly Trend");
 
       XLSX.writeFile(wb, `ConciseReport_${name}_${dateStr}.xlsx`);
+      if (pendingPdfs.length > 0) setShowNextPdfPrompt(true);
     } catch (err) {
       console.error("Excel export failed", err);
     } finally {
@@ -925,6 +938,60 @@ export default function ConciseReport() {
             </Button>
           </div>
         </div>
+
+        {/* Next PDF prompt (shown after download when inbox scan has pending PDFs) */}
+        {showNextPdfPrompt && pendingPdfs.length > 0 && (
+          <div
+            className="rounded-2xl p-5 flex items-start gap-4"
+            style={{ background: "rgba(147,51,234,0.12)", border: "1px solid rgba(167,139,250,0.35)" }}
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(147,51,234,0.18)" }}>
+              <FileText size={16} className="text-purple-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white mb-0.5">
+                {pendingPdfs.length} more PDF{pendingPdfs.length === 1 ? "" : "s"} found in your inbox scan
+              </p>
+              <p className="text-xs text-white/50 mb-3">
+                You have {pendingPdfs.length} more CAS statement{pendingPdfs.length === 1 ? "" : "s"} waiting. Which one would you like to import next?
+              </p>
+              <div className="space-y-2">
+                {pendingPdfs.slice(0, 3).map((pdf, idx) => (
+                  <button
+                    key={`${pdf.messageId}-${pdf.attachmentId}`}
+                    onClick={() => navigate(`/home?gmail=resume-scan`)}
+                    data-testid={`button-next-pdf-${idx}`}
+                    className="w-full text-left flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition-all"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(167,139,250,0.2)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(167,139,250,0.45)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(167,139,250,0.2)"; }}
+                  >
+                    <FileText size={13} className="text-purple-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-white truncate">{pdf.filename || "CAS Statement"}</p>
+                      <p className="text-[10px] text-white/35 mt-0.5">
+                        {pdf.emailDate ? format(new Date(pdf.emailDate), "dd MMM yyyy") : ""}
+                        {pdf.from ? ` · ${pdf.from.replace(/<.*>/, "").trim()}` : ""}
+                      </p>
+                    </div>
+                    <ChevronRight size={13} className="text-purple-400 shrink-0" />
+                  </button>
+                ))}
+                {pendingPdfs.length > 3 && (
+                  <button
+                    onClick={() => navigate(`/home?gmail=resume-scan`)}
+                    className="w-full text-center text-xs text-purple-400 py-1.5 rounded-lg transition-colors"
+                    style={{ background: "rgba(147,51,234,0.08)" }}
+                  >+{pendingPdfs.length - 3} more → View all in inbox scan</button>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => { setShowNextPdfPrompt(false); sessionStorage.removeItem(PENDING_SCAN_KEY); }}
+              className="text-white/25 hover:text-white/50 transition-colors shrink-0"
+            ><ArrowLeft size={14} className="rotate-180" /></button>
+          </div>
+        )}
 
         {/* Report content */}
         <div ref={reportRef} className="space-y-6">
