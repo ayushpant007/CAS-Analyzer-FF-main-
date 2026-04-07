@@ -441,28 +441,15 @@ export default function ConciseReport() {
       const parseIdealPct = (v: string) => parseFloat(v?.replace("%", "") || "0");
       const idealMap2 = IDEAL_ALLOCATIONS[report.ageGroup || ""]?.[report.investorType || ""] || {};
       const actMap2: Record<string, number> = {};
-      const _allocSrc2: any[] = analysis.asset_allocation ?? [];
-      if (_allocSrc2.length > 0) {
-        _allocSrc2.forEach((a: any) => {
-          const cls = (a.asset_class || "").toLowerCase();
-          const pct = typeof a.percentage === "number" ? a.percentage : 0;
-          if (cls.includes("equity")) actMap2["Equity"] = (actMap2["Equity"] || 0) + pct;
-          else if (cls.includes("debt")) actMap2["Debt"] = (actMap2["Debt"] || 0) + pct;
-          else if (cls.includes("hybrid")) actMap2["Hybrid"] = (actMap2["Hybrid"] || 0) + pct;
-          else if (cls.includes("gold") || cls.includes("silver")) actMap2["Gold/Silver"] = (actMap2["Gold/Silver"] || 0) + pct;
-          else actMap2["Others"] = (actMap2["Others"] || 0) + pct;
-        });
-      } else {
-        snap.forEach((mf: any) => {
-          const cat = (mf.fund_category || "").toLowerCase();
-          const pct = totalVal > 0 ? (mf.valuation / totalVal) * 100 : 0;
-          if (cat.includes("equity")) actMap2["Equity"] = (actMap2["Equity"] || 0) + pct;
-          else if (cat.includes("debt")) actMap2["Debt"] = (actMap2["Debt"] || 0) + pct;
-          else if (cat.includes("hybrid")) actMap2["Hybrid"] = (actMap2["Hybrid"] || 0) + pct;
-          else if (cat.includes("gold") || cat.includes("silver")) actMap2["Gold/Silver"] = (actMap2["Gold/Silver"] || 0) + pct;
-          else actMap2["Others"] = (actMap2["Others"] || 0) + pct;
-        });
-      }
+      snap.forEach((mf: any) => {
+        const cat = (mf.fund_category || "").toLowerCase();
+        const pct = totalVal > 0 ? (mf.valuation / totalVal) * 100 : 0;
+        if (cat.includes("equity")) actMap2["Equity"] = (actMap2["Equity"] || 0) + pct;
+        else if (cat.includes("debt")) actMap2["Debt"] = (actMap2["Debt"] || 0) + pct;
+        else if (cat.includes("hybrid")) actMap2["Hybrid"] = (actMap2["Hybrid"] || 0) + pct;
+        else if (cat.includes("gold") || cat.includes("silver")) actMap2["Gold/Silver"] = (actMap2["Gold/Silver"] || 0) + pct;
+        else actMap2["Others"] = (actMap2["Others"] || 0) + pct;
+      });
       let healthScore2 = 100;
       allCats.forEach((c: string) => { healthScore2 -= Math.abs((actMap2[c] || 0) - (parseIdealPct(idealMap2[c] || "0"))) * 0.8; });
       healthScore2 = Math.max(0, Math.min(100, Math.round(healthScore2)));
@@ -1066,29 +1053,8 @@ export default function ConciseReport() {
             {(() => {
               const idealMap: Record<string, number> = {};
               allCategories.forEach(c => { idealMap[c] = parseIdeal(idealRaw[c]); });
-              const actMap: Record<string, number> = {};
-              const assetAllocArr: any[] = analysis.asset_allocation ?? [];
-              if (assetAllocArr.length > 0) {
-                assetAllocArr.forEach((a: any) => {
-                  const cls = (a.asset_class || "").toLowerCase();
-                  const pct = typeof a.percentage === "number" ? a.percentage : 0;
-                  if (cls.includes("equity")) actMap["Equity"] = (actMap["Equity"] || 0) + pct;
-                  else if (cls.includes("debt")) actMap["Debt"] = (actMap["Debt"] || 0) + pct;
-                  else if (cls.includes("hybrid")) actMap["Hybrid"] = (actMap["Hybrid"] || 0) + pct;
-                  else if (cls.includes("gold") || cls.includes("silver")) actMap["Gold/Silver"] = (actMap["Gold/Silver"] || 0) + pct;
-                  else actMap["Others"] = (actMap["Others"] || 0) + pct;
-                });
-              } else {
-                mfSnapshot.forEach((mf: any) => {
-                  const cat = (mf.fund_category || "").toLowerCase();
-                  const pct = totalVal > 0 ? (mf.valuation / totalVal) * 100 : 0;
-                  if (cat.includes("equity")) actMap["Equity"] = (actMap["Equity"] || 0) + pct;
-                  else if (cat.includes("debt")) actMap["Debt"] = (actMap["Debt"] || 0) + pct;
-                  else if (cat.includes("hybrid")) actMap["Hybrid"] = (actMap["Hybrid"] || 0) + pct;
-                  else if (cat.includes("gold") || cat.includes("silver")) actMap["Gold/Silver"] = (actMap["Gold/Silver"] || 0) + pct;
-                  else actMap["Others"] = (actMap["Others"] || 0) + pct;
-                });
-              }
+              // Use the same outer-scope actualMap (mf_snapshot-based) for consistency with Category Wise Distribution
+              const actMap = actualMap;
               let healthScore = 100;
               allCategories.forEach(c => { healthScore -= Math.abs((actMap[c] || 0) - (idealMap[c] || 0)) * 0.8; });
               healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
