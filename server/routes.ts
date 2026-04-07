@@ -138,6 +138,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     res.sendFile("privacy.html", { root: "./client/public" });
   });
 
+  app.get("/google397a04de8718b47e.html", (_req, res) => {
+    res.type("text/html").send("google-site-verification: google397a04de8718b47e.html");
+  });
+
   app.get("/api/config/public", (_req, res) => {
     res.json({
       googleClientId: process.env.GOOGLE_CLIENT_ID || "",
