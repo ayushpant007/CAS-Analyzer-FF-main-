@@ -865,21 +865,29 @@ ${text}`;
 
   // ── Google Login tracking ─────────────────────────────────────────────────────
   app.post("/api/auth/google-login", async (req, res) => {
-    const { name, email } = req.body as { name: string; email: string };
+    const { name, email, mode } = req.body as { name: string; email: string; mode?: string };
     if (!email) return res.status(400).json({ error: "Email is required." });
 
     const existingUser = await storage.getUserByEmail(email.toLowerCase());
-    if (!existingUser) {
+
+    // Sign-up mode: reject if account already exists
+    if (mode === "signup" && existingUser) {
+      return res.status(409).json({ error: "An account with this email already exists. Please log in instead.", alreadyExists: true });
+    }
+
+    // Login mode: reject if account doesn't exist
+    if (mode !== "signup" && !existingUser) {
       return res.status(404).json({ error: "No account found for this email. Please sign up first.", notFound: true });
     }
 
-    const dbName = existingUser.name || name;
+    const dbName = existingUser ? (existingUser.name || name) : name;
     const nameParts = dbName.trim().split(" ");
     const loginAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-    await appendToSheet([nameParts[0] || "", nameParts.slice(1).join(" ") || "", email.toLowerCase(), "", loginAt, "Login", "Google"]).catch(() => {});
-    console.log("[Sheets] Google login logged:", email);
+    const action = existingUser ? "Login" : "Signup";
+    await appendToSheet([nameParts[0] || "", nameParts.slice(1).join(" ") || "", email.toLowerCase(), "", loginAt, action, "Google"]).catch(() => {});
+    console.log(`[Sheets] Google ${action.toLowerCase()} logged:`, email);
 
-    res.json({ ok: true, name: dbName, email: existingUser.email });
+    res.json({ ok: true, name: dbName, email: (existingUser?.email ?? email.toLowerCase()) });
   });
 
   // ── Gmail Auto-Import ─────────────────────────────────────────────────────────

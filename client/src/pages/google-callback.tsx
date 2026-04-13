@@ -28,6 +28,9 @@ export default function GoogleCallback() {
       return;
     }
 
+    const authMode = sessionStorage.getItem("google_auth_mode") || "login";
+    sessionStorage.removeItem("google_auth_mode");
+
     fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -39,18 +42,24 @@ export default function GoogleCallback() {
         const loginRes = await fetch("/api/auth/google-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: googleName, email }),
+          body: JSON.stringify({ name: googleName, email, mode: authMode }),
         });
         const loginData = await loginRes.json();
 
         if (!loginRes.ok) {
-          if (loginData.notFound) {
+          if (loginData.alreadyExists) {
+            setErrorMsg("An account with this email already exists. Please log in instead.");
+            setStatus("error");
+            setTimeout(() => navigate("/login"), 4000);
+          } else if (loginData.notFound) {
             setErrorMsg("No account found for this Google email. Please sign up first.");
+            setStatus("error");
+            setTimeout(() => navigate("/login"), 4000);
           } else {
             setErrorMsg(loginData.error || "Login failed. Please try again.");
+            setStatus("error");
+            setTimeout(() => navigate("/login"), 4000);
           }
-          setStatus("error");
-          setTimeout(() => navigate("/login"), 4000);
           return;
         }
 

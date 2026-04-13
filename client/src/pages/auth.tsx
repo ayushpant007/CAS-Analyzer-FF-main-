@@ -215,7 +215,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
     finally { setLoading(false); }
   };
 
-  const handleGoogleLogin = async () => {
+  const redirectToGoogle = async (mode: "login" | "signup") => {
     setLoading(true);
     setError("");
     try {
@@ -226,6 +226,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         setError("Google Sign-In is not configured. Please contact support.");
         return;
       }
+      sessionStorage.setItem("google_auth_mode", mode);
       const redirectUri = `${window.location.origin}/auth/google/callback`;
       const params = new URLSearchParams({
         client_id: clientId,
@@ -242,6 +243,9 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       setLoading(false);
     }
   };
+
+  const handleGoogleLogin = () => redirectToGoogle("login");
+  const handleGoogleSignUp = () => redirectToGoogle("signup");
 
   const handleResendOtp = async () => {
     const email = view === "forgot-verify" ? form.resetEmail : form.email;
@@ -360,7 +364,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         <GlowButton variant="purple" onClick={handleSignUp} loading={loading} testId="button-signup">
           <Zap size={15} /> Sign Up
         </GlowButton>
-        <GlowButton variant="ghost" onClick={handleGoogleLogin} testId="button-google-signup">
+        <GlowButton variant="ghost" onClick={handleGoogleSignUp} testId="button-google-signup">
           <SiGoogle size={13} /> Connect with Google
         </GlowButton>
       </div>
