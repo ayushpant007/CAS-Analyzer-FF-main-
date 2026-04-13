@@ -573,27 +573,322 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   );
 }
 
-// Default export — standalone /login page
-export default function AuthPage() {
+// ── Light-mode input for the split-page layout ───────────────────────────────
+function LightInput({ icon: Icon, placeholder, type = "text", value, onChange, testId, rightEl }: {
+  icon: React.ElementType; placeholder: string; type?: string;
+  value: string; onChange: (v: string) => void; testId: string; rightEl?: React.ReactNode;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className={`relative flex items-center rounded-xl border bg-gray-50 transition-all duration-200
+        ${focused ? "border-[#7c3aed] shadow-[0_0_0_3px_rgba(124,58,237,0.12)]" : "border-gray-200 hover:border-gray-300"}`}>
+      <Icon size={16} className={`absolute left-3.5 transition-colors duration-200 ${focused ? "text-[#7c3aed]" : "text-gray-400"}`} />
+      <input data-testid={testId} type={type} placeholder={placeholder} value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+        className="w-full bg-transparent pl-10 pr-10 py-3.5 text-sm text-gray-800 placeholder-gray-400 outline-none" />
+      {rightEl && <div className="absolute right-3">{rightEl}</div>}
+    </div>
+  );
+}
+
+function SolidButton({ children, onClick, loading = false, variant = "primary", testId }: {
+  children: React.ReactNode; onClick?: () => void;
+  loading?: boolean; variant?: "primary" | "outline" | "google"; testId?: string;
+}) {
+  const styles: Record<string, string> = {
+    primary: "bg-[#7c3aed] hover:bg-[#6d28d9] text-white shadow-md hover:shadow-lg",
+    outline: "bg-white border-2 border-white/50 text-white hover:bg-white/10",
+    google: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm",
+  };
+  return (
+    <button type="button" data-testid={testId} onClick={onClick} disabled={loading}
+      className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2.5 ${styles[variant]} disabled:opacity-60 disabled:cursor-not-allowed`}>
+      {loading
+        ? <motion.div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+            animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }} />
+        : children}
+    </button>
+  );
+}
+
+// Default export — standalone /login + /signup full-page split layout
+export default function AuthPage({ defaultView: initView = "login" }: { defaultView?: "login" | "signup" }) {
   const [, navigate] = useLocation();
+  const [view, setView] = useState<"login" | "signup">(initView);
+  const [subView, setSubView] = useState<AuthView>(initView);
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [devOtp, setDevOtp] = useState<string | undefined>(undefined);
+
+  const setField = (key: keyof FormState) => (val: string) => setForm(f => ({ ...f, [key]: val }));
+
+  const switchTo = (v: "login" | "signup") => {
+    setView(v); setSubView(v); setError(""); setForm(INITIAL_FORM);
+  };
+
   const handleSuccess = (u: { name: string; email: string }) => {
     localStorage.setItem("cas_user", JSON.stringify(u));
     navigate("/landing");
   };
+
+  const handleLogin = async () => {
+    if (!form.email || !form.password) { setError("Please enter your email and password."); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.email, password: form.password }) });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Invalid credentials."); return; }
+      firebaseLoginUser(form.email, form.password).catch(() => {});
+      handleSuccess({ name: data.name || form.email.split("@")[0], email: form.email });
+    } catch { setError("Login failed. Please try again."); }
+    finally { setLoading(false); }
+  };
+
+  const handleSignUp = async () => {
+    if (!form.firstName || !form.email || !form.password) { setError("Please fill all required fields."); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/send-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.email, name: `${form.firstName} ${form.lastName}`.trim(), password: form.password, mobile: form.mobile }) });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to send code."); return; }
+      if (data.devOtp) setDevOtp(data.devOtp);
+      setSubView("verify");
+    } catch { setError("Sign up failed. Please try again."); }
+    finally { setLoading(false); }
+  };
+
+  const handleVerifyCode = async (code: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.email, otp: code }) });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Incorrect code."); return; }
+      if (form.password) firebaseSaveUser({ firstName: form.firstName, lastName: form.lastName, email: form.email, mobile: form.mobile, password: form.password }).catch(() => {});
+      handleSuccess({ name: data.name || `${form.firstName} ${form.lastName}`.trim(), email: form.email });
+    } catch { setError("Verification failed."); }
+    finally { setLoading(false); }
+  };
+
+  const redirectToGoogle = async (mode: "login" | "signup") => {
+    setLoading(true); setError("");
+    try {
+      const config = await fetch("/api/config/public").then(r => r.json());
+      const clientId = config.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) { setError("Google Sign-In is not configured."); return; }
+      sessionStorage.setItem("google_auth_mode", mode);
+      const params = new URLSearchParams({ client_id: clientId, redirect_uri: `${window.location.origin}/auth/google/callback`, response_type: "token", scope: "openid email profile", include_granted_scopes: "true", prompt: "select_account" });
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+    } catch { setError("Google Sign-In is not available."); }
+    finally { setLoading(false); }
+  };
+
+  const handleForgotSend = async () => {
+    if (!form.resetEmail) { setError("Please enter your email."); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/forgot-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.resetEmail }) });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to send reset link."); return; }
+      setSubView("forgot-sent");
+    } catch { setError("Failed. Please try again."); }
+    finally { setLoading(false); }
+  };
+
+  const divider = (
+    <div className="flex items-center gap-3 my-1">
+      <div className="flex-1 h-px bg-gray-200" />
+      <span className="text-xs text-gray-400 font-medium">or</span>
+      <div className="flex-1 h-px bg-gray-200" />
+    </div>
+  );
+
+  const renderForm = () => {
+    if (subView === "verify") return (
+      <div className="space-y-5">
+        <p className="text-sm text-gray-500 text-center">We sent a 6-digit code to <span className="font-semibold text-[#7c3aed]">{form.email}</span></p>
+        {devOtp && <div className="rounded-xl bg-purple-50 border border-purple-200 px-4 py-3 text-center"><p className="text-purple-700 font-semibold text-xs mb-1">Dev OTP:</p><p className="text-purple-900 text-2xl font-bold tracking-widest">{devOtp}</p></div>}
+        <div className="flex gap-2 justify-center">
+          {[0,1,2,3,4,5].map(i => (
+            <input key={i} type="text" inputMode="numeric" maxLength={1}
+              data-testid={`input-code-${i}`}
+              className="w-11 h-13 text-center text-xl font-bold rounded-lg border-2 border-gray-200 focus:border-[#7c3aed] focus:shadow-[0_0_0_3px_rgba(124,58,237,0.1)] outline-none bg-gray-50 text-gray-800 transition-all"
+              onChange={e => {
+                const val = e.target.value.replace(/\D/g, "");
+                if (val) (document.querySelectorAll(`[data-testid^="input-code-"]`)[i + 1] as HTMLInputElement)?.focus();
+              }}
+            />
+          ))}
+        </div>
+        <SolidButton onClick={() => {
+          const digits = Array.from(document.querySelectorAll('[data-testid^="input-code-"]')).map((el: any) => el.value).join("");
+          if (digits.length === 6) handleVerifyCode(digits);
+        }} loading={loading} testId="button-verify-otp">
+          <Shield size={15} /> Verify & Continue
+        </SolidButton>
+        <button onClick={() => setSubView("signup")} className="w-full text-xs text-gray-400 hover:text-[#7c3aed] transition-colors">← Back</button>
+      </div>
+    );
+
+    if (subView === "forgot-email") return (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-500">Enter your registered email and we'll send you a reset link.</p>
+        <LightInput icon={Mail} placeholder="Email Address" type="email" value={form.resetEmail} onChange={setField("resetEmail")} testId="input-reset-email" />
+        <SolidButton onClick={handleForgotSend} loading={loading} testId="button-send-reset"><ArrowRight size={15} /> Send Reset Link</SolidButton>
+        <button onClick={() => setSubView("login")} className="w-full text-xs text-gray-400 hover:text-[#7c3aed] transition-colors">← Back to Sign In</button>
+      </div>
+    );
+
+    if (subView === "forgot-sent") return (
+      <div className="space-y-5 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto"><Mail size={24} className="text-[#7c3aed]" /></div>
+        <div><p className="text-sm text-gray-500">Reset link sent to</p><p className="font-semibold text-[#7c3aed] mt-1">{form.resetEmail}</p><p className="text-xs text-gray-400 mt-2">Check your inbox. It expires in 1 hour.</p></div>
+        <button onClick={() => { setSubView("login"); setView("login"); }} className="text-xs text-gray-400 hover:text-[#7c3aed] transition-colors">Back to Sign In</button>
+      </div>
+    );
+
+    if (view === "login") return (
+      <div className="space-y-4">
+        <LightInput icon={Mail} placeholder="Email Address" type="email" value={form.email} onChange={setField("email")} testId="input-email" />
+        <LightInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"} value={form.password} onChange={setField("password")} testId="input-password"
+          rightEl={<button type="button" onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-600">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
+        <div className="flex justify-end">
+          <button type="button" onClick={() => setSubView("forgot-email")} className="text-xs text-[#7c3aed] hover:text-[#6d28d9] font-medium transition-colors">Forgot Password?</button>
+        </div>
+        <SolidButton onClick={handleLogin} loading={loading} testId="button-login"><Zap size={15} /> Sign In</SolidButton>
+        {divider}
+        <SolidButton onClick={() => redirectToGoogle("login")} variant="google" testId="button-google">
+          <SiGoogle size={14} /> Continue with Google
+        </SolidButton>
+      </div>
+    );
+
+    return (
+      <div className="space-y-3.5">
+        <div className="grid grid-cols-2 gap-3">
+          <LightInput icon={User} placeholder="First Name" value={form.firstName} onChange={setField("firstName")} testId="input-firstname" />
+          <LightInput icon={User} placeholder="Last Name" value={form.lastName} onChange={setField("lastName")} testId="input-lastname" />
+        </div>
+        <LightInput icon={Phone} placeholder="Mobile Number" type="tel" value={form.mobile} onChange={setField("mobile")} testId="input-mobile" />
+        <LightInput icon={Mail} placeholder="Email Address" type="email" value={form.email} onChange={setField("email")} testId="input-signup-email" />
+        <LightInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"} value={form.password} onChange={setField("password")} testId="input-signup-password"
+          rightEl={<button type="button" onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-600">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
+        <SolidButton onClick={handleSignUp} loading={loading} testId="button-signup"><Zap size={15} /> Create Account</SolidButton>
+        {divider}
+        <SolidButton onClick={() => redirectToGoogle("signup")} variant="google" testId="button-google-signup">
+          <SiGoogle size={14} /> Continue with Google
+        </SolidButton>
+      </div>
+    );
+  };
+
+  const isLogin = view === "login" && subView === "login";
+  const isSignup = view === "signup" && (subView === "signup" || subView === "verify");
+
   return (
-    <div className="fixed inset-0 bg-[#020817] flex items-center justify-center">
-      <div className="absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0,212,255,0.8) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.8) 1px,transparent 1px)`,
-          backgroundSize: "60px 60px",
-        }} />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_20%,rgba(0,212,255,0.07)_0%,transparent_70%)]" />
-      <AuthModal
-        isOpen={true}
-        defaultView="login"
-        onClose={() => navigate("/landing")}
-        onSuccess={handleSuccess}
-      />
+    <div className="min-h-screen flex" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+      {/* ── Left panel: Form ─────────────────────────── */}
+      <div className="flex-1 lg:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-20 py-12 bg-white overflow-y-auto">
+        {/* Logo */}
+        <div className="mb-10">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate("/landing")}>
+            <img src="/favicon.png" alt="Financial Friend" className="w-9 h-9 object-contain" />
+            <div>
+              <p className="text-base font-bold text-gray-900 leading-tight">Financial</p>
+              <p className="text-base font-black text-[#7c3aed] leading-tight tracking-wide">FRIEND</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form header */}
+        <div className="mb-8 max-w-sm">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            {subView === "verify" ? "Verify Email" : subView === "forgot-email" ? "Reset Password" : subView === "forgot-sent" ? "Check Your Email" : isLogin ? "Welcome back" : "Create account"}
+          </h1>
+          <p className="text-gray-500 mt-1.5 text-sm">
+            {subView === "verify" ? "Enter the code sent to your inbox" : subView === "forgot-email" ? "We'll send you a reset link" : subView === "forgot-sent" ? "Reset link has been sent" : isLogin ? "Sign in to access CAS Analyzer" : "Join CAS Analyzer today — it's free"}
+          </p>
+        </div>
+
+        {/* Form */}
+        <div className="w-full max-w-sm">
+          <AnimatePresence mode="wait">
+            <motion.div key={subView} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+              {renderForm()}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Error */}
+          {error && (
+            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+              className="mt-4 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl py-2.5 px-3.5" data-testid="text-error">
+              {error}
+            </motion.div>
+          )}
+
+          {/* Footer toggle */}
+          {(subView === "login" || subView === "signup") && (
+            <p className="mt-6 text-sm text-gray-500 text-center">
+              {isLogin ? (
+                <>Don't have an account?{" "}<button onClick={() => switchTo("signup")} className="font-semibold text-[#7c3aed] hover:text-[#6d28d9] transition-colors" data-testid="link-signup">Sign up</button></>
+              ) : (
+                <>Already have an account?{" "}<button onClick={() => switchTo("login")} className="font-semibold text-[#7c3aed] hover:text-[#6d28d9] transition-colors" data-testid="link-login">Sign in</button></>
+              )}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Right panel: Brand ───────────────────────── */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center px-16 py-12 relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 40%, #0f172a 100%)" }}>
+        {/* Decorative circles */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #a78bfa, transparent)" }} />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
+
+        <div className="relative z-10 text-center max-w-md">
+          {/* Brand logo */}
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <img src="/favicon.png" alt="Financial Friend" className="w-12 h-12 object-contain brightness-0 invert" />
+            <div className="text-left">
+              <p className="text-xl font-bold text-white/90 leading-tight">Financial</p>
+              <p className="text-xl font-black text-white leading-tight tracking-widest">FRIEND</p>
+            </div>
+          </div>
+
+          <h2 className="text-4xl font-extrabold text-white leading-tight mb-4">
+            {isLogin ? "New beginnings\nstart here." : "Your financial\njourney starts here."}
+          </h2>
+          <p className="text-white/60 text-base leading-relaxed mb-10">
+            {isLogin
+              ? "Analyze your mutual fund portfolio with AI-powered insights in minutes."
+              : "Get personalized financial guidance, smart investment analysis, and CAS report insights."}
+          </p>
+
+          {/* Feature bullets */}
+          <div className="space-y-3 text-left mb-10">
+            {["AI-powered CAS PDF analysis", "Portfolio health & asset allocation", "SIP & investment tracking"].map(f => (
+              <div key={f} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-2 h-2 rounded-full bg-white" />
+                </div>
+                <span className="text-white/80 text-sm">{f}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA to switch */}
+          <SolidButton
+            onClick={() => switchTo(isLogin ? "signup" : "login")}
+            variant="outline"
+            testId={isLogin ? "button-goto-signup" : "button-goto-login"}
+          >
+            {isLogin ? "Create an Account →" : "Sign In Instead →"}
+          </SolidButton>
+        </div>
+      </div>
     </div>
   );
 }

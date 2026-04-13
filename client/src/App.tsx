@@ -19,6 +19,7 @@ function Router() {
       <Route path="/" component={LandingPage} />
       <Route path="/landing" component={LandingPage} />
       <Route path="/login" component={AuthPage} />
+      <Route path="/signup" component={() => <AuthPage defaultView="signup" />} />
       <Route path="/home" component={Home} />
       <Route path="/dashboard" component={Home} />
       <Route path="/auth/google/callback" component={GoogleCallback} />
