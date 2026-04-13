@@ -989,11 +989,15 @@ Extract the following fields:
 
 3. Historical Portfolio Valuation (monthly trend if present): [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
 
-4. Mutual Fund Snapshot — MOST CRITICAL SECTION. For EVERY fund/scheme listed, extract:
+4. Mutual Fund Snapshot — MOST CRITICAL SECTION.
+   IMPORTANT: Extract ONLY mutual fund scheme entries. Do NOT include direct equity stocks, shares, bonds, debentures, or any other demat/securities holdings.
+   A mutual fund entry ALWAYS has: a folio number, an ISIN starting with "INF" (NOT "INE"), and a scheme name that includes words like "Fund", "Scheme", "ETF" (mutual fund ETFs), "FoF", etc.
+   Direct stocks/equities have ISINs starting with "INE" — SKIP THESE ENTIRELY. Do not add them to mf_snapshot.
+   For EVERY mutual fund scheme listed, extract:
    {
      "scheme_name": <exact scheme name as in CAS>,
      "folio_no": <folio number>,
-     "isin": <ISIN code e.g. INF123A01234>,
+     "isin": <ISIN code e.g. INF123A01234 — must start with INF>,
      "units": <closing balance/units as number>,
      "nav": <NAV per unit as number>,
      "invested_amount": <cost/invested amount as number — NEVER 0 if cost data is present>,
@@ -1024,6 +1028,19 @@ CAS TEXT:\n${text}`;
       const raw = await generateWithFallback(prompt, { responseMimeType: "application/json" });
       const analysis = JSON.parse(typeof raw === "string" ? raw : "{}");
       analysis.cas_source = detectCasSource(text);
+
+      // ── Post-process: strip any non-MF entries (stocks/demat) from mf_snapshot ──
+      // Indian MF ISINs always start with "INF". Equity/stock ISINs start with "INE".
+      // CDSL CAS PDFs include both; we must only keep mutual funds.
+      if (analysis.mf_snapshot && Array.isArray(analysis.mf_snapshot)) {
+        analysis.mf_snapshot = analysis.mf_snapshot.filter((mf: any) => {
+          const isin = (mf.isin || "").trim().toUpperCase();
+          // Keep entries with no ISIN (some valid MFs may lack it) only if they have a folio_no
+          if (!isin) return !!mf.folio_no;
+          // Reject any ISIN that does NOT start with INF (INE = equity/stock, INB = bond, etc.)
+          return isin.startsWith("INF");
+        });
+      }
 
       // ── Post-process: ensure asset_allocation percentages are correct ──────────
       // If AI returned 0% or missing percentages, recompute from mf_snapshot values
