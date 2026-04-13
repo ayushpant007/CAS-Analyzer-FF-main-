@@ -603,22 +603,6 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
               {status.connected ? (
                 <>
                   <button
-                    onClick={handleManualCheck}
-                    disabled={checking}
-                    data-testid="button-gmail-check"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
-                    style={{
-                      background: checking ? "rgba(96,165,250,0.2)" : "rgba(96,165,250,0.1)",
-                      border: "1px solid rgba(96,165,250,0.25)",
-                      color: "#60a5fa",
-                      cursor: checking ? "not-allowed" : "pointer",
-                      opacity: checking ? 0.8 : 1,
-                    }}
-                  >
-                    <RefreshCw size={12} className={checking ? "animate-spin" : ""} />
-                    {checking ? "Checking..." : "Check Now"}
-                  </button>
-                  <button
                     onClick={() => setShowScanModal(true)}
                     data-testid="button-gmail-full-scan"
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all relative"
@@ -630,7 +614,7 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
                     }}
                   >
                     <DatabaseZap size={12} />
-                    Scan Full Inbox
+                    Scan Your Inbox
                     {savedPending.length > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
                         style={{ background: "#c084fc", color: "#0a0f1e" }}>
@@ -679,7 +663,7 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
               <div>
                 <p className="text-xs font-semibold text-blue-400">First scan pending</p>
                 <p className="text-[11px] text-white/40 mt-0.5">
-                  Gmail is connected. Click <strong className="text-white/60">Check Now</strong> to scan your inbox immediately, or wait — it will auto-scan within the next few minutes.
+                  Gmail is connected. Click <strong className="text-white/60">Scan Your Inbox</strong> to scan your inbox immediately, or wait — it will auto-scan within the next few minutes.
                 </p>
               </div>
             </motion.div>

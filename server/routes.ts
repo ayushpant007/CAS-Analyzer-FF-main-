@@ -109,8 +109,8 @@ function generateOtp(): string {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
-async function generateWithFallback(prompt: string, options: { model?: string, responseMimeType?: string } = {}) {
-  const modelName = (options.model || process.env.GEMINI_MODEL || "gemini-2.5-flash-lite").toLowerCase().replace(/\s+/g, '-');
+async function generateWithFallback(prompt: string, options: { model?: string, responseMimeType?: string, temperature?: number } = {}) {
+  const modelName = (options.model || process.env.GEMINI_MODEL || "gemini-2.5-flash").toLowerCase().replace(/\s+/g, '-');
   let lastError: any;
 
   for (const key of GEMINI_KEYS) {
@@ -118,7 +118,10 @@ async function generateWithFallback(prompt: string, options: { model?: string, r
       const client = new GoogleGenerativeAI(key);
       const model = client.getGenerativeModel({ 
         model: modelName,
-        generationConfig: options.responseMimeType ? { responseMimeType: options.responseMimeType } : undefined
+        generationConfig: {
+          ...(options.responseMimeType ? { responseMimeType: options.responseMimeType } : {}),
+          temperature: options.temperature ?? 0,
+        }
       });
       const result = await model.generateContent(prompt);
       return result.response.text();
@@ -961,7 +964,17 @@ ${text}`;
       let csvContent = "";
       try { csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8"); } catch {}
 
-      const prompt = `You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text EXACTLY as-is. Do NOT invent, hallucinate, or guess any numbers. Only extract what is explicitly present in the text.
+      const prompt = `You are a precise financial data extraction engine. Your ONLY task is to extract numbers and text that are EXPLICITLY WRITTEN in the CAS document below. 
+
+CRITICAL RULES — VIOLATIONS ARE NOT ACCEPTABLE:
+- NEVER invent, estimate, guess, or hallucinate ANY number, name, or value.
+- If a value is not explicitly present in the text, return null — never a guess or approximation.
+- Do NOT round numbers; use the exact figures as printed.
+- Do NOT fill in missing fields with averages, assumptions, or nearby values.
+- Every number in your output MUST be traceable to a specific line in the CAS text.
+- If you are uncertain about a value, return null rather than guessing.
+
+You are a financial analyst. Analyze the following Consolidated Account Statement (CAS) text EXACTLY as-is. Do NOT invent, hallucinate, or guess any numbers. Only extract what is explicitly present in the text.
 Investor Profile: Age Group: ${ageGroup}, Risk Profile: ${investorType}.
 Reference Ratios CSV:\n${csvContent}
 
