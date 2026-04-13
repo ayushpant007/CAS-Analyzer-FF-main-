@@ -356,9 +356,12 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
       <NeonInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"}
         value={form.password} onChange={setField("password")} testId="input-signup-password"
         rightEl={<button type="button" data-testid="button-toggle-signup-password" onClick={() => setShowPass(p => !p)} className="text-white/30 hover:text-white/70 transition-colors">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
-      <div className="pt-1">
+      <div className="pt-1 space-y-3">
         <GlowButton variant="purple" onClick={handleSignUp} loading={loading} testId="button-signup">
           <Zap size={15} /> Sign Up
+        </GlowButton>
+        <GlowButton variant="ghost" onClick={handleGoogleLogin} testId="button-google-signup">
+          <SiGoogle size={13} /> Connect with Google
         </GlowButton>
       </div>
     </div>
