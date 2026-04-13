@@ -63,7 +63,7 @@ function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose:
         </div>
 
         <div className="mb-5">
-          <label className="block text-xs font-semibold text-white/60 mb-2 uppercase tracking-wider">CAS PDF Password</label>
+          <label className="block text-xs font-semibold text-white/60 mb-2 uppercase tracking-wider">Enter Your PAN Number</label>
           <div className="relative">
             <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
             <input
