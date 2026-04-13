@@ -23,6 +23,8 @@ export interface IStorage {
   upsertGmailConnection(conn: InsertGmailConnection): Promise<GmailConnection>;
   getAllGmailConnections(): Promise<GmailConnection[]>;
   deleteGmailConnection(userEmail: string): Promise<void>;
+  softDisconnectGmail(userEmail: string): Promise<void>;
+  reconnectGmail(userEmail: string, casPassword?: string | null): Promise<GmailConnection | null>;
   updateGmailTokens(userEmail: string, accessToken: string, expiresAt: Date): Promise<void>;
   updateGmailLastChecked(userEmail: string): Promise<void>;
 }
@@ -154,11 +156,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllGmailConnections(): Promise<GmailConnection[]> {
-    return await db.select().from(gmailConnections);
+    return await db.select().from(gmailConnections)
+      .where(eq(gmailConnections.disconnected, false));
   }
 
   async deleteGmailConnection(userEmail: string): Promise<void> {
     await db.delete(gmailConnections).where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
+  }
+
+  async softDisconnectGmail(userEmail: string): Promise<void> {
+    await db.update(gmailConnections)
+      .set({ disconnected: true })
+      .where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
+  }
+
+  async reconnectGmail(userEmail: string, casPassword?: string | null): Promise<GmailConnection | null> {
+    const [conn] = await db.select().from(gmailConnections)
+      .where(eq(gmailConnections.userEmail, userEmail.toLowerCase()));
+    if (!conn || !conn.disconnected) return null;
+    const updates: any = { disconnected: false, lastCheckedAt: null };
+    if (casPassword !== undefined) updates.casPassword = casPassword;
+    const [updated] = await db.update(gmailConnections)
+      .set(updates)
+      .where(eq(gmailConnections.userEmail, userEmail.toLowerCase()))
+      .returning();
+    return updated;
   }
 
   async updateGmailTokens(userEmail: string, accessToken: string, expiresAt: Date): Promise<void> {

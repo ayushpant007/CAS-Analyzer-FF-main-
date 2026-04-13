@@ -1494,11 +1494,19 @@ CAS TEXT:\n${text}`;
     res.json({ redirect_uri: GMAIL_REDIRECT_URI });
   });
 
-  app.get("/auth/gmail", (req, res) => {
+  app.get("/auth/gmail", async (req, res) => {
     const userEmail = req.query.email as string;
     const casPassword = req.query.password as string || "";
     if (!userEmail) return res.status(400).send("Missing email param");
     if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET) return res.status(500).send("Gmail OAuth not configured");
+
+    // ── Silent reconnect: if this user previously connected and still has tokens, restore them
+    const stored = await storage.reconnectGmail(userEmail, casPassword || undefined);
+    if (stored) {
+      console.log(`[Gmail] Silent reconnect for ${userEmail} — reusing stored tokens`);
+      pollGmailAccount(stored as any).catch(() => {});
+      return res.redirect("/home?gmail=connected");
+    }
 
     const redirectUri = getRequestRedirectUri(req);
     console.log(`[Gmail] OAuth flow started — redirect_uri: ${redirectUri}`);
@@ -1507,7 +1515,8 @@ CAS TEXT:\n${text}`;
     const state = Buffer.from(JSON.stringify({ email: userEmail, password: casPassword, redirectUri })).toString("base64");
     const url = oauth2.generateAuthUrl({
       access_type: "offline",
-      prompt: "consent",
+      // select_account shows "Choose an account" picker; consent grants permissions
+      prompt: "select_account consent",
       scope: ["https://www.googleapis.com/auth/gmail.readonly"],
       state,
     });
@@ -1557,15 +1566,15 @@ CAS TEXT:\n${text}`;
     const email = req.query.email as string;
     if (!email) return res.status(400).json({ error: "Missing email" });
     const conn = await storage.getGmailConnection(email);
-    if (!conn) return res.json({ connected: false });
+    if (!conn || conn.disconnected) return res.json({ connected: false });
     res.json({ connected: true, lastCheckedAt: conn.lastCheckedAt, createdAt: conn.createdAt });
   });
 
-  // ── Disconnect Gmail
+  // ── Disconnect Gmail (soft — keeps tokens for silent reconnect)
   app.delete("/api/gmail/disconnect", async (req, res) => {
     const email = req.query.email as string;
     if (!email) return res.status(400).json({ error: "Missing email" });
-    await storage.deleteGmailConnection(email);
+    await storage.softDisconnectGmail(email);
     res.json({ ok: true });
   });
 

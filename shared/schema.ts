@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -11,6 +11,7 @@ export const gmailConnections = pgTable("gmail_connections", {
   casPassword: text("cas_password"),
   lastCheckedAt: timestamp("last_checked_at"),
   createdAt: timestamp("created_at").defaultNow(),
+  disconnected: boolean("disconnected").default(false),
 });
 
 export const insertGmailConnectionSchema = createInsertSchema(gmailConnections).omit({ id: true, createdAt: true });

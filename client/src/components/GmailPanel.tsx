@@ -121,12 +121,8 @@ function ScanInboxModal({
   onNavigateToReport: (reportId: number, remaining: PendingScanPdf[]) => void;
 }) {
   const [step, setStep] = useState<ScanStep>("picking-dates");
-  const [fromDate, setFromDate] = useState<string>(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 6);
-    return d.toISOString().split("T")[0];
-  });
-  const [toDate, setToDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
   const [foundPdfs, setFoundPdfs] = useState<PendingScanPdf[]>([]);
   const [importingIdx, setImportingIdx] = useState<number | null>(null);
   const [error, setError] = useState<string>("");
