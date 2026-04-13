@@ -891,8 +891,17 @@ ${text}`;
     return `https://${domain}/auth/gmail/callback`;
   })();
 
-  function makeOAuth2Client() {
-    return new google.auth.OAuth2(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REDIRECT_URI);
+  // Build a redirect URI from the actual request host so it always matches
+  // the domain the user is on (dev, production, or custom domain).
+  function getRequestRedirectUri(req: any): string {
+    const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
+    const host = (req.headers["x-forwarded-host"] as string) || (req.headers["host"] as string) || "";
+    if (host) return `${proto}://${host}/auth/gmail/callback`;
+    return GMAIL_REDIRECT_URI;
+  }
+
+  function makeOAuth2Client(redirectUri?: string) {
+    return new google.auth.OAuth2(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, redirectUri || GMAIL_REDIRECT_URI);
   }
 
   const CAS_SENDERS = [
@@ -1491,10 +1500,11 @@ CAS TEXT:\n${text}`;
     if (!userEmail) return res.status(400).send("Missing email param");
     if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET) return res.status(500).send("Gmail OAuth not configured");
 
-    console.log(`[Gmail] OAuth flow started — redirect_uri: ${GMAIL_REDIRECT_URI}`);
+    const redirectUri = getRequestRedirectUri(req);
+    console.log(`[Gmail] OAuth flow started — redirect_uri: ${redirectUri}`);
 
-    const oauth2 = makeOAuth2Client();
-    const state = Buffer.from(JSON.stringify({ email: userEmail, password: casPassword })).toString("base64");
+    const oauth2 = makeOAuth2Client(redirectUri);
+    const state = Buffer.from(JSON.stringify({ email: userEmail, password: casPassword, redirectUri })).toString("base64");
     const url = oauth2.generateAuthUrl({
       access_type: "offline",
       prompt: "consent",
@@ -1511,8 +1521,9 @@ CAS TEXT:\n${text}`;
     if (!code || !stateRaw) return res.redirect("/home?gmail=error");
 
     try {
-      const { email, password } = JSON.parse(Buffer.from(stateRaw, "base64").toString("utf-8"));
-      const oauth2 = makeOAuth2Client();
+      const { email, password, redirectUri: savedRedirectUri } = JSON.parse(Buffer.from(stateRaw, "base64").toString("utf-8"));
+      const redirectUri = savedRedirectUri || getRequestRedirectUri(req);
+      const oauth2 = makeOAuth2Client(redirectUri);
       const { tokens } = await oauth2.getToken(code);
 
       if (!tokens.access_token || !tokens.refresh_token) {
