@@ -1622,6 +1622,10 @@ CAS TEXT:\n${text}`;
       const broadAllQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateFilter} -from:noreply@accounts.google.com -from:no-reply@accounts.google.com -from:mailer-daemon@googlemail.com`;
 
       console.log(`[Gmail] scan-range: from=${fromDate} to=${toDate} for ${email}`);
+      console.log(`[Gmail] scan-range officialQ: ${officialQ}`);
+      console.log(`[Gmail] scan-range subjectQ: ${subjectQ}`);
+      console.log(`[Gmail] scan-range filenameQ: ${filenameQ}`);
+      console.log(`[Gmail] scan-range broadAllQ: ${broadAllQ}`);
 
       const [officialMsgs, subjectMsgs, filenameMsgs, broadAllMsgs] = await Promise.all([
         fetchAllMessageIds(gmail, officialQ, 200),
@@ -1629,6 +1633,8 @@ CAS TEXT:\n${text}`;
         fetchAllMessageIds(gmail, filenameQ, 200),
         fetchAllMessageIds(gmail, broadAllQ, 100),
       ]);
+
+      console.log(`[Gmail] scan-range hits: official=${officialMsgs.length}, subject=${subjectMsgs.length}, filename=${filenameMsgs.length}, broadAll=${broadAllMsgs.length}`);
 
       const seen = new Set<string>();
       const allMsgs: { id?: string | null }[] = [];
@@ -1659,6 +1665,18 @@ CAS TEXT:\n${text}`;
           const allParts: MsgPart[] = [];
           if (payload.parts) allParts.push(...(payload.parts as MsgPart[]));
           if (payload.mimeType === "application/pdf" && (payload as any).body?.attachmentId) allParts.push(payload as MsgPart);
+
+          // Log ALL parts for debugging
+          const flattenParts = (parts: MsgPart[]): MsgPart[] => {
+            const result: MsgPart[] = [];
+            for (const p of parts) {
+              result.push(p);
+              if (p.parts) result.push(...flattenParts(p.parts));
+            }
+            return result;
+          };
+          const allFlatParts = flattenParts(allParts);
+          console.log(`[Gmail] scan-range msg ${msg.id} from="${from}" subject="${subject}" internalDate=${emailDate} — ${allFlatParts.length} part(s): ${allFlatParts.map(p => `{mime:${p.mimeType},file:${p.filename},hasAttId:${!!p.body?.attachmentId}}`).join(", ")}`);
 
           const pdfParts = collectPdfParts(allParts);
           for (const part of pdfParts) {
