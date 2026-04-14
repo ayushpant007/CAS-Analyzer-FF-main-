@@ -573,42 +573,55 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   );
 }
 
-// ── Light-mode input for the split-page layout ───────────────────────────────
-function LightInput({ icon: Icon, placeholder, type = "text", value, onChange, testId, rightEl }: {
+// ── Glass input for the split-page layout ────────────────────────────────────
+function GlassInput({ icon: Icon, placeholder, type = "text", value, onChange, testId, rightEl }: {
   icon: React.ElementType; placeholder: string; type?: string;
   value: string; onChange: (v: string) => void; testId: string; rightEl?: React.ReactNode;
 }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div className={`relative flex items-center rounded-xl border bg-gray-50 transition-all duration-200
-        ${focused ? "border-[#7c3aed] shadow-[0_0_0_3px_rgba(124,58,237,0.12)]" : "border-gray-200 hover:border-gray-300"}`}>
-      <Icon size={16} className={`absolute left-3.5 transition-colors duration-200 ${focused ? "text-[#7c3aed]" : "text-gray-400"}`} />
+    <div className={`relative flex items-center rounded-xl border backdrop-blur-sm transition-all duration-300
+        ${focused
+          ? "border-[#a78bfa] bg-white/10 shadow-[0_0_0_2px_rgba(167,139,250,0.25),0_0_20px_rgba(124,58,237,0.2)]"
+          : "border-white/15 bg-white/5 hover:border-white/25 hover:bg-white/8"}`}>
+      <Icon size={15} className={`absolute left-3.5 transition-colors duration-300 ${focused ? "text-[#a78bfa]" : "text-white/35"}`} />
       <input data-testid={testId} type={type} placeholder={placeholder} value={value}
         onChange={e => onChange(e.target.value)}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        className="w-full bg-transparent pl-10 pr-10 py-3.5 text-sm text-gray-800 placeholder-gray-400 outline-none" />
+        className="w-full bg-transparent pl-10 pr-10 py-3.5 text-sm text-white placeholder-white/30 outline-none" />
       {rightEl && <div className="absolute right-3">{rightEl}</div>}
     </div>
   );
 }
 
-function SolidButton({ children, onClick, loading = false, variant = "primary", testId }: {
+function GlassButton({ children, onClick, loading = false, variant = "primary", testId }: {
   children: React.ReactNode; onClick?: () => void;
-  loading?: boolean; variant?: "primary" | "outline" | "google"; testId?: string;
+  loading?: boolean; variant?: "primary" | "ghost" | "google"; testId?: string;
 }) {
   const styles: Record<string, string> = {
-    primary: "bg-[#7c3aed] hover:bg-[#6d28d9] text-white shadow-md hover:shadow-lg",
-    outline: "bg-white border-2 border-white/50 text-white hover:bg-white/10",
-    google: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm",
+    primary: "bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] text-white shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:shadow-[0_0_32px_rgba(124,58,237,0.6)] hover:from-[#8b5cf6] hover:to-[#6366f1] border border-white/10",
+    ghost: "bg-white/8 backdrop-blur-sm border border-white/20 text-white hover:bg-white/15 hover:border-white/35 shadow-[0_0_12px_rgba(255,255,255,0.05)]",
+    google: "bg-white/8 backdrop-blur-sm border border-white/15 text-white/90 hover:bg-white/15 hover:border-white/30",
   };
   return (
     <button type="button" data-testid={testId} onClick={onClick} disabled={loading}
-      className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2.5 ${styles[variant]} disabled:opacity-60 disabled:cursor-not-allowed`}>
+      className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 active:scale-[0.97] flex items-center justify-center gap-2.5 ${styles[variant]} disabled:opacity-50 disabled:cursor-not-allowed`}>
       {loading
         ? <motion.div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
             animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }} />
         : children}
     </button>
+  );
+}
+
+function FloatingOrb({ x, y, size, color, duration }: { x: string; y: string; size: number; color: string; duration: number }) {
+  return (
+    <motion.div
+      className="absolute rounded-full pointer-events-none"
+      style={{ left: x, top: y, width: size, height: size, background: color, filter: `blur(${size * 0.6}px)`, opacity: 0.25 }}
+      animate={{ x: [0, 30, -20, 15, 0], y: [0, -25, 20, -10, 0], scale: [1, 1.1, 0.95, 1.05, 1] }}
+      transition={{ duration, repeat: Infinity, ease: "easeInOut" }}
+    />
   );
 }
 
@@ -699,22 +712,27 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
 
   const divider = (
     <div className="flex items-center gap-3 my-1">
-      <div className="flex-1 h-px bg-gray-200" />
-      <span className="text-xs text-gray-400 font-medium">or</span>
-      <div className="flex-1 h-px bg-gray-200" />
+      <div className="flex-1 h-px bg-white/10" />
+      <span className="text-xs text-white/30 font-medium">or</span>
+      <div className="flex-1 h-px bg-white/10" />
     </div>
   );
 
   const renderForm = () => {
     if (subView === "verify") return (
       <div className="space-y-5">
-        <p className="text-sm text-gray-500 text-center">We sent a 6-digit code to <span className="font-semibold text-[#7c3aed]">{form.email}</span></p>
-        {devOtp && <div className="rounded-xl bg-purple-50 border border-purple-200 px-4 py-3 text-center"><p className="text-purple-700 font-semibold text-xs mb-1">Dev OTP:</p><p className="text-purple-900 text-2xl font-bold tracking-widest">{devOtp}</p></div>}
+        <p className="text-sm text-white/50 text-center">We sent a 6-digit code to <span className="font-semibold text-[#a78bfa]">{form.email}</span></p>
+        {devOtp && (
+          <div className="rounded-xl bg-white/5 border border-[#a78bfa]/30 px-4 py-3 text-center backdrop-blur-sm">
+            <p className="text-[#a78bfa] font-semibold text-xs mb-1">Dev OTP:</p>
+            <p className="text-white text-2xl font-bold tracking-widest">{devOtp}</p>
+          </div>
+        )}
         <div className="flex gap-2 justify-center">
           {[0,1,2,3,4,5].map(i => (
             <input key={i} type="text" inputMode="numeric" maxLength={1}
               data-testid={`input-code-${i}`}
-              className="w-11 h-13 text-center text-xl font-bold rounded-lg border-2 border-gray-200 focus:border-[#7c3aed] focus:shadow-[0_0_0_3px_rgba(124,58,237,0.1)] outline-none bg-gray-50 text-gray-800 transition-all"
+              className="w-11 h-13 text-center text-xl font-bold rounded-lg border-2 border-white/15 bg-white/5 focus:border-[#a78bfa] focus:shadow-[0_0_14px_rgba(167,139,250,0.4)] outline-none text-white transition-all backdrop-blur-sm"
               onChange={e => {
                 const val = e.target.value.replace(/\D/g, "");
                 if (val) (document.querySelectorAll(`[data-testid^="input-code-"]`)[i + 1] as HTMLInputElement)?.focus();
@@ -722,173 +740,240 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
             />
           ))}
         </div>
-        <SolidButton onClick={() => {
+        <GlassButton onClick={() => {
           const digits = Array.from(document.querySelectorAll('[data-testid^="input-code-"]')).map((el: any) => el.value).join("");
           if (digits.length === 6) handleVerifyCode(digits);
         }} loading={loading} testId="button-verify-otp">
           <Shield size={15} /> Verify & Continue
-        </SolidButton>
-        <button onClick={() => setSubView("signup")} className="w-full text-xs text-gray-400 hover:text-[#7c3aed] transition-colors">← Back</button>
+        </GlassButton>
+        <button onClick={() => setSubView("signup")} className="w-full text-xs text-white/30 hover:text-[#a78bfa] transition-colors">← Back</button>
       </div>
     );
 
     if (subView === "forgot-email") return (
       <div className="space-y-4">
-        <p className="text-sm text-gray-500">Enter your registered email and we'll send you a reset link.</p>
-        <LightInput icon={Mail} placeholder="Email Address" type="email" value={form.resetEmail} onChange={setField("resetEmail")} testId="input-reset-email" />
-        <SolidButton onClick={handleForgotSend} loading={loading} testId="button-send-reset"><ArrowRight size={15} /> Send Reset Link</SolidButton>
-        <button onClick={() => setSubView("login")} className="w-full text-xs text-gray-400 hover:text-[#7c3aed] transition-colors">← Back to Sign In</button>
+        <p className="text-sm text-white/50">Enter your registered email and we'll send you a reset link.</p>
+        <GlassInput icon={Mail} placeholder="Email Address" type="email" value={form.resetEmail} onChange={setField("resetEmail")} testId="input-reset-email" />
+        <GlassButton onClick={handleForgotSend} loading={loading} testId="button-send-reset"><ArrowRight size={15} /> Send Reset Link</GlassButton>
+        <button onClick={() => setSubView("login")} className="w-full text-xs text-white/30 hover:text-[#a78bfa] transition-colors">← Back to Sign In</button>
       </div>
     );
 
     if (subView === "forgot-sent") return (
       <div className="space-y-5 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto"><Mail size={24} className="text-[#7c3aed]" /></div>
-        <div><p className="text-sm text-gray-500">Reset link sent to</p><p className="font-semibold text-[#7c3aed] mt-1">{form.resetEmail}</p><p className="text-xs text-gray-400 mt-2">Check your inbox. It expires in 1 hour.</p></div>
-        <button onClick={() => { setSubView("login"); setView("login"); }} className="text-xs text-gray-400 hover:text-[#7c3aed] transition-colors">Back to Sign In</button>
+        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-[#a78bfa]/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(167,139,250,0.2)]">
+          <Mail size={24} className="text-[#a78bfa]" />
+        </div>
+        <div>
+          <p className="text-sm text-white/50">Reset link sent to</p>
+          <p className="font-semibold text-[#a78bfa] mt-1">{form.resetEmail}</p>
+          <p className="text-xs text-white/30 mt-2">Check your inbox. It expires in 1 hour.</p>
+        </div>
+        <button onClick={() => { setSubView("login"); setView("login"); }} className="text-xs text-white/30 hover:text-[#a78bfa] transition-colors">Back to Sign In</button>
       </div>
     );
 
     if (view === "login") return (
       <div className="space-y-4">
-        <LightInput icon={Mail} placeholder="Email Address" type="email" value={form.email} onChange={setField("email")} testId="input-email" />
-        <LightInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"} value={form.password} onChange={setField("password")} testId="input-password"
-          rightEl={<button type="button" onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-600">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
+        <GlassInput icon={Mail} placeholder="Email Address" type="email" value={form.email} onChange={setField("email")} testId="input-email" />
+        <GlassInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"} value={form.password} onChange={setField("password")} testId="input-password"
+          rightEl={<button type="button" onClick={() => setShowPass(p => !p)} className="text-white/30 hover:text-white/70 transition-colors">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
         <div className="flex justify-end">
-          <button type="button" onClick={() => setSubView("forgot-email")} className="text-xs text-[#7c3aed] hover:text-[#6d28d9] font-medium transition-colors">Forgot Password?</button>
+          <button type="button" onClick={() => setSubView("forgot-email")} className="text-xs text-[#a78bfa] hover:text-[#c4b5fd] font-medium transition-colors">Forgot Password?</button>
         </div>
-        <SolidButton onClick={handleLogin} loading={loading} testId="button-login"><Zap size={15} /> Sign In</SolidButton>
+        <GlassButton onClick={handleLogin} loading={loading} testId="button-login"><Zap size={15} /> Sign In</GlassButton>
         {divider}
-        <SolidButton onClick={() => redirectToGoogle("login")} variant="google" testId="button-google">
+        <GlassButton onClick={() => redirectToGoogle("login")} variant="google" testId="button-google">
           <SiGoogle size={14} /> Continue with Google
-        </SolidButton>
+        </GlassButton>
       </div>
     );
 
     return (
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <LightInput icon={User} placeholder="First Name" value={form.firstName} onChange={setField("firstName")} testId="input-firstname" />
-          <LightInput icon={User} placeholder="Last Name" value={form.lastName} onChange={setField("lastName")} testId="input-lastname" />
+          <GlassInput icon={User} placeholder="First Name" value={form.firstName} onChange={setField("firstName")} testId="input-firstname" />
+          <GlassInput icon={User} placeholder="Last Name" value={form.lastName} onChange={setField("lastName")} testId="input-lastname" />
         </div>
-        <LightInput icon={Phone} placeholder="Mobile Number" type="tel" value={form.mobile} onChange={setField("mobile")} testId="input-mobile" />
-        <LightInput icon={Mail} placeholder="Email Address" type="email" value={form.email} onChange={setField("email")} testId="input-signup-email" />
-        <LightInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"} value={form.password} onChange={setField("password")} testId="input-signup-password"
-          rightEl={<button type="button" onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-600">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
-        <SolidButton onClick={handleSignUp} loading={loading} testId="button-signup"><Zap size={15} /> Create Account</SolidButton>
+        <GlassInput icon={Phone} placeholder="Mobile Number" type="tel" value={form.mobile} onChange={setField("mobile")} testId="input-mobile" />
+        <GlassInput icon={Mail} placeholder="Email Address" type="email" value={form.email} onChange={setField("email")} testId="input-signup-email" />
+        <GlassInput icon={Lock} placeholder="Password" type={showPass ? "text" : "password"} value={form.password} onChange={setField("password")} testId="input-signup-password"
+          rightEl={<button type="button" onClick={() => setShowPass(p => !p)} className="text-white/30 hover:text-white/70 transition-colors">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>} />
+        <GlassButton onClick={handleSignUp} loading={loading} testId="button-signup"><Zap size={15} /> Create Account</GlassButton>
         {divider}
-        <SolidButton onClick={() => redirectToGoogle("signup")} variant="google" testId="button-google-signup">
+        <GlassButton onClick={() => redirectToGoogle("signup")} variant="google" testId="button-google-signup">
           <SiGoogle size={14} /> Continue with Google
-        </SolidButton>
+        </GlassButton>
       </div>
     );
   };
 
   const isLogin = view === "login" && subView === "login";
-  const isSignup = view === "signup" && (subView === "signup" || subView === "verify");
+
+  const features = ["AI-powered CAS PDF analysis", "Portfolio health & asset allocation", "SIP & investment tracking"];
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
-      {/* ── Left panel: Form ─────────────────────────── */}
-      <div className="flex-1 lg:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-20 py-12 bg-white overflow-y-auto">
-        {/* Logo */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate("/landing")}>
-            <img src="/favicon.png" alt="Financial Friend" className="w-9 h-9 object-contain" />
-            <div>
-              <p className="text-base font-bold text-gray-900 leading-tight">Financial</p>
-              <p className="text-base font-black text-[#7c3aed] leading-tight tracking-wide">FRIEND</p>
+    <div className="min-h-screen flex relative overflow-hidden" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif", background: "#030712" }}>
+
+      {/* ── Animated Background ───────────────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none">
+        <FloatingOrb x="5%" y="10%" size={420} color="radial-gradient(circle, #7c3aed, #4f46e5)" duration={12} />
+        <FloatingOrb x="60%" y="60%" size={380} color="radial-gradient(circle, #0ea5e9, #7c3aed)" duration={15} />
+        <FloatingOrb x="30%" y="70%" size={260} color="radial-gradient(circle, #06b6d4, #4f46e5)" duration={10} />
+        <FloatingOrb x="80%" y="5%" size={300} color="radial-gradient(circle, #8b5cf6, #0ea5e9)" duration={13} />
+        <FloatingOrb x="15%" y="50%" size={180} color="radial-gradient(circle, #a78bfa, transparent)" duration={8} />
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-[0.035]"
+          style={{ backgroundImage: "linear-gradient(rgba(167,139,250,1) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,1) 1px,transparent 1px)", backgroundSize: "48px 48px" }} />
+      </div>
+
+      {/* ── Left panel: Form (glassmorphism card) ─────────────── */}
+      <motion.div
+        initial={{ opacity: 0, x: -40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 flex-1 lg:w-1/2 flex flex-col justify-center items-center px-6 sm:px-10 lg:px-0 py-12"
+      >
+        <div className="w-full max-w-sm mx-auto">
+          {/* Glass card */}
+          <div className="rounded-3xl border border-white/10 bg-white/[0.05] backdrop-blur-2xl shadow-[0_0_60px_rgba(124,58,237,0.15),inset_0_1px_0_rgba(255,255,255,0.1)] p-8">
+            {/* Top shimmer */}
+            <div className="absolute top-0 left-12 right-12 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full" />
+
+            {/* Logo */}
+            <div className="mb-8">
+              <motion.div
+                className="flex items-center gap-3 cursor-pointer w-fit"
+                onClick={() => navigate("/landing")}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <img src="/ff-logo.png" alt="Financial Friend" className="h-10 w-auto object-contain" />
+              </motion.div>
             </div>
-          </div>
-        </div>
 
-        {/* Form header */}
-        <div className="mb-8 max-w-sm">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            {subView === "verify" ? "Verify Email" : subView === "forgot-email" ? "Reset Password" : subView === "forgot-sent" ? "Check Your Email" : isLogin ? "Welcome back" : "Create account"}
-          </h1>
-          <p className="text-gray-500 mt-1.5 text-sm">
-            {subView === "verify" ? "Enter the code sent to your inbox" : subView === "forgot-email" ? "We'll send you a reset link" : subView === "forgot-sent" ? "Reset link has been sent" : isLogin ? "Sign in to access CAS Analyzer" : "Join CAS Analyzer today — it's free"}
-          </p>
-        </div>
+            {/* Header */}
+            <AnimatePresence mode="wait">
+              <motion.div key={`hdr-${subView}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mb-7">
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  {subView === "verify" ? "Verify your email" : subView === "forgot-email" ? "Reset password" : subView === "forgot-sent" ? "Check your inbox" : isLogin ? "Welcome back" : "Create account"}
+                </h1>
+                <p className="text-white/40 mt-1 text-sm">
+                  {subView === "verify" ? "Enter the code we sent you" : subView === "forgot-email" ? "We'll send you a reset link" : subView === "forgot-sent" ? "Reset link has been sent" : isLogin ? "Sign in to CAS Analyzer" : "Join CAS Analyzer today — free"}
+                </p>
+              </motion.div>
+            </AnimatePresence>
 
-        {/* Form */}
-        <div className="w-full max-w-sm">
-          <AnimatePresence mode="wait">
-            <motion.div key={subView} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-              {renderForm()}
-            </motion.div>
-          </AnimatePresence>
+            {/* Form content */}
+            <AnimatePresence mode="wait">
+              <motion.div key={`form-${subView}`} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.22 }}>
+                {renderForm()}
+              </motion.div>
+            </AnimatePresence>
 
-          {/* Error */}
-          {error && (
-            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl py-2.5 px-3.5" data-testid="text-error">
-              {error}
-            </motion.div>
-          )}
-
-          {/* Footer toggle */}
-          {(subView === "login" || subView === "signup") && (
-            <p className="mt-6 text-sm text-gray-500 text-center">
-              {isLogin ? (
-                <>Don't have an account?{" "}<button onClick={() => switchTo("signup")} className="font-semibold text-[#7c3aed] hover:text-[#6d28d9] transition-colors" data-testid="link-signup">Sign up</button></>
-              ) : (
-                <>Already have an account?{" "}<button onClick={() => switchTo("login")} className="font-semibold text-[#7c3aed] hover:text-[#6d28d9] transition-colors" data-testid="link-login">Sign in</button></>
+            {/* Error */}
+            <AnimatePresence>
+              {error && (
+                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="mt-4 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl py-2.5 px-3.5" data-testid="text-error">
+                  {error}
+                </motion.div>
               )}
-            </p>
-          )}
-        </div>
-      </div>
+            </AnimatePresence>
 
-      {/* ── Right panel: Brand ───────────────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center px-16 py-12 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 40%, #0f172a 100%)" }}>
-        {/* Decorative circles */}
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #a78bfa, transparent)" }} />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
-
-        <div className="relative z-10 text-center max-w-md">
-          {/* Brand logo */}
-          <div className="flex items-center justify-center gap-3 mb-10">
-            <img src="/favicon.png" alt="Financial Friend" className="w-12 h-12 object-contain brightness-0 invert" />
-            <div className="text-left">
-              <p className="text-xl font-bold text-white/90 leading-tight">Financial</p>
-              <p className="text-xl font-black text-white leading-tight tracking-widest">FRIEND</p>
-            </div>
+            {/* Footer toggle */}
+            {(subView === "login" || subView === "signup") && (
+              <p className="mt-6 text-sm text-white/35 text-center">
+                {isLogin ? (
+                  <>Don't have an account?{" "}
+                    <button onClick={() => switchTo("signup")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-signup">Sign up</button>
+                  </>
+                ) : (
+                  <>Already have an account?{" "}
+                    <button onClick={() => switchTo("login")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-login">Sign in</button>
+                  </>
+                )}
+              </p>
+            )}
           </div>
+        </div>
+      </motion.div>
 
-          <h2 className="text-4xl font-extrabold text-white leading-tight mb-4">
-            {isLogin ? "New beginnings\nstart here." : "Your financial\njourney starts here."}
-          </h2>
-          <p className="text-white/60 text-base leading-relaxed mb-10">
-            {isLogin
-              ? "Analyze your mutual fund portfolio with AI-powered insights in minutes."
-              : "Get personalized financial guidance, smart investment analysis, and CAS report insights."}
-          </p>
+      {/* ── Right panel: Brand ────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+        className="hidden lg:flex lg:w-1/2 relative z-10 flex-col items-center justify-center px-16 py-12"
+      >
+        {/* Glass panel */}
+        <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.05] backdrop-blur-xl shadow-[0_0_80px_rgba(124,58,237,0.2),inset_0_1px_0_rgba(255,255,255,0.08)] p-10 text-center overflow-hidden">
+          {/* Top shimmer */}
+          <div className="absolute top-0 left-10 right-10 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          {/* Inner glow */}
+          <div className="absolute inset-0 rounded-3xl" style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.15) 0%, transparent 60%)" }} />
 
-          {/* Feature bullets */}
-          <div className="space-y-3 text-left mb-10">
-            {["AI-powered CAS PDF analysis", "Portfolio health & asset allocation", "SIP & investment tracking"].map(f => (
-              <div key={f} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-white" />
-                </div>
-                <span className="text-white/80 text-sm">{f}</span>
+          <div className="relative z-10">
+            {/* FF Logo */}
+            <motion.div
+              className="flex justify-center mb-8"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/15 shadow-[0_0_24px_rgba(167,139,250,0.15)]">
+                <img src="/ff-logo.png" alt="Financial Friend" className="h-12 w-auto object-contain" />
               </div>
-            ))}
-          </div>
+            </motion.div>
 
-          {/* CTA to switch */}
-          <SolidButton
-            onClick={() => switchTo(isLogin ? "signup" : "login")}
-            variant="outline"
-            testId={isLogin ? "button-goto-signup" : "button-goto-login"}
-          >
-            {isLogin ? "Create an Account →" : "Sign In Instead →"}
-          </SolidButton>
+            {/* Tagline */}
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={`tag-${isLogin}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.35 }}
+                className="text-3xl font-extrabold text-white leading-tight mb-3"
+              >
+                {isLogin ? "New beginnings\nstart here." : "Your financial\njourney starts here."}
+              </motion.h2>
+            </AnimatePresence>
+
+            <p className="text-white/45 text-sm leading-relaxed mb-8">
+              {isLogin
+                ? "Analyze your mutual fund portfolio with AI-powered insights in minutes."
+                : "Get personalized financial guidance, smart investment analysis, and CAS report insights."}
+            </p>
+
+            {/* Feature pills */}
+            <div className="space-y-2.5 text-left mb-8">
+              {features.map((f, i) => (
+                <motion.div
+                  key={f}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1, duration: 0.3 }}
+                  className="flex items-center gap-3 bg-white/[0.05] rounded-xl px-4 py-2.5 border border-white/[0.07]"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#a78bfa] shadow-[0_0_6px_rgba(167,139,250,0.8)] flex-shrink-0" />
+                  <span className="text-white/70 text-sm">{f}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* CTA glass button */}
+            <motion.button
+              data-testid={isLogin ? "button-goto-signup" : "button-goto-login"}
+              onClick={() => switchTo(isLogin ? "signup" : "login")}
+              whileHover={{ scale: 1.02, boxShadow: "0 0 28px rgba(167,139,250,0.35)" }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full py-3.5 rounded-xl font-semibold text-sm border border-white/20 bg-white/[0.08] text-white backdrop-blur-sm transition-colors hover:bg-white/[0.13] hover:border-white/30"
+            >
+              {isLogin ? "Create an Account →" : "Sign In Instead →"}
+            </motion.button>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
