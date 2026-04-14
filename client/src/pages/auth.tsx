@@ -813,49 +813,76 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
   const features = ["AI-powered CAS PDF analysis", "Portfolio health & asset allocation", "SIP & investment tracking"];
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+    <div
+      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden"
+      style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif", background: "#07091a" }}
+    >
+      {/* ── Animated background orbs ── */}
+      <FloatingOrb x="-5%" y="5%"   size={500} color="radial-gradient(circle, #7c3aed, transparent)" duration={14} />
+      <FloatingOrb x="70%" y="60%"  size={420} color="radial-gradient(circle, #0ea5e9, transparent)" duration={17} />
+      <FloatingOrb x="40%" y="80%"  size={300} color="radial-gradient(circle, #4f46e5, transparent)" duration={11} />
+      <FloatingOrb x="85%" y="5%"   size={280} color="radial-gradient(circle, #a78bfa, transparent)" duration={13} />
+      <FloatingOrb x="20%" y="50%"  size={200} color="radial-gradient(circle, #06b6d4, transparent)" duration={9}  />
 
-      {/* ── Left panel: full-height form area ──────────────────── */}
+      {/* Grid overlay */}
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        style={{ backgroundImage: "linear-gradient(rgba(167,139,250,1) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,1) 1px,transparent 1px)", backgroundSize: "52px 52px" }} />
+
+      {/* ── Centered glass card ── */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-full lg:w-1/2 min-h-screen flex flex-col justify-center overflow-hidden"
-        style={{ background: "#0a0d1a" }}
+        key={isLogin ? "login-card" : "signup-card"}
+        initial={{ opacity: 0, y: 28, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -20, scale: 0.97 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md mx-4"
       >
-        {/* Subtle left-panel orbs */}
-        <FloatingOrb x="-10%" y="15%" size={320} color="radial-gradient(circle, #7c3aed, transparent)" duration={14} />
-        <FloatingOrb x="60%" y="75%" size={240} color="radial-gradient(circle, #4f46e5, transparent)" duration={11} />
-        {/* Grid */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{ backgroundImage: "linear-gradient(rgba(167,139,250,1) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,1) 1px,transparent 1px)", backgroundSize: "48px 48px" }} />
+        {/* Card */}
+        <div className="rounded-3xl border border-white/10 bg-white/[0.05] backdrop-blur-2xl shadow-[0_8px_60px_rgba(124,58,237,0.2),0_0_0_1px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.08)] px-8 py-10">
 
-        {/* Content — scrollable inner area */}
-        <div className="relative z-10 w-full max-w-md mx-auto px-8 py-16">
+          {/* Top shimmer */}
+          <div className="absolute top-0 left-10 right-10 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full" />
+
           {/* Logo */}
           <motion.div
-            className="mb-10 cursor-pointer w-fit"
+            className="mb-8 cursor-pointer w-fit"
             onClick={() => navigate("/landing")}
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
           >
             <img src="/ff-logo.png" alt="Financial Friend" className="h-10 w-auto object-contain" />
           </motion.div>
 
           {/* Header */}
           <AnimatePresence mode="wait">
-            <motion.div key={`hdr-${subView}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="mb-8">
-              <h1 className="text-3xl font-bold text-white tracking-tight">
-                {subView === "verify" ? "Verify your email" : subView === "forgot-email" ? "Reset password" : subView === "forgot-sent" ? "Check your inbox" : isLogin ? "Welcome back" : "Create account"}
+            <motion.div
+              key={`hdr-${subView}`}
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="mb-7"
+            >
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                {subView === "verify"       ? "Verify your email"   :
+                 subView === "forgot-email" ? "Reset password"      :
+                 subView === "forgot-sent"  ? "Check your inbox"    :
+                 isLogin                    ? "Welcome back"        : "Create account"}
               </h1>
-              <p className="text-white/40 mt-2 text-sm">
-                {subView === "verify" ? "Enter the 6-digit code we sent you" : subView === "forgot-email" ? "We'll send you a reset link" : subView === "forgot-sent" ? "Reset link has been sent" : isLogin ? "Sign in to access CAS Analyzer" : "Join CAS Analyzer today — it's free"}
+              <p className="text-white/40 mt-1.5 text-sm">
+                {subView === "verify"       ? "Enter the 6-digit code we sent you"  :
+                 subView === "forgot-email" ? "We'll send a reset link to your email" :
+                 subView === "forgot-sent"  ? "Reset link sent — check your inbox"   :
+                 isLogin                    ? "Sign in to access CAS Analyzer"       :
+                                             "Join CAS Analyzer today — it's free"}
               </p>
             </motion.div>
           </AnimatePresence>
 
-          {/* Form */}
+          {/* Form content */}
           <AnimatePresence mode="wait">
-            <motion.div key={`form-${subView}`} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.22 }}>
+            <motion.div
+              key={`form-${subView}`}
+              initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.22 }}
+            >
               {renderForm()}
             </motion.div>
           </AnimatePresence>
@@ -863,8 +890,11 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
           {/* Error */}
           <AnimatePresence>
             {error && (
-              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="mt-4 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl py-2.5 px-3.5" data-testid="text-error">
+              <motion.div
+                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="mt-4 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl py-2.5 px-3.5"
+                data-testid="text-error"
+              >
                 {error}
               </motion.div>
             )}
@@ -872,7 +902,7 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
 
           {/* Footer toggle */}
           {(subView === "login" || subView === "signup") && (
-            <p className="mt-7 text-sm text-white/35 text-center">
+            <p className="mt-6 text-sm text-white/35 text-center">
               {isLogin ? (
                 <>Don't have an account?{" "}
                   <button onClick={() => navigate("/signup")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-signup">Sign up</button>
@@ -884,86 +914,9 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
               )}
             </p>
           )}
-        </div>
-      </motion.div>
 
-      {/* ── Right panel: full-height brand area ────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="hidden lg:flex lg:w-1/2 min-h-screen flex-col items-center justify-center relative overflow-hidden px-16 py-16"
-        style={{ background: "linear-gradient(145deg, #1a0533 0%, #130d3a 35%, #0c1a3d 70%, #071228 100%)" }}
-      >
-        {/* Right-panel orbs */}
-        <FloatingOrb x="10%" y="5%" size={400} color="radial-gradient(circle, #7c3aed, transparent)" duration={13} />
-        <FloatingOrb x="55%" y="55%" size={350} color="radial-gradient(circle, #0ea5e9, transparent)" duration={16} />
-        <FloatingOrb x="-5%" y="65%" size={220} color="radial-gradient(circle, #a78bfa, transparent)" duration={9} />
-        <FloatingOrb x="70%" y="10%" size={260} color="radial-gradient(circle, #6366f1, transparent)" duration={11} />
-        {/* Grid */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: "linear-gradient(rgba(167,139,250,1) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,1) 1px,transparent 1px)", backgroundSize: "52px 52px" }} />
-        {/* Top shimmer line */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/50 to-transparent" />
-        {/* Left border separator */}
-        <div className="absolute top-0 bottom-0 left-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-
-        <div className="relative z-10 text-center max-w-md w-full">
-          {/* Floating FF logo */}
-          <motion.div
-            className="flex justify-center mb-10"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="bg-white/[0.07] backdrop-blur-xl rounded-3xl p-4 border border-white/10 shadow-[0_0_40px_rgba(124,58,237,0.25),inset_0_1px_0_rgba(255,255,255,0.1)]">
-              <img src="/ff-logo.png" alt="Financial Friend" className="h-14 w-auto object-contain" />
-            </div>
-          </motion.div>
-
-          {/* Tagline */}
-          <AnimatePresence mode="wait">
-            <motion.h2
-              key={`tag-${isLogin}`}
-              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }}
-              transition={{ duration: 0.35 }}
-              className="text-4xl font-extrabold text-white leading-tight mb-4 whitespace-pre-line"
-            >
-              {isLogin ? "New beginnings\nstart here." : "Your financial\njourney starts here."}
-            </motion.h2>
-          </AnimatePresence>
-
-          <p className="text-white/45 text-base leading-relaxed mb-10">
-            {isLogin
-              ? "Analyze your mutual fund portfolio with AI-powered insights in minutes."
-              : "Get personalized financial guidance, smart investment analysis, and CAS report insights."}
-          </p>
-
-          {/* Feature pills */}
-          <div className="space-y-3 text-left mb-10">
-            {features.map((f, i) => (
-              <motion.div
-                key={f}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.12, duration: 0.3 }}
-                className="flex items-center gap-3 bg-white/[0.05] backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-              >
-                <div className="w-2 h-2 rounded-full bg-[#a78bfa] shadow-[0_0_8px_rgba(167,139,250,1)] flex-shrink-0" />
-                <span className="text-white/75 text-sm font-medium">{f}</span>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* CTA button */}
-          <motion.button
-            data-testid={isLogin ? "button-goto-signup" : "button-goto-login"}
-            onClick={() => navigate(isLogin ? "/signup" : "/login")}
-            whileHover={{ scale: 1.03, boxShadow: "0 0 36px rgba(167,139,250,0.4)" }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full py-4 rounded-2xl font-bold text-sm border border-white/20 bg-white/[0.07] text-white backdrop-blur-md transition-all duration-300 hover:bg-white/[0.12] hover:border-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-          >
-            {isLogin ? "Create an Account →" : "Sign In Instead →"}
-          </motion.button>
+          {/* Bottom shimmer */}
+          <div className="absolute bottom-0 left-10 right-10 h-px bg-gradient-to-r from-transparent via-[#7c3aed]/30 to-transparent rounded-full" />
         </div>
       </motion.div>
     </div>
