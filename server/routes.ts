@@ -1618,18 +1618,21 @@ CAS TEXT:\n${text}`;
       const officialQ = `(${senderQuery}) has:attachment (filename:.pdf OR filename:pdf) ${dateFilter}`;
       const subjectQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateFilter} -from:noreply@accounts.google.com (subject:"consolidated account" OR subject:"account statement" OR subject:CAS OR subject:"mutual fund" OR subject:"kfintech" OR subject:"cams" OR subject:"nsdl" OR subject:"cdsl")`;
       const filenameQ = `has:attachment ${dateFilter} -from:noreply@accounts.google.com (filename:CAS OR filename:consolidated OR filename:statement OR filename:portfolio OR filename:CAMS OR filename:kfintech OR filename:nsdl OR filename:cdsl)`;
+      // Broad catch-all: any PDF in the date range — picks up forwarded CAS emails, personal senders, no-subject emails
+      const broadAllQ = `has:attachment (filename:.pdf OR filename:pdf) ${dateFilter} -from:noreply@accounts.google.com -from:no-reply@accounts.google.com -from:mailer-daemon@googlemail.com`;
 
       console.log(`[Gmail] scan-range: from=${fromDate} to=${toDate} for ${email}`);
 
-      const [officialMsgs, subjectMsgs, filenameMsgs] = await Promise.all([
+      const [officialMsgs, subjectMsgs, filenameMsgs, broadAllMsgs] = await Promise.all([
         fetchAllMessageIds(gmail, officialQ, 200),
         fetchAllMessageIds(gmail, subjectQ, 200),
         fetchAllMessageIds(gmail, filenameQ, 200),
+        fetchAllMessageIds(gmail, broadAllQ, 100),
       ]);
 
       const seen = new Set<string>();
       const allMsgs: { id?: string | null }[] = [];
-      for (const msg of [...officialMsgs, ...subjectMsgs, ...filenameMsgs]) {
+      for (const msg of [...officialMsgs, ...subjectMsgs, ...filenameMsgs, ...broadAllMsgs]) {
         if (msg.id && !seen.has(msg.id)) { seen.add(msg.id); allMsgs.push(msg); }
       }
 

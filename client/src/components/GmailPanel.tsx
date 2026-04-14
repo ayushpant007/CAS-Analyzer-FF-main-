@@ -111,6 +111,8 @@ function GmailConnectModal({ userEmail, onClose }: { userEmail: string; onClose:
 
 type ScanStep = "idle" | "picking-dates" | "searching" | "showing-results" | "importing";
 
+type ScanMode = "range" | "single";
+
 function ScanInboxModal({
   userEmail,
   onClose,
@@ -121,12 +123,21 @@ function ScanInboxModal({
   onNavigateToReport: (reportId: number, remaining: PendingScanPdf[]) => void;
 }) {
   const [step, setStep] = useState<ScanStep>("picking-dates");
+  const [scanMode, setScanMode] = useState<ScanMode>("range");
+  const [singleDate, setSingleDate] = useState<string>("");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [foundPdfs, setFoundPdfs] = useState<PendingScanPdf[]>([]);
   const [importingIdx, setImportingIdx] = useState<number | null>(null);
   const [error, setError] = useState<string>("");
   const [importError, setImportError] = useState<string>("");
+
+  const today = new Date().toISOString().split("T")[0];
+
+  // Resolve effective from/to based on mode
+  const effectiveFrom = scanMode === "single" ? singleDate : fromDate;
+  const effectiveTo   = scanMode === "single" ? singleDate : toDate;
+  const canSearch     = scanMode === "single" ? !!singleDate : (!!fromDate && !!toDate);
 
   async function handleSearch() {
     setError("");
@@ -135,7 +146,7 @@ function ScanInboxModal({
       const res = await fetch("/api/gmail/scan-range", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, fromDate, toDate }),
+        body: JSON.stringify({ email: userEmail, fromDate: effectiveFrom, toDate: effectiveTo }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Search failed");
@@ -172,7 +183,7 @@ function ScanInboxModal({
       if (!res.ok) throw new Error(data.error || "Import failed");
       const remaining = pdfs.filter((_, i) => i !== idx);
       sessionStorage.setItem(PENDING_SCAN_KEY, JSON.stringify(remaining));
-      sessionStorage.setItem(PENDING_SCAN_META_KEY, JSON.stringify({ fromDate, toDate }));
+      sessionStorage.setItem(PENDING_SCAN_META_KEY, JSON.stringify({ fromDate: effectiveFrom, toDate: effectiveTo }));
       onNavigateToReport(data.reportId, remaining);
     } catch (e: any) {
       setImportError(e.message || "Could not import PDF");
@@ -184,6 +195,10 @@ function ScanInboxModal({
   const fmtDate = (iso: string) => {
     try { return format(new Date(iso), "dd MMM yyyy"); } catch { return iso; }
   };
+
+  const resultLabel = scanMode === "single"
+    ? `on ${fmtDate(singleDate)}`
+    : `from ${fmtDate(fromDate)} to ${fmtDate(toDate)}`;
 
   return (
     <motion.div
@@ -206,8 +221,8 @@ function ScanInboxModal({
               <DatabaseZap size={16} className="text-purple-400" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm">Scan Full Inbox</h3>
-              <p className="text-xs text-white/40">Find CAS PDFs in a date range</p>
+              <h3 className="font-bold text-white text-sm">Scan Inbox</h3>
+              <p className="text-xs text-white/40">Find CAS PDFs in your Gmail</p>
             </div>
           </div>
           {step !== "importing" && (
@@ -219,66 +234,130 @@ function ScanInboxModal({
           {/* Step: Date Picker */}
           {step === "picking-dates" && (
             <div className="space-y-4">
-              <p className="text-xs text-white/50 leading-relaxed">
-                Select the time period to scan your Gmail for CAS statements (NSDL, CDSL, CAMS, KFintech, etc.)
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">From</label>
-                  <div className="relative">
-                    <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
-                    <input
-                      type="date"
-                      value={fromDate}
-                      max={toDate}
-                      onChange={e => setFromDate(e.target.value)}
-                      data-testid="input-scan-from-date"
-                      className="w-full pl-8 pr-3 py-2.5 rounded-xl text-sm text-white outline-none"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(147,51,234,0.3)", colorScheme: "dark" }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">To</label>
-                  <div className="relative">
-                    <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
-                    <input
-                      type="date"
-                      value={toDate}
-                      min={fromDate}
-                      max={new Date().toISOString().split("T")[0]}
-                      onChange={e => setToDate(e.target.value)}
-                      data-testid="input-scan-to-date"
-                      className="w-full pl-8 pr-3 py-2.5 rounded-xl text-sm text-white outline-none"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(147,51,234,0.3)", colorScheme: "dark" }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick date shortcuts */}
-              <div className="flex gap-2 flex-wrap">
-                {[
-                  { label: "Last 1 month", months: 1 },
-                  { label: "Last 3 months", months: 3 },
-                  { label: "Last 6 months", months: 6 },
-                  { label: "Last 1 year", months: 12 },
-                  { label: "Last 2 years", months: 24 },
-                ].map(({ label, months }) => (
+              {/* Mode toggle */}
+              <div className="flex rounded-xl p-0.5 gap-0.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(147,51,234,0.2)" }}>
+                {(["range", "single"] as ScanMode[]).map(mode => (
                   <button
-                    key={label}
-                    onClick={() => {
-                      const to = new Date();
-                      const from = new Date();
-                      from.setMonth(from.getMonth() - months);
-                      setFromDate(from.toISOString().split("T")[0]);
-                      setToDate(to.toISOString().split("T")[0]);
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
-                    style={{ background: "rgba(147,51,234,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "#c084fc" }}
-                  >{label}</button>
+                    key={mode}
+                    onClick={() => { setScanMode(mode); setError(""); }}
+                    data-testid={`button-scan-mode-${mode}`}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+                    style={scanMode === mode
+                      ? { background: "linear-gradient(135deg,rgba(147,51,234,0.7),rgba(79,70,229,0.7))", color: "#fff", boxShadow: "0 2px 12px rgba(147,51,234,0.3)" }
+                      : { color: "rgba(255,255,255,0.4)" }
+                    }
+                  >
+                    {mode === "range" ? "Date Range" : "Single Day"}
+                  </button>
                 ))}
               </div>
+
+              <p className="text-xs text-white/50 leading-relaxed">
+                {scanMode === "single"
+                  ? "Pick one day to scan all PDF emails received on that date."
+                  : "Select a time period to scan your Gmail for CAS statements (NSDL, CDSL, CAMS, KFintech, etc.)"}
+              </p>
+
+              {/* Single Day picker */}
+              {scanMode === "single" && (
+                <div>
+                  <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Date</label>
+                  <div className="relative">
+                    <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
+                    <input
+                      type="date"
+                      value={singleDate}
+                      max={today}
+                      onChange={e => setSingleDate(e.target.value)}
+                      data-testid="input-scan-single-date"
+                      className="w-full pl-8 pr-3 py-2.5 rounded-xl text-sm text-white outline-none"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(147,51,234,0.3)", colorScheme: "dark" }}
+                    />
+                  </div>
+                  {/* Quick day shortcuts */}
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {[
+                      { label: "Today", offset: 0 },
+                      { label: "Yesterday", offset: 1 },
+                      { label: "2 days ago", offset: 2 },
+                    ].map(({ label, offset }) => (
+                      <button
+                        key={label}
+                        onClick={() => {
+                          const d = new Date();
+                          d.setDate(d.getDate() - offset);
+                          setSingleDate(d.toISOString().split("T")[0]);
+                        }}
+                        data-testid={`button-scan-day-${label.toLowerCase().replace(/\s+/g,"-")}`}
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                        style={{ background: "rgba(147,51,234,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "#c084fc" }}
+                      >{label}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Date Range pickers */}
+              {scanMode === "range" && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">From</label>
+                      <div className="relative">
+                        <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
+                        <input
+                          type="date"
+                          value={fromDate}
+                          max={toDate || today}
+                          onChange={e => setFromDate(e.target.value)}
+                          data-testid="input-scan-from-date"
+                          className="w-full pl-8 pr-3 py-2.5 rounded-xl text-sm text-white outline-none"
+                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(147,51,234,0.3)", colorScheme: "dark" }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">To</label>
+                      <div className="relative">
+                        <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
+                        <input
+                          type="date"
+                          value={toDate}
+                          min={fromDate}
+                          max={today}
+                          onChange={e => setToDate(e.target.value)}
+                          data-testid="input-scan-to-date"
+                          className="w-full pl-8 pr-3 py-2.5 rounded-xl text-sm text-white outline-none"
+                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(147,51,234,0.3)", colorScheme: "dark" }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {/* Quick range shortcuts */}
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { label: "Last 1 month", months: 1 },
+                      { label: "Last 3 months", months: 3 },
+                      { label: "Last 6 months", months: 6 },
+                      { label: "Last 1 year", months: 12 },
+                      { label: "Last 2 years", months: 24 },
+                    ].map(({ label, months }) => (
+                      <button
+                        key={label}
+                        onClick={() => {
+                          const to = new Date();
+                          const from = new Date();
+                          from.setMonth(from.getMonth() - months);
+                          setFromDate(from.toISOString().split("T")[0]);
+                          setToDate(to.toISOString().split("T")[0]);
+                        }}
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                        style={{ background: "rgba(147,51,234,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "#c084fc" }}
+                      >{label}</button>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {error && (
                 <div className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs" style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171" }}>
@@ -288,17 +367,19 @@ function ScanInboxModal({
 
               <button
                 onClick={handleSearch}
-                disabled={!fromDate || !toDate}
+                disabled={!canSearch}
                 data-testid="button-scan-search"
-                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
                 style={{
                   background: "linear-gradient(135deg,rgba(147,51,234,0.85),rgba(79,70,229,0.85))",
                   color: "#fff",
-                  boxShadow: "0 0 24px rgba(147,51,234,0.4)",
+                  boxShadow: canSearch ? "0 0 24px rgba(147,51,234,0.4)" : "none",
                 }}
               >
                 <Search size={14} />
-                Search Inbox ({fmtDate(fromDate)} – {fmtDate(toDate)})
+                {scanMode === "single"
+                  ? `Search ${singleDate ? fmtDate(singleDate) : "selected day"}`
+                  : `Search Inbox (${fmtDate(fromDate)} – ${fmtDate(toDate)})`}
               </button>
             </div>
           )}
@@ -310,7 +391,7 @@ function ScanInboxModal({
                 <RefreshCw size={20} className="text-purple-400 animate-spin" />
               </div>
               <p className="text-white font-semibold text-sm">Scanning your inbox...</p>
-              <p className="text-white/40 text-xs">Looking for CAS PDFs from {fmtDate(fromDate)} to {fmtDate(toDate)}</p>
+              <p className="text-white/40 text-xs">Looking for CAS PDFs {resultLabel}</p>
             </div>
           )}
 
@@ -332,14 +413,16 @@ function ScanInboxModal({
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 size={14} className="text-emerald-400" />
                 <p className="text-sm text-white font-semibold">
-                  Found {foundPdfs.length} PDF{foundPdfs.length !== 1 ? "s" : ""} from {fmtDate(fromDate)} to {fmtDate(toDate)}
+                  Found {foundPdfs.length} PDF{foundPdfs.length !== 1 ? "s" : ""} {resultLabel}
                 </p>
               </div>
 
               {foundPdfs.length === 0 ? (
                 <div className="py-6 text-center">
-                  <p className="text-white/40 text-sm">No CAS PDFs found in this date range.</p>
-                  <p className="text-white/25 text-xs mt-1">Try a wider date range or check your email sender settings.</p>
+                  <p className="text-white/40 text-sm">No CAS PDFs found {resultLabel}.</p>
+                  <p className="text-white/25 text-xs mt-1">
+                    {scanMode === "single" ? "Try a different day or switch to Date Range." : "Try a wider date range or check your email sender settings."}
+                  </p>
                   <button
                     onClick={() => setStep("picking-dates")}
                     className="mt-4 px-4 py-2 rounded-lg text-xs font-semibold"
@@ -387,7 +470,7 @@ function ScanInboxModal({
                   <button
                     onClick={() => setStep("picking-dates")}
                     className="w-full mt-1 py-2 rounded-xl text-xs font-medium text-white/40 hover:text-white/60 transition-colors"
-                  >← Change date range</button>
+                  >← Change date selection</button>
                 </>
               )}
             </div>
