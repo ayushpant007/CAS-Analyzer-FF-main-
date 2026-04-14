@@ -146,7 +146,7 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getGmailConnection(conn.userEmail);
     if (existing) {
       const [updated] = await db.update(gmailConnections)
-        .set({ accessToken: conn.accessToken, refreshToken: conn.refreshToken, expiresAt: conn.expiresAt, casPassword: conn.casPassword })
+        .set({ accessToken: conn.accessToken, refreshToken: conn.refreshToken, expiresAt: conn.expiresAt, casPassword: conn.casPassword, disconnected: false, lastCheckedAt: null })
         .where(eq(gmailConnections.userEmail, conn.userEmail.toLowerCase()))
         .returning();
       return updated;

@@ -1508,14 +1508,9 @@ CAS TEXT:\n${text}`;
     if (!userEmail) return res.status(400).send("Missing email param");
     if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET) return res.status(500).send("Gmail OAuth not configured");
 
-    // ── Silent reconnect: if this user previously connected and still has tokens, restore them
-    const stored = await storage.reconnectGmail(userEmail, casPassword || undefined);
-    if (stored) {
-      console.log(`[Gmail] Silent reconnect for ${userEmail} — reusing stored tokens`);
-      pollGmailAccount(stored as any).catch(() => {});
-      return res.redirect("/home?gmail=connected");
-    }
-
+    // Always go through Google OAuth so user can pick the correct Gmail account.
+    // (Silent reconnect was removed because it bypassed the Google account picker,
+    //  causing connections to the wrong inbox.)
     const redirectUri = getRequestRedirectUri(req);
     console.log(`[Gmail] OAuth flow started — redirect_uri: ${redirectUri}`);
 
