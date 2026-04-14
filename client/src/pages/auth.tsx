@@ -886,11 +886,11 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
               <p className="mt-6 text-sm text-white/35 text-center">
                 {isLogin ? (
                   <>Don't have an account?{" "}
-                    <button onClick={() => switchTo("signup")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-signup">Sign up</button>
+                    <button onClick={() => navigate("/signup")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-signup">Sign up</button>
                   </>
                 ) : (
                   <>Already have an account?{" "}
-                    <button onClick={() => switchTo("login")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-login">Sign in</button>
+                    <button onClick={() => navigate("/login")} className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors" data-testid="link-login">Sign in</button>
                   </>
                 )}
               </p>
@@ -964,7 +964,7 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
             {/* CTA glass button */}
             <motion.button
               data-testid={isLogin ? "button-goto-signup" : "button-goto-login"}
-              onClick={() => switchTo(isLogin ? "signup" : "login")}
+              onClick={() => navigate(isLogin ? "/signup" : "/login")}
               whileHover={{ scale: 1.02, boxShadow: "0 0 28px rgba(167,139,250,0.35)" }}
               whileTap={{ scale: 0.97 }}
               className="w-full py-3.5 rounded-xl font-semibold text-sm border border-white/20 bg-white/[0.08] text-white backdrop-blur-sm transition-colors hover:bg-white/[0.13] hover:border-white/30"
