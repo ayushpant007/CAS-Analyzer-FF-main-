@@ -61,11 +61,13 @@ export default function Home() {
   const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
   const { data: reportsList } = useReports(userEmail);
 
+  const isEmbedded = new URLSearchParams(window.location.search).get("embedded") === "true";
+
   return (
     <div className="min-h-screen font-sans pb-20 relative">
       <AnimatedBackground />
       {/* Navbar */}
-      <nav
+      {!isEmbedded && <nav
         className="border-b"
         style={{
           background: "rgba(10, 14, 46, 0.6)",
@@ -133,7 +135,7 @@ export default function Home() {
             )}
           </div>
         </div>
-      </nav>
+      </nav>}
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (

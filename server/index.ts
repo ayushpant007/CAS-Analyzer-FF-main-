@@ -22,6 +22,15 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+app.use((_req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "frame-ancestors 'self' https://www.financialfriend.in https://financialfriend.in"
+  );
+  res.removeHeader("X-Frame-Options");
+  next();
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",

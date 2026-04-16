@@ -499,7 +499,7 @@ export default function LandingPage() {
       <CyberBackground />
 
       {/* ── Header ── */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
+      {!isEmbedded && <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
           className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#7c3aed] flex items-center justify-center shadow-[0_0_18px_rgba(0,212,255,0.5)]">
