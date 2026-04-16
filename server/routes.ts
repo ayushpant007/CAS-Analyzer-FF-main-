@@ -785,6 +785,32 @@ ${text}`;
     res.json({ ok: true, name: record.name, email: email.toLowerCase() });
   });
 
+  // ── SSO endpoint — for financialfriendai.com auto-login ──────────────────────
+  app.post("/api/auth/sso", async (req, res) => {
+    const { email, name, uid } = req.body as { email: string; name?: string; uid?: string; token?: string };
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    try {
+      let user = await storage.getUserByEmail(email.toLowerCase());
+      if (!user) {
+        const randomHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
+        user = await storage.createUser({
+          name: name || email.split("@")[0],
+          email: email.toLowerCase(),
+          passwordHash: randomHash,
+          mobile: null,
+        });
+        console.log(`[SSO] Created new user via SSO: ${email}`);
+      } else {
+        console.log(`[SSO] Existing user logged in via SSO: ${email}`);
+      }
+      return res.json({ success: true, user: { email: user.email, name: user.name } });
+    } catch (err: any) {
+      console.error("[SSO] Error:", err.message);
+      return res.status(500).json({ error: "SSO login failed" });
+    }
+  });
+
   // ── Forgot Password – send reset link ────────────────────────────────────────
   app.post("/api/auth/forgot-password", async (req, res) => {
     const { email } = req.body as { email: string };

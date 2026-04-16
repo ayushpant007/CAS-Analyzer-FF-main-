@@ -36,6 +36,19 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
 
   const isLimitReached = (dailyUsage?.remaining ?? 1) <= 0;
 
+  const extractPasswordFromFilename = (filename: string): string | null => {
+    const match = filename.match(/\(([^)]+)\)/);
+    return match ? match[1].trim() : null;
+  };
+
+  const applyFile = (f: File) => {
+    setFile(f);
+    const extracted = extractPasswordFromFilename(f.name);
+    if (extracted) {
+      setPassword(extracted);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -43,7 +56,7 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
     if (e.dataTransfer.files?.[0]) {
       const f = e.dataTransfer.files[0];
       if (f.type === "application/pdf") {
-        setFile(f);
+        applyFile(f);
       } else {
         toast({ title: "Invalid file type", description: "Please upload a PDF file.", variant: "destructive" });
       }
@@ -393,7 +406,7 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
                     accept=".pdf"
                     ref={fileInputRef}
                     className="hidden"
-                    onChange={(e) => { if (e.target.files?.[0]) setFile(e.target.files[0]); }}
+                    onChange={(e) => { if (e.target.files?.[0]) applyFile(e.target.files[0]); }}
                   />
                 </motion.div>
               ) : (
@@ -506,6 +519,11 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
                     >
                       <Lock className="w-4 h-4" style={{ color: "rgba(148,163,184,0.5)" }} />
                       PDF Password (if protected)
+                      {file && extractPasswordFromFilename(file.name) && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-normal" style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(52,211,153,0.3)" }}>
+                          Auto-detected from filename
+                        </span>
+                      )}
                     </label>
                     <input
                       type="password"
@@ -532,7 +550,11 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
                       style={{ background: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.3)" }}
                     >
                       <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                      <p>{error.message}</p>
+                      <p>
+                        {(error.message?.toLowerCase().includes("incorrect password") || error.message?.toLowerCase().includes("wrong password")) && file && extractPasswordFromFilename(file.name)
+                          ? "Could not open PDF. Please check the password in the filename brackets."
+                          : error.message}
+                      </p>
                     </motion.div>
                   )}
 

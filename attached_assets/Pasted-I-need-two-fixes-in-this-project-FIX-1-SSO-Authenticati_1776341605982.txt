@@ -1,0 +1,72 @@
+I need two fixes in this project:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — SSO Authentication
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create an SSO endpoint so financialfriendai.com can auto-login users:
+
+1. CREATE a backend API route:
+   POST /api/auth/sso
+   - Accepts: { email, name, uid, token }
+   - Validate the token with financialfriendai.com's auth 
+     (or simply trust uid+email if both apps share Firebase/same auth provider)
+   - If user with this email does NOT exist → create the account automatically
+   - If user already exists → fetch their account
+   - Return a session token for this app: { success: true, sessionToken: '...' }
+
+2. CREATE a postMessage listener on the frontend (in the root/app component):
+   window.addEventListener('message', (event) => {
+     if (event.origin !== 'https://financialfriendai.com') return;
+     if (event.data.type === 'SSO_TOKEN') {
+       // Save sessionToken to localStorage
+       // Set user as logged in
+       // Redirect to main dashboard (skip login page)
+     }
+   });
+
+3. IF the app is loaded with ?embedded=true in the URL AND an SSO token 
+   is received via postMessage → skip the login/signup screen entirely 
+   and go straight to the dashboard.
+
+4. IF no SSO token is received within 3 seconds AND ?embedded=true is 
+   in the URL → still skip login and show a guest/limited view 
+   (do not show the login form inside the iframe).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — PDF Password Detection Bug
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+There is a bug where PDF passwords written inside brackets in the 
+filename are not being detected or applied correctly.
+
+Example filename: "Sanjoy Sarkar (mypassword123).pdf"
+The password "mypassword123" inside the brackets should be 
+auto-extracted and used to unlock the PDF.
+
+FIX THE FOLLOWING:
+
+1. FIND the PDF upload and processing logic in the codebase.
+
+2. UPDATE the password extraction regex to correctly parse the 
+   password from the filename. Use this pattern:
+   
+   const match = filename.match(/\(([^)]+)\)/);
+   const extractedPassword = match ? match[1].trim() : null;
+
+3. ENSURE the extracted password is passed correctly to the PDF 
+   parsing library (pdfjs, pdf-parse, pypdf, or whatever is used).
+   Check that:
+   - The password is passed as a string, not undefined or null
+   - There are no extra spaces or encoding issues (use .trim())
+   - The password is tried BEFORE showing any "wrong password" error
+
+4. ADD a console.log for debugging:
+   console.log('Extracted password:', extractedPassword);
+   console.log('Attempting to open PDF with this password...');
+   
+   Remove these logs after confirming the fix works.
+
+5. IF the PDF still fails with the extracted password, show the error:
+   "Could not open PDF. Please check the password in the filename brackets."
+   instead of the generic "wrong password" message.
