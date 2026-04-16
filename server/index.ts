@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use((_req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "frame-ancestors 'self' https://www.financialfriend.in https://financialfriend.in"
+    "frame-ancestors 'self' https://financialfriendai.com https://www.financialfriendai.com https://www.financialfriend.in https://financialfriend.in"
   );
   res.removeHeader("X-Frame-Options");
   next();

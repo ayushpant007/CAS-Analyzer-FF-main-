@@ -67,75 +67,77 @@ export default function Home() {
     <div className="min-h-screen font-sans pb-20 relative">
       <AnimatedBackground />
       {/* Navbar */}
-      {!isEmbedded && <nav
-        className="border-b"
-        style={{
-          background: "rgba(10, 14, 46, 0.6)",
-          backdropFilter: "blur(16px)",
-          borderColor: "rgba(96, 165, 250, 0.15)",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setActiveReportId(null)}
-          >
+      {!isEmbedded && (
+        <nav
+          className="border-b"
+          style={{
+            background: "rgba(10, 14, 46, 0.6)",
+            backdropFilter: "blur(16px)",
+            borderColor: "rgba(96, 165, 250, 0.15)",
+          }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-lg"
-              style={{
-                background: "linear-gradient(135deg, #3b6fff, #9333ea)",
-                boxShadow: "0 0 16px rgba(59,111,255,0.5)",
-              }}
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => setActiveReportId(null)}
             >
-              <BarChart2 className="w-5 h-5" />
-            </div>
-            <span
-              className="text-xl font-bold font-display"
-              style={{
-                background: "linear-gradient(90deg, #60a5fa, #c084fc)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              FinAnalyze
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {userName ? (
-              <>
-                {/* Avatar circle with initials */}
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold select-none flex-shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg, #3b6fff, #9333ea)",
-                    color: "#fff",
-                    boxShadow: "0 0 12px rgba(59,111,255,0.45)",
-                    letterSpacing: "0.02em",
-                  }}
-                  title={userName}
-                >
-                  {userName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
-                </div>
-                <button
-                  data-testid="button-logout"
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
-                  style={{ color: "#f87171", border: "1px solid rgba(248,113,113,0.3)", background: "rgba(248,113,113,0.08)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.16)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.08)"; }}
-                >
-                  <LogOut className="w-4 h-4" />
-                  Log out
-                </button>
-              </>
-            ) : (
-              <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
-                AI-Powered Portfolio Insights
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #3b6fff, #9333ea)",
+                  boxShadow: "0 0 16px rgba(59,111,255,0.5)",
+                }}
+              >
+                <BarChart2 className="w-5 h-5" />
               </div>
-            )}
+              <span
+                className="text-xl font-bold font-display"
+                style={{
+                  background: "linear-gradient(90deg, #60a5fa, #c084fc)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                FinAnalyze
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {userName ? (
+                <>
+                  {/* Avatar circle with initials */}
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold select-none flex-shrink-0"
+                    style={{
+                      background: "linear-gradient(135deg, #3b6fff, #9333ea)",
+                      color: "#fff",
+                      boxShadow: "0 0 12px rgba(59,111,255,0.45)",
+                      letterSpacing: "0.02em",
+                    }}
+                    title={userName}
+                  >
+                    {userName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                  <button
+                    data-testid="button-logout"
+                    onClick={() => setShowLogoutConfirm(true)}
+                    className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+                    style={{ color: "#f87171", border: "1px solid rgba(248,113,113,0.3)", background: "rgba(248,113,113,0.08)" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.16)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.08)"; }}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <div className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.9)" }}>
+                  AI-Powered Portfolio Insights
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </nav>}
+        </nav>
+      )}
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (

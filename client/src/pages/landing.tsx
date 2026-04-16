@@ -489,6 +489,7 @@ function PortfolioCard() {
 
 export default function LandingPage() {
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+  const isEmbedded = new URLSearchParams(window.location.search).get("embedded") === "true";
 
   useEffect(() => {
     setCurrentUser(getLoggedInUser());
@@ -499,32 +500,34 @@ export default function LandingPage() {
       <CyberBackground />
 
       {/* ── Header ── */}
-      {!isEmbedded && <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-          className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#7c3aed] flex items-center justify-center shadow-[0_0_18px_rgba(0,212,255,0.5)]">
-            <Zap size={18} className="text-white" />
-          </div>
-          <div>
-            <span className="text-white font-bold tracking-wide text-sm">CAS Analyzer</span>
-            <div className="text-[10px] text-white/30 tracking-widest uppercase leading-none">Portfolio Intelligence</div>
-          </div>
-        </motion.div>
-        {currentUser && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-            className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{ background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", boxShadow: "0 0 12px rgba(0,212,255,0.4)" }}>
-              {currentUser.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+      {!isEmbedded && (
+        <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
+            className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#7c3aed] flex items-center justify-center shadow-[0_0_18px_rgba(0,212,255,0.5)]">
+              <Zap size={18} className="text-white" />
             </div>
-            <span className="text-sm text-white/60 font-medium hidden sm:block">{currentUser.name}</span>
-            <button onClick={() => { localStorage.removeItem("cas_user"); window.location.reload(); }}
-              className="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1 rounded-lg border border-white/10 hover:border-white/20">
-              Log out
-            </button>
+            <div>
+              <span className="text-white font-bold tracking-wide text-sm">CAS Analyzer</span>
+              <div className="text-[10px] text-white/30 tracking-widest uppercase leading-none">Portfolio Intelligence</div>
+            </div>
           </motion.div>
-        )}
-      </header>
+          {currentUser && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
+              className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                style={{ background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", boxShadow: "0 0 12px rgba(0,212,255,0.4)" }}>
+                {currentUser.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+              </div>
+              <span className="text-sm text-white/60 font-medium hidden sm:block">{currentUser.name}</span>
+              <button onClick={() => { localStorage.removeItem("cas_user"); window.location.reload(); }}
+                className="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1 rounded-lg border border-white/10 hover:border-white/20">
+                Log out
+              </button>
+            </motion.div>
+          )}
+        </header>
+      )}
 
       {/* ── Hero ── */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-12">
