@@ -19,6 +19,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByMobile(mobile: string): Promise<User | undefined>;
   updateUserPassword(email: string, passwordHash: string): Promise<void>;
+  updateUserName(email: string, name: string): Promise<void>;
   getGmailConnection(userEmail: string): Promise<GmailConnection | undefined>;
   upsertGmailConnection(conn: InsertGmailConnection): Promise<GmailConnection>;
   getAllGmailConnections(): Promise<GmailConnection[]>;
@@ -134,6 +135,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserPassword(email: string, passwordHash: string): Promise<void> {
     await db.update(users).set({ passwordHash }).where(eq(users.email, email.toLowerCase()));
+  }
+
+  async updateUserName(email: string, name: string): Promise<void> {
+    await db.update(users).set({ name }).where(eq(users.email, email.toLowerCase()));
   }
 
   async getGmailConnection(userEmail: string): Promise<GmailConnection | undefined> {

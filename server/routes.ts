@@ -791,20 +791,26 @@ ${text}`;
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     try {
+      const ssoName = (name || email.split("@")[0]).trim();
       let user = await storage.getUserByEmail(email.toLowerCase());
       if (!user) {
         const randomHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
         user = await storage.createUser({
-          name: name || email.split("@")[0],
+          name: ssoName,
           email: email.toLowerCase(),
           passwordHash: randomHash,
           mobile: null,
         });
-        console.log(`[SSO] Created new user via SSO: ${email}`);
+        console.log(`[SSO] Created new user via SSO: ${email} (${ssoName})`);
       } else {
-        console.log(`[SSO] Existing user logged in via SSO: ${email}`);
+        if (ssoName && user.name !== ssoName) {
+          await storage.updateUserName(email.toLowerCase(), ssoName);
+          console.log(`[SSO] Updated name for ${email}: "${user.name}" → "${ssoName}"`);
+        } else {
+          console.log(`[SSO] Existing user logged in via SSO: ${email}`);
+        }
       }
-      return res.json({ success: true, user: { email: user.email, name: user.name } });
+      return res.json({ success: true, user: { email: email.toLowerCase(), name: ssoName } });
     } catch (err: any) {
       console.error("[SSO] Error:", err.message);
       return res.status(500).json({ error: "SSO login failed" });

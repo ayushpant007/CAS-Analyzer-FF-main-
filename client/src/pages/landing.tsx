@@ -520,7 +520,11 @@ export default function LandingPage() {
                 {currentUser.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
               </div>
               <span className="text-sm text-white/60 font-medium hidden sm:block">{currentUser.name}</span>
-              <button onClick={() => { localStorage.removeItem("cas_user"); window.location.reload(); }}
+              <button onClick={() => {
+                  localStorage.removeItem("cas_user");
+                  try { window.parent.postMessage({ type: "CAS_LOGOUT" }, "https://financialfriendai.com"); } catch {}
+                  window.location.href = "https://financialfriendai.com";
+                }}
                 className="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1 rounded-lg border border-white/10 hover:border-white/20">
                 Log out
               </button>

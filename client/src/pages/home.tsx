@@ -55,7 +55,10 @@ export default function Home() {
 
   function handleLogout() {
     localStorage.removeItem("cas_user");
-    navigate("/login");
+    try {
+      window.parent.postMessage({ type: "CAS_LOGOUT" }, "https://financialfriendai.com");
+    } catch {}
+    window.location.href = "https://financialfriendai.com";
   }
 
   const { data: activeReport, isLoading: isLoadingReport } = useReport(activeReportId);
@@ -161,21 +164,21 @@ export default function Home() {
               </div>
             </div>
             <h3 className="text-lg font-bold text-center mb-2" style={{ color: "#f1f5f9" }}>
-              Log out?
+              Are you sure you want to log out?
             </h3>
             <p className="text-sm text-center mb-6" style={{ color: "rgba(148,163,184,0.8)" }}>
-              Are you sure you want to log out?
+              You'll be redirected back to FinancialFriend.
             </p>
             <div className="flex gap-3">
               <button
-                data-testid="button-logout-no"
+                data-testid="button-logout-cancel"
                 onClick={() => setShowLogoutConfirm(false)}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                 style={{ background: "rgba(96,165,250,0.1)", color: "#93c5fd", border: "1px solid rgba(96,165,250,0.25)" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(96,165,250,0.18)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(96,165,250,0.1)"; }}
               >
-                No
+                Cancel
               </button>
               <button
                 data-testid="button-logout-yes"
@@ -185,7 +188,7 @@ export default function Home() {
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.25)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,113,113,0.15)"; }}
               >
-                Yes, log out
+                Yes, Log Out
               </button>
             </div>
           </motion.div>
