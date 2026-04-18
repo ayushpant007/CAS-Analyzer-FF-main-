@@ -1522,11 +1522,6 @@ CAS TEXT:\n${text}`;
     }
   }
 
-  // Run poll every 30 minutes
-  const POLL_INTERVAL_MS = 30 * 60 * 1000;
-  setInterval(pollAllGmailAccounts, POLL_INTERVAL_MS);
-  // Run once after 10 seconds on startup
-  setTimeout(pollAllGmailAccounts, 10_000);
 
   // ── OAuth: start Gmail connect flow
   // Debug endpoint — returns the exact redirect URI being used
@@ -1584,10 +1579,6 @@ CAS TEXT:\n${text}`;
       });
 
       console.log(`[Gmail] Connected account: ${email}`);
-
-      // Immediately trigger a check for this user
-      const conn = await storage.getGmailConnection(email);
-      if (conn) pollGmailAccount(conn as any).catch(() => {});
 
       res.redirect("/home?gmail=connected");
     } catch (e: any) {
