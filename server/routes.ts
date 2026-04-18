@@ -121,6 +121,7 @@ async function generateWithFallback(prompt: string, options: { model?: string, r
         generationConfig: {
           ...(options.responseMimeType ? { responseMimeType: options.responseMimeType } : {}),
           temperature: options.temperature ?? 0,
+          maxOutputTokens: 65536,
         }
       });
       const result = await model.generateContent(prompt);
@@ -277,7 +278,23 @@ ${text}`;
 
       const analysisRawResult = await generateWithFallback(analysisPrompt, { responseMimeType: "application/json" });
       const analysisRawStr = typeof analysisRawResult === 'string' ? analysisRawResult : "";
-      const analysis = JSON.parse(analysisRawStr || "{}");
+      let analysis: any;
+      try {
+        analysis = JSON.parse(analysisRawStr || "{}");
+      } catch (parseErr: any) {
+        // Attempt to recover truncated JSON by finding the last complete object boundary
+        const truncated = analysisRawStr;
+        const lastBrace = truncated.lastIndexOf('}');
+        if (lastBrace > 0) {
+          try {
+            analysis = JSON.parse(truncated.substring(0, lastBrace + 1));
+          } catch {
+            throw new Error("AI response was too large and could not be parsed. Please try a smaller or less complex CAS PDF.");
+          }
+        } else {
+          throw new Error("AI response was too large and could not be parsed. Please try a smaller or less complex CAS PDF.");
+        }
+      }
 
       // Detect CAS source (CAMS / NSDL / CDSL) from raw text
       analysis.cas_source = detectCasSource(text);
@@ -1722,6 +1739,28 @@ CAS TEXT:\n${text}`;
   });
 
   // ── Import a specific Gmail attachment by messageId + attachmentId ─────────
+  // Fetch a Gmail attachment as base64 (no analysis — user will enter password and analyze via UploadCard)
+  app.post("/api/gmail/fetch-attachment", async (req, res) => {
+    const { email, messageId, attachmentId, filename } = req.body as { email: string; messageId: string; attachmentId: string; filename: string };
+    if (!email || !messageId || !attachmentId) return res.status(400).json({ error: "Missing required fields" });
+
+    const conn = await storage.getGmailConnection(email);
+    if (!conn) return res.status(404).json({ error: "Gmail not connected" });
+
+    try {
+      const gmail = await getGmailClient(conn as any);
+      const att = await gmail.users.messages.attachments.get({ userId: "me", messageId, id: attachmentId });
+      const data = att.data.data;
+      if (!data) return res.status(400).json({ error: "Could not download attachment" });
+
+      const safeFilename = (filename || `cas-import-${Date.now()}.pdf`).trim();
+      res.json({ ok: true, base64: data, filename: safeFilename });
+    } catch (e: any) {
+      console.error(`[Gmail] fetch-attachment error:`, e.message);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.post("/api/gmail/import-attachment", async (req, res) => {
     const { email, messageId, attachmentId, filename } = req.body as { email: string; messageId: string; attachmentId: string; filename: string };
     if (!email || !messageId || !attachmentId) return res.status(400).json({ error: "Missing required fields" });

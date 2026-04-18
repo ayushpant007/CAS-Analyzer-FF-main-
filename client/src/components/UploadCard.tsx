@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAnalyzeReport } from "@/hooks/use-reports";
 import { Upload, FileText, Lock, Loader2, AlertCircle, Sparkles, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,9 +8,11 @@ import { useQuery } from "@tanstack/react-query";
 interface UploadCardProps {
   onSuccess: (reportId: number) => void;
   userEmail?: string;
+  initialFile?: File | null;
+  onInitialFileConsumed?: () => void;
 }
 
-export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
+export function UploadCard({ onSuccess, userEmail, initialFile, onInitialFileConsumed }: UploadCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState("");
   const [investorType, setInvestorType] = useState("Aggressive");
@@ -20,6 +22,14 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
 
   const { mutate: analyze, isPending, error } = useAnalyzeReport();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (initialFile) {
+      setFile(initialFile);
+      setPassword("");
+      onInitialFileConsumed?.();
+    }
+  }, [initialFile]);
 
   const { data: dailyUsage, refetch: refetchUsage } = useQuery<{ limit: number; used: number; remaining: number }>({
     queryKey: ["/api/reports/daily-usage", userEmail],
@@ -36,17 +46,9 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
 
   const isLimitReached = (dailyUsage?.remaining ?? 1) <= 0;
 
-  const extractPasswordFromFilename = (filename: string): string | null => {
-    const match = filename.match(/\(([^)]+)\)/);
-    return match ? match[1].trim() : null;
-  };
-
   const applyFile = (f: File) => {
     setFile(f);
-    const extracted = extractPasswordFromFilename(f.name);
-    if (extracted) {
-      setPassword(extracted);
-    }
+    setPassword("");
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -519,11 +521,6 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
                     >
                       <Lock className="w-4 h-4" style={{ color: "rgba(148,163,184,0.5)" }} />
                       PDF Password (if protected)
-                      {file && extractPasswordFromFilename(file.name) && (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-normal" style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(52,211,153,0.3)" }}>
-                          Auto-detected from filename
-                        </span>
-                      )}
                     </label>
                     <input
                       type="password"
@@ -551,8 +548,8 @@ export function UploadCard({ onSuccess, userEmail }: UploadCardProps) {
                     >
                       <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                       <p>
-                        {(error.message?.toLowerCase().includes("incorrect password") || error.message?.toLowerCase().includes("wrong password")) && file && extractPasswordFromFilename(file.name)
-                          ? "Could not open PDF. Please check the password in the filename brackets."
+                        {(error.message?.toLowerCase().includes("incorrect password") || error.message?.toLowerCase().includes("wrong password"))
+                          ? "Incorrect password. Please enter the correct PDF password (usually your PAN number)."
                           : error.message}
                       </p>
                     </motion.div>

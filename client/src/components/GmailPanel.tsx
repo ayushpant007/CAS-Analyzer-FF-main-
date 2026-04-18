@@ -116,11 +116,11 @@ type ScanMode = "range" | "single";
 function ScanInboxModal({
   userEmail,
   onClose,
-  onNavigateToReport,
+  onFileReady,
 }: {
   userEmail: string;
   onClose: () => void;
-  onNavigateToReport: (reportId: number, remaining: PendingScanPdf[]) => void;
+  onFileReady: (file: File) => void;
 }) {
   const [step, setStep] = useState<ScanStep>("picking-dates");
   const [scanMode, setScanMode] = useState<ScanMode>("range");
@@ -134,7 +134,6 @@ function ScanInboxModal({
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Resolve effective from/to based on mode
   const effectiveFrom = scanMode === "single" ? singleDate : fromDate;
   const effectiveTo   = scanMode === "single" ? singleDate : toDate;
   const canSearch     = scanMode === "single" ? !!singleDate : (!!fromDate && !!toDate);
@@ -152,24 +151,19 @@ function ScanInboxModal({
       if (!res.ok) throw new Error(data.error || "Search failed");
       const pdfs: PendingScanPdf[] = data.pdfs || [];
       setFoundPdfs(pdfs);
-      if (pdfs.length === 1) {
-        setStep("importing");
-        await importPdf(pdfs, 0);
-      } else {
-        setStep("showing-results");
-      }
+      setStep("showing-results");
     } catch (e: any) {
       setError(e.message || "Search failed");
       setStep("picking-dates");
     }
   }
 
-  async function importPdf(pdfs: PendingScanPdf[], idx: number) {
+  async function fetchAndLoadPdf(pdfs: PendingScanPdf[], idx: number) {
     setImportingIdx(idx);
     setImportError("");
     const pdf = pdfs[idx];
     try {
-      const res = await fetch("/api/gmail/import-attachment", {
+      const res = await fetch("/api/gmail/fetch-attachment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -180,15 +174,21 @@ function ScanInboxModal({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Import failed");
-      const remaining = pdfs.filter((_, i) => i !== idx);
-      sessionStorage.setItem(PENDING_SCAN_KEY, JSON.stringify(remaining));
-      sessionStorage.setItem(PENDING_SCAN_META_KEY, JSON.stringify({ fromDate: effectiveFrom, toDate: effectiveTo }));
-      onNavigateToReport(data.reportId, remaining);
+      if (!res.ok) throw new Error(data.error || "Could not download PDF");
+
+      // Convert base64url to Blob → File
+      const base64 = (data.base64 as string).replace(/-/g, "+").replace(/_/g, "/");
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const file = new File([blob], data.filename || pdf.filename, { type: "application/pdf" });
+
+      onFileReady(file);
+      onClose();
     } catch (e: any) {
-      setImportError(e.message || "Could not import PDF");
+      setImportError(e.message || "Could not load PDF");
       setImportingIdx(null);
-      setStep("showing-results");
     }
   }
 
@@ -395,15 +395,15 @@ function ScanInboxModal({
             </div>
           )}
 
-          {/* Step: Importing (single PDF or selected from list) */}
-          {step === "importing" && importingIdx !== null && (
+          {/* Step: Downloading PDF to load into upload section */}
+          {importingIdx !== null && step !== "showing-results" && (
             <div className="py-8 text-center space-y-3">
               <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center" style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)" }}>
                 <RefreshCw size={20} className="text-emerald-400 animate-spin" />
               </div>
-              <p className="text-white font-semibold text-sm">Importing PDF...</p>
+              <p className="text-white font-semibold text-sm">Downloading PDF...</p>
               <p className="text-white/50 text-xs max-w-xs mx-auto truncate">{foundPdfs[importingIdx]?.filename}</p>
-              <p className="text-white/30 text-xs">Analysing with AI — this may take 20–30 seconds</p>
+              <p className="text-white/30 text-xs">Loading into upload section — you'll enter the password next</p>
             </div>
           )}
 
@@ -441,7 +441,7 @@ function ScanInboxModal({
                     {foundPdfs.map((pdf, idx) => (
                       <motion.button
                         key={`${pdf.messageId}-${pdf.attachmentId}`}
-                        onClick={() => { setStep("importing"); importPdf(foundPdfs, idx); }}
+                        onClick={() => fetchAndLoadPdf(foundPdfs, idx)}
                         disabled={importingIdx !== null}
                         data-testid={`button-import-pdf-${idx}`}
                         initial={{ opacity: 0, y: 8 }}
@@ -481,7 +481,7 @@ function ScanInboxModal({
   );
 }
 
-export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onNewReports?: () => void }) {
+export function GmailPanel({ userEmail, onNewReports, onGmailFileImport }: { userEmail: string; onNewReports?: () => void; onGmailFileImport?: (file: File) => void }) {
   const [status, setStatus] = useState<{ connected: boolean; lastCheckedAt?: string; createdAt?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showScanModal, setShowScanModal] = useState(false);
@@ -568,12 +568,9 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
     }
   }
 
-  function handleNavigateToReport(reportId: number, remaining: PendingScanPdf[]) {
-    queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
-    onNewReports?.();
+  function handleFileReady(file: File) {
     setShowScanModal(false);
-    sessionStorage.setItem(PENDING_SCAN_KEY, JSON.stringify(remaining));
-    navigate(`/reports/${reportId}/concise`);
+    onGmailFileImport?.(file);
   }
 
   async function handleDisconnect() {
@@ -612,7 +609,7 @@ export function GmailPanel({ userEmail, onNewReports }: { userEmail: string; onN
           <ScanInboxModal
             userEmail={userEmail}
             onClose={() => { setShowScanModal(false); setPendingPdfs([]); sessionStorage.removeItem(PENDING_SCAN_KEY); }}
-            onNavigateToReport={handleNavigateToReport}
+            onFileReady={handleFileReady}
           />
         )}
       </AnimatePresence>

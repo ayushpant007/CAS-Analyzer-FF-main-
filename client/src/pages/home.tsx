@@ -20,6 +20,7 @@ export default function Home() {
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [autoAnalyzeNewReport, setAutoAnalyzeNewReport] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [gmailImportedFile, setGmailImportedFile] = useState<File | null>(null);
   const [, navigate] = useLocation();
 
   // Fallback: if Google OAuth sent the token to /home instead of /auth/google/callback,
@@ -325,6 +326,7 @@ export default function Home() {
               {userEmail && (
                 <GmailPanel
                   userEmail={userEmail}
+                  onGmailFileImport={(file) => setGmailImportedFile(file)}
                   onNewReports={async () => {
                     const res = await fetch(`/api/reports?email=${encodeURIComponent(userEmail)}`);
                     if (res.ok) {
@@ -351,7 +353,12 @@ export default function Home() {
                     background: "radial-gradient(ellipse, #3b6fff 0%, transparent 70%)",
                   }}
                 />
-                <UploadCard onSuccess={(id) => { setAutoAnalyzeNewReport(true); setActiveReportId(id); }} userEmail={userEmail || undefined} />
+                <UploadCard
+                  onSuccess={(id) => { setAutoAnalyzeNewReport(true); setActiveReportId(id); }}
+                  userEmail={userEmail || undefined}
+                  initialFile={gmailImportedFile}
+                  onInitialFileConsumed={() => setGmailImportedFile(null)}
+                />
               </motion.div>
 
               {/* Recent Reports List - deduplicated by filename */}
