@@ -218,12 +218,16 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
   const redirectToGoogle = async (mode: "login" | "signup") => {
     setLoading(true);
     setError("");
+    // Open popup immediately before any async work — browsers block popups after await
+    const popup = window.open("about:blank", "google_oauth", "width=520,height=620,left=200,top=100");
     try {
       const configRes = await fetch("/api/config/public");
       const config = await configRes.json();
       const clientId = config.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!clientId) {
+        if (popup) popup.close();
         setError("Google Sign-In is not configured. Please contact support.");
+        setLoading(false);
         return;
       }
       sessionStorage.setItem("google_auth_mode", mode);
@@ -237,8 +241,9 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         prompt: "select_account",
       });
       const googleUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-      const popup = window.open(googleUrl, "google_oauth", "width=520,height=620,left=200,top=100");
-      if (!popup) {
+      if (popup) {
+        popup.location.href = googleUrl;
+      } else {
         window.location.href = googleUrl;
         return;
       }
@@ -264,6 +269,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         }
       }, 500);
     } catch {
+      if (popup) popup.close();
       setError("Google Sign-In is not available. Please try again.");
       setLoading(false);
     }
@@ -712,16 +718,17 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
 
   const redirectToGoogle = async (mode: "login" | "signup") => {
     setLoading(true); setError("");
+    // Open popup immediately before any async work — browsers block popups after await
+    const popup = window.open("about:blank", "google_oauth", "width=520,height=620,left=200,top=100");
     try {
       const config = await fetch("/api/config/public").then(r => r.json());
       const clientId = config.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) { setError("Google Sign-In is not configured."); return; }
+      if (!clientId) { if (popup) popup.close(); setError("Google Sign-In is not configured."); setLoading(false); return; }
       sessionStorage.setItem("google_auth_mode", mode);
       const redirectUri2 = import.meta.env.VITE_GOOGLE_REDIRECT_URI || config.googleRedirectUri || `${window.location.origin}/auth/google/callback`;
       const params = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri2, response_type: "token", scope: "openid email profile", include_granted_scopes: "true", prompt: "select_account" });
       const googleUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-      const popup = window.open(googleUrl, "google_oauth", "width=520,height=620,left=200,top=100");
-      if (!popup) { window.location.href = googleUrl; return; }
+      if (popup) { popup.location.href = googleUrl; } else { window.location.href = googleUrl; return; }
       const handler = (event: MessageEvent) => {
         if (event.data?.type === "GOOGLE_OAUTH_SUCCESS") {
           window.removeEventListener("message", handler);
@@ -736,7 +743,7 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
       };
       window.addEventListener("message", handler);
       const timer = setInterval(() => { if (popup.closed) { clearInterval(timer); window.removeEventListener("message", handler); setLoading(false); } }, 500);
-    } catch { setError("Google Sign-In is not available."); setLoading(false); }
+    } catch { if (popup) popup.close(); setError("Google Sign-In is not available."); setLoading(false); }
   };
 
   const handleForgotSend = async () => {
