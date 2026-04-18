@@ -173,10 +173,25 @@ export default function ConciseReport() {
     });
   }, [analysis.mf_snapshot, storedPerformances]);
 
-  const totalInvested = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.invested_amount || 0), 0), [mfSnapshot]);
-  const totalValuation = useMemo(() => {
-    return mfSnapshot.reduce((a: number, m: any) => a + (m.valuation || 0), 0);
-  }, [mfSnapshot]);
+  // MF-only sums (from mf_snapshot which only has INF ISINs / mutual funds)
+  const mfTotalInvested = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.invested_amount || 0), 0), [mfSnapshot]);
+  const mfTotalValuation = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.valuation || 0), 0), [mfSnapshot]);
+
+  // Grand total — use summary values from the AI extraction when they are meaningful.
+  // For CDSL/NSDL reports the summary includes equity + govt securities + MF (demat+folio).
+  // For CAMS-only reports the summary equals the MF total, so the fallback is identical.
+  const summaryNav = (analysis.summary as any)?.net_asset_value ?? 0;
+  const summaryCost = (analysis.summary as any)?.total_cost ?? 0;
+
+  const totalValuation = useMemo(
+    () => (summaryNav > 0 ? summaryNav : mfTotalValuation),
+    [summaryNav, mfTotalValuation],
+  );
+  const totalInvested = useMemo(
+    () => (summaryCost > 0 ? summaryCost : mfTotalInvested),
+    [summaryCost, mfTotalInvested],
+  );
+
   const totalUnrealised = useMemo(() => mfSnapshot.reduce((a: number, m: any) => a + (m.unrealised_profit_loss || 0), 0), [mfSnapshot]);
 
   const sipAmounts = useMemo(() => {
@@ -638,8 +653,8 @@ export default function ConciseReport() {
           plCell(mf.unrealised_profit_loss || 0, i),
         ]),
         [tot("GRAND TOTAL"), tot(""), tot(""), tot(""), tot(""), tot(""),
-          tot(totalInvested, '"₹"#,##0.00'),
-          tot(totalValuation, '"₹"#,##0.00'),
+          tot(mfTotalInvested, '"₹"#,##0.00'),
+          tot(mfTotalValuation, '"₹"#,##0.00'),
           { ...tot(totalUnrealised, '"₹"#,##0.00'), s: { ...tot("").s, font: { bold: true, sz: 10, color: { rgb: totalUnrealised >= 0 ? "6EE7B7" : "FCA5A5" }, name: "Calibri" }, fill: { fgColor: { rgb: C.TOTALBG } }, alignment: { horizontal: "right" }, border: borderMed } },
         ],
       ];
@@ -1011,13 +1026,16 @@ export default function ConciseReport() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 Portfolio Overview&nbsp;&nbsp;·&nbsp;&nbsp;{format(new Date(), "MMM d, yyyy")}
               </p>
+              {investorName && (
+                <p className="text-sm font-semibold text-slate-700 mt-1">{investorName}</p>
+              )}
             </div>
             <div className="p-5">
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-4 rounded-xl bg-slate-50">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Value</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Invested</p>
                   <p className="text-xl font-bold text-slate-900">{formatLakh(totalInvested)}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">total invested (cost)</p>
+                  <p className="text-xs text-slate-400 mt-0.5">total purchase cost</p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Market Value</p>
@@ -1356,9 +1374,9 @@ export default function ConciseReport() {
                     );
                   })}
                   <tr className="bg-slate-800 text-white font-bold text-[10px]">
-                    <td colSpan={4} className="px-3 py-2 text-right uppercase tracking-wider text-[9px]">Grand Total</td>
-                    <td className="px-3 py-2 text-right">₹{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                    <td className="px-3 py-2 text-right">₹{totalValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td colSpan={4} className="px-3 py-2 text-right uppercase tracking-wider text-[9px]">MF Total</td>
+                    <td className="px-3 py-2 text-right">₹{mfTotalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td className="px-3 py-2 text-right">₹{mfTotalValuation.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                     <td className="px-3 py-2 text-right">₹{totalUnrealised.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tbody>

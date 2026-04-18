@@ -205,6 +205,13 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Could not extract text from PDF. It might be empty or scanned." });
       }
 
+      // Cap input text to prevent overwhelming Gemini context and causing truncated responses
+      const MAX_TEXT_CHARS = 130_000;
+      if (text.length > MAX_TEXT_CHARS) {
+        console.log(`PDF text truncated from ${text.length} to ${MAX_TEXT_CHARS} chars`);
+        text = text.substring(0, MAX_TEXT_CHARS);
+      }
+
       let csvContent = "";
       try {
         csvContent = await fs.readFile(path.join(process.cwd(), "server/assets/category_ratios.csv"), "utf-8");
@@ -220,20 +227,35 @@ ${csvContent}
 
 Extract:
 0. Investor name: Extract the full name of the investor/account holder from the CAS report header or personal details section. Return as "investor_name": string.
-1. Portfolio summary: {"net_asset_value": number, "total_cost": number}
+
+1. Portfolio summary:
+   - "net_asset_value": The GRAND TOTAL current market value of the ENTIRE portfolio.
+     * For CDSL/NSDL combined statements: Find "Total Portfolio Value", "Grand Total", or "YOUR CONSOLIDATED PORTFOLIO VALUE" in the summary table. This MUST include ALL demat equity stocks (INE* ISINs), government securities (IN0*/IN8* ISINs), mutual fund folios, AND mutual funds held in demat form. Do NOT use only the MF folios subtotal — look for the overall grand total.
+     * For CAMS-only statements: Sum of all MF scheme current valuations.
+   - "total_cost": The total purchase cost / invested amount for the entire portfolio.
+     * For CDSL/NSDL: Look for "Cost" or "Purchase Value" in the summary table. If not available, sum invested amounts from all holdings.
+     * For CAMS-only: Sum of invested_amount from all MF schemes.
+   Return as: {"net_asset_value": number, "total_cost": number}
+
 2. Account-wise summary table: [{"type": string, "details": string, "count": number, "value": number}]
+
 3. Historical Portfolio Valuation: [{"month_year": string, "valuation": number, "change_value": number, "change_percentage": number}]
-4. Asset Class Allocation: Compute this accurately by grouping all funds from the mf_snapshot into exactly these standard categories using their SEBI/AMFI classification:
+
+4. Asset Class Allocation (for the MUTUAL FUND portion only — used for portfolio health comparison):
+   Group all MUTUAL FUND schemes (ISIN starting with INF) from the statement into exactly these SEBI/AMFI categories:
    - "Equity": Pure equity funds — Large Cap, Mid Cap, Small Cap, Flexi Cap, Multi Cap, Large & Mid Cap, ELSS, Focused Fund, Value Fund, Contra Fund, Sectoral, Thematic, Overseas/International equity FOF
    - "Debt": All debt/fixed income funds — Liquid, Overnight, Ultra Short Duration, Low Duration, Short Duration, Medium Duration, Medium to Long Duration, Long Duration, Dynamic Bond, Corporate Bond, Credit Risk, Banking & PSU, Gilt, Gilt with 10yr constant duration, Floater
    - "Hybrid": Balanced/hybrid funds — Conservative Hybrid, Balanced Hybrid, Aggressive Hybrid, Dynamic Asset Allocation / Balanced Advantage, Multi Asset Allocation, Arbitrage, Equity Savings, Solution Oriented
    - "Gold/Silver": Gold ETF, Silver ETF, Gold ETF Fund of Fund, Silver ETF Fund of Fund, Gold/Commodity funds
    - "Others": Everything else not fitting above categories
-   For each category, sum the current market valuation of all funds in that category. Compute percentage = (category_value / total_portfolio_value) * 100. Only include categories where value > 0.
+   For each category, sum the current market valuation of all MF funds in that category. Compute percentage = (category_value / total_mf_value) * 100 where total_mf_value is the sum of all MF scheme valuations. Only include categories where value > 0.
    Return: [{"asset_class": "Equity"|"Debt"|"Hybrid"|"Gold/Silver"|"Others", "value": number, "percentage": number}]
-5. Mutual Fund Portfolio Snapshot: [{"scheme_name": string, "folio_no": string, "units": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
+
+5. Mutual Fund Portfolio Snapshot (ONLY include schemes where ISIN starts with "INF" — mutual funds only. Do NOT include equity stocks with INE* ISINs or government securities with IN0*/IN8* ISINs):
+   [{"scheme_name": string, "folio_no": string, "units": number, "nav": number, "invested_amount": number, "valuation": number, "unrealised_profit_loss": number, "fund_category": string, "fund_type": string, "isin": string}]
    - IMPORTANT: For "units", strictly extract the "No. of Units" or "Units" column value from the statement for each scheme.
    - For fund_category, use ONLY these exact values: "Equity", "Debt", "Hybrid", "Gold/Commodity", "Others". Apply the same classification rules as in field 4 above.
+
 6. Comparison Tables (using the CSV ratios for the given Age Group and Risk Profile):
    - Current Category Allocation (Equity, Debt, Hybrid, Others)
    - Comparison with Category Ratio (Current % vs Target % from CSV)
@@ -271,7 +293,7 @@ For mf_snapshot, ensure you accurately identify:
 - fund_type: e.g. Flexi Cap, Bluechip, Large Cap, Mid Cap, Small Cap, Sectoral, Gold ETF FoF, etc.
 - isin: The 12-character International Securities Identification Number for the fund.
 
-Ensure ALL funds and folios are extracted comprehensively without omission, including Gold ETF Fund of Fund, Silver ETF, and any commodity/alternative fund schemes. Ensure all numerical values are numbers.
+Ensure ALL mutual fund schemes and folios are extracted comprehensively without omission, including Gold ETF Fund of Fund, Silver ETF, and any commodity/alternative fund schemes. Ensure all numerical values are numbers (not strings).
 
 Text content:
 ${text}`;
