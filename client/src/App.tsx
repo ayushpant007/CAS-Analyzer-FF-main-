@@ -73,12 +73,12 @@ function SsoHandler() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={LandingPage} />
-      <Route path="/landing" component={LandingPage} />
-      <Route path="/login" component={AuthPage} />
-      <Route path="/signup" component={() => <AuthPage defaultView="signup" />} />
+      <Route path="/" component={Home} />
       <Route path="/home" component={Home} />
       <Route path="/dashboard" component={Home} />
+      <Route path="/landing" component={LandingPage} />
+      <Route path="/login" component={Home} />
+      <Route path="/signup" component={Home} />
       <Route path="/auth/google/callback" component={GoogleCallback} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/privacy" component={PrivacyPolicy} />
