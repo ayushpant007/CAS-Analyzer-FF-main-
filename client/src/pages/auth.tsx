@@ -227,7 +227,7 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         return;
       }
       sessionStorage.setItem("google_auth_mode", mode);
-      const redirectUri = `${window.location.origin}/auth/google/callback`;
+      const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI || config.googleRedirectUri || `${window.location.origin}/auth/google/callback`;
       const params = new URLSearchParams({
         client_id: clientId,
         redirect_uri: redirectUri,
@@ -692,7 +692,8 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
       const clientId = config.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!clientId) { setError("Google Sign-In is not configured."); return; }
       sessionStorage.setItem("google_auth_mode", mode);
-      const params = new URLSearchParams({ client_id: clientId, redirect_uri: `${window.location.origin}/auth/google/callback`, response_type: "token", scope: "openid email profile", include_granted_scopes: "true", prompt: "select_account" });
+      const redirectUri2 = import.meta.env.VITE_GOOGLE_REDIRECT_URI || config.googleRedirectUri || `${window.location.origin}/auth/google/callback`;
+      const params = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri2, response_type: "token", scope: "openid email profile", include_granted_scopes: "true", prompt: "select_account" });
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
     } catch { setError("Google Sign-In is not available."); }
     finally { setLoading(false); }
