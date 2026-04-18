@@ -7,6 +7,15 @@ export default function GoogleCallback() {
   const [status, setStatus] = useState<"loading" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const isPopup = !!window.opener;
+
+  const sendToOpener = (type: string, payload: Record<string, string>) => {
+    try {
+      window.opener.postMessage({ type, ...payload }, "*");
+    } catch {}
+    window.close();
+  };
+
   useEffect(() => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
@@ -15,14 +24,24 @@ export default function GoogleCallback() {
     const error = params.get("error");
 
     if (error) {
-      setErrorMsg(error === "access_denied" ? "You cancelled Google sign-in." : `Google error: ${error}`);
+      const msg = error === "access_denied" ? "You cancelled Google sign-in." : `Google error: ${error}`;
+      if (isPopup) {
+        sendToOpener("GOOGLE_OAUTH_ERROR", { error: msg });
+        return;
+      }
+      setErrorMsg(msg);
       setStatus("error");
       setTimeout(() => navigate("/login"), 3000);
       return;
     }
 
     if (!accessToken) {
-      setErrorMsg("No access token received from Google.");
+      const msg = "No access token received from Google.";
+      if (isPopup) {
+        sendToOpener("GOOGLE_OAUTH_ERROR", { error: msg });
+        return;
+      }
+      setErrorMsg(msg);
       setStatus("error");
       setTimeout(() => navigate("/login"), 3000);
       return;
@@ -47,32 +66,41 @@ export default function GoogleCallback() {
         const loginData = await loginRes.json();
 
         if (!loginRes.ok) {
-          if (loginData.alreadyExists) {
-            setErrorMsg("An account with this email already exists. Please log in instead.");
-            setStatus("error");
-            setTimeout(() => navigate("/login"), 4000);
-          } else if (loginData.notFound) {
-            setErrorMsg("No account found for this Google email. Please sign up first.");
-            setStatus("error");
-            setTimeout(() => navigate("/login"), 4000);
-          } else {
-            setErrorMsg(loginData.error || "Login failed. Please try again.");
-            setStatus("error");
-            setTimeout(() => navigate("/login"), 4000);
+          let errMsg = loginData.error || "Login failed. Please try again.";
+          if (loginData.alreadyExists) errMsg = "An account with this email already exists. Please log in instead.";
+          if (loginData.notFound) errMsg = "No account found for this Google email. Please sign up first.";
+
+          if (isPopup) {
+            sendToOpener("GOOGLE_OAUTH_ERROR", { error: errMsg });
+            return;
           }
+          setErrorMsg(errMsg);
+          setStatus("error");
+          setTimeout(() => navigate("/login"), 4000);
           return;
         }
 
         const name = loginData.name || googleName;
+
+        if (isPopup) {
+          sendToOpener("GOOGLE_OAUTH_SUCCESS", { name, email });
+          return;
+        }
+
         localStorage.setItem("cas_user", JSON.stringify({ name, email }));
         navigate("/landing");
       })
       .catch(() => {
-        setErrorMsg("Failed to fetch your Google profile. Please try again.");
+        const msg = "Failed to fetch your Google profile. Please try again.";
+        if (isPopup) {
+          sendToOpener("GOOGLE_OAUTH_ERROR", { error: msg });
+          return;
+        }
+        setErrorMsg(msg);
         setStatus("error");
         setTimeout(() => navigate("/login"), 3000);
       });
-  }, [navigate]);
+  }, []);
 
   return (
     <div style={{

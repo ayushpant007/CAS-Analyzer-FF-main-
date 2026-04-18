@@ -236,10 +236,35 @@ export function AuthModal({ isOpen, defaultView = "login", onClose, onSuccess }:
         include_granted_scopes: "true",
         prompt: "select_account",
       });
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+      const googleUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+      const popup = window.open(googleUrl, "google_oauth", "width=520,height=620,left=200,top=100");
+      if (!popup) {
+        window.location.href = googleUrl;
+        return;
+      }
+      const handler = (event: MessageEvent) => {
+        if (event.data?.type === "GOOGLE_OAUTH_SUCCESS") {
+          window.removeEventListener("message", handler);
+          const { name, email } = event.data;
+          localStorage.setItem("cas_user", JSON.stringify({ name, email }));
+          setLoading(false);
+          window.location.href = "/landing";
+        } else if (event.data?.type === "GOOGLE_OAUTH_ERROR") {
+          window.removeEventListener("message", handler);
+          setError(event.data.error || "Google Sign-In failed. Please try again.");
+          setLoading(false);
+        }
+      };
+      window.addEventListener("message", handler);
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          window.removeEventListener("message", handler);
+          setLoading(false);
+        }
+      }, 500);
     } catch {
       setError("Google Sign-In is not available. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -694,9 +719,24 @@ export default function AuthPage({ defaultView: initView = "login" }: { defaultV
       sessionStorage.setItem("google_auth_mode", mode);
       const redirectUri2 = import.meta.env.VITE_GOOGLE_REDIRECT_URI || config.googleRedirectUri || `${window.location.origin}/auth/google/callback`;
       const params = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri2, response_type: "token", scope: "openid email profile", include_granted_scopes: "true", prompt: "select_account" });
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-    } catch { setError("Google Sign-In is not available."); }
-    finally { setLoading(false); }
+      const googleUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+      const popup = window.open(googleUrl, "google_oauth", "width=520,height=620,left=200,top=100");
+      if (!popup) { window.location.href = googleUrl; return; }
+      const handler = (event: MessageEvent) => {
+        if (event.data?.type === "GOOGLE_OAUTH_SUCCESS") {
+          window.removeEventListener("message", handler);
+          localStorage.setItem("cas_user", JSON.stringify({ name: event.data.name, email: event.data.email }));
+          setLoading(false);
+          window.location.href = "/landing";
+        } else if (event.data?.type === "GOOGLE_OAUTH_ERROR") {
+          window.removeEventListener("message", handler);
+          setError(event.data.error || "Google Sign-In failed.");
+          setLoading(false);
+        }
+      };
+      window.addEventListener("message", handler);
+      const timer = setInterval(() => { if (popup.closed) { clearInterval(timer); window.removeEventListener("message", handler); setLoading(false); } }, 500);
+    } catch { setError("Google Sign-In is not available."); setLoading(false); }
   };
 
   const handleForgotSend = async () => {
