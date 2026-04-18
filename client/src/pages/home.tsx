@@ -34,6 +34,18 @@ export default function Home() {
     window.location.replace(`/auth/google/callback#${hash}`);
   }, [navigate]);
 
+  // Auth guard: redirect to login if not logged in (skip during OAuth hash flow)
+  useEffect(() => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    if (params.get("access_token")) return; // mid-OAuth, let the other effect handle it
+    try {
+      const cas = localStorage.getItem("cas_user");
+      if (!cas) navigate("/login");
+    } catch {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const casUser = (() => {
     try { const s = localStorage.getItem("cas_user"); return s ? JSON.parse(s) : null; } catch { return null; }
